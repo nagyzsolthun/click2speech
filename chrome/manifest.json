@@ -1,0 +1,16 @@
+{
+	"manifest_version": 2,
+	"name": "text reader",
+	"description": "text reader using google's text to speech api",
+	"version": "0.1",
+	"content_scripts": [{
+		"matches": ["<all_urls>"],
+		"js": ["selection2speech.js"]
+	}],
+	"permissions": ["http://*/","https://*/"],
+	"background" : {"scripts": ["background.js"]},
+	"browser_action": {
+		"default_icon": "icon.png",
+		"default_popup": "popup.html"
+	}
+}
