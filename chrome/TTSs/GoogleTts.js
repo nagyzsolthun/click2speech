@@ -1,5 +1,6 @@
 function GoogleTts() {
 	var ttsurl = "https://translate.google.co.uk/translate_tts";
+	var audios = [];
 
 	/** @return index of the end of the last regexp match under given limit in text or -1 if there is no*/
 	function lastMatcEndhUnderLimit(text, limit, re) {
@@ -65,9 +66,11 @@ function GoogleTts() {
 	}
 	
 	this.read = function(text) {
+		this.stop();
+		
 		var splitText = splitTextByRegexpArray(text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
 		
-		var audios = [];
+		audios = [];
 		for(var i=0; i<splitText.length; i++) {
 			audios.push(new Audio());
 			var url = ttsurl + "?q=" + splitText[i] + "&tl=hu";	//maxlen is 100!
@@ -79,7 +82,12 @@ function GoogleTts() {
 		audios[0].onloadeddata = function() {audios[0].play();}
 	};
 	
+	/** stops playing the audio permanently (not only pause!)*/
 	this.stop = function() {
-		audo.pause();
+		for(var i=0; i<audios.length; i++) {
+			audios[i].pause();
+			audios[i].removeAttribute("src");
+		}
+		audios = [];
 	}
 }
