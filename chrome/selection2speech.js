@@ -1,8 +1,7 @@
-document.onkeypress = function() {
-	if(event.keyCode == 48)	{ //key '0' pressed
-		var text = getSelection();
-		chrome.runtime.sendMessage({textToSpeech: '"' + text + '"'}, function(response) {
-			console.log(response.farewell);
-		});
-	}
+document.onmousedown = function() {
+		var text = getSelection().toString();
+		var lan = document.documentElement.lang || "en";
+		chrome.runtime.sendMessage({
+			textToSpeech: text,
+			languageOfSpeech: lan});
 }

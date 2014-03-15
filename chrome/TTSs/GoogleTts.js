@@ -1,9 +1,12 @@
 function GoogleTts() {
-	var ttsurl = "https://translate.google.co.uk/translate_tts";
 	var audios = [];
 
-	/** @return index of the end of the last regexp match under given limit in text or -1 if there is no*/
-	function lastMatcEndhUnderLimit(text, limit, re) {
+	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
+	 * @param text
+	 * @param re the regexp to be matched - hbas to be global
+	 * @param limit the index of last character under which we search for match
+	 */
+	function lastMatch(text, re, limit) {
 		var result = -1;
 		var regexpResult;
 		while(regexpResult = re.exec(text)) {
@@ -18,42 +21,47 @@ function GoogleTts() {
 		return result;
 	}
 	
-	/** @return index of the end of the last regexp match under given limit in text
-	 used regexp is the first regexp in given array
-	 if no regexp matches then returns limit*/
-	function lastMatchEndUnderLimitArray(text, limit, reArray) {
+	/** @return index of last match (end of it) under given limit OR given limit or no match found
+	 * @param text
+	 * @param reArray the regexps to be matched: the first regexp that has match under limit wins
+	 * @param limit the index of last character under which we search for match*/
+	function lastMatchArr(text, limit, reArray) {
 		for(var i=0; i<reArray.length; i++) {
-			var result = lastMatcEndhUnderLimit(text, limit, reArray[i]);
+			var result = lastMatch(text, reArray[i], limit);
 			if(result > -1) return result;
 		}
 		return limit;
 	}
 	
-	/** splits text to provide maximum limit length parts
-	 * tries to use reArray as delimiters (priority is order)
-	 * if no re matches then splits at limit*/
-	function splitTextByRegexpArray(text, limit, reArray) {
+	/** @return array of strings - each string has a lower length then given limit
+	 * splitting happens by given regexps
+	 * @param text the text to be split
+	 * @param limit maximum length of strings in result
+	 * @param reArray array of regexps to use for splitting - regexps has to be global
+	 */
+	function splitToLimit(text, limit, reArray) {
 		var result = [];
 		while(text.length > limit) {
-			var indexOfSplit = lastMatchEndUnderLimitArray(text, limit, reArray);
+			var indexOfSplit = lastMatchArr(text, limit, reArray);
 			result.push(text.substr(0, indexOfSplit));
 			text = text.substr(indexOfSplit);
 		}
-		result.push(text);
+		if(text.length > 0) {
+			result.push(text);
+		}
 		
 		return result;
 	}
 	
-	/**requests sent to Google TTS can contain text length of maximum 100 characters*/
-	function splitText(text, limit, delimiters) {
-		result = [];
-		for(var i=0; i<delimiters.length; i++) {
-			while(text.length > limit) {
-				
-			}
-			var highestIndex = 0;
-			
-		}
+	/** @return the url of Google TTS to send request
+	 * @param text the text to read - length has to be max 100 characters
+	 * @param lan the language of reading: should be one of the followings:
+	 * hu, en*/
+	function buildUrl(text, lan) {
+		//lan = lan.substr(2);
+		var ttsurl = "https://translate.google.co.uk/translate_tts";
+		var result = ttsurl + "?q=" + text + "&tl="+lan;
+		return result;
 	}
 	
 	//http://stackoverflow.com/questions/21959827/javascript-play-multiple-audios-after-each-other
@@ -65,16 +73,21 @@ function GoogleTts() {
 		return "Google"
 	}
 	
-	this.read = function(text) {
+	/** reads given text on given language (stops playing if started)
+	 * @param text the text to be read
+	 * @param lan the language of reading
+	 */
+	this.read = function(text, lan) {
 		this.stop();
-		
-		var splitText = splitTextByRegexpArray(text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
+
+		//google TTS API doesn't accept requests for longer than 100 characters texts
+		//we try to split by sentence ends, commas or spaces
+		var splitText = splitToLimit(text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
 		
 		audios = [];
 		for(var i=0; i<splitText.length; i++) {
 			audios.push(new Audio());
-			var url = ttsurl + "?q=" + splitText[i] + "&tl=hu";	//maxlen is 100!
-			audios[i].src = url;
+			audios[i].src = buildUrl(splitText[i], lan);
 			if(i>0) {
 				audios[i-1].onended = createPlayCallback(audios[i]);
 			}
