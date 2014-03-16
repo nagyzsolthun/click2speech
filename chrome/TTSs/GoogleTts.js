@@ -1,5 +1,36 @@
 function GoogleTts() {
 	var audios = [];
+	
+	var audioContext = new webkitAudioContext();
+	var audioAnalyser;
+	
+	var currentVolume = 0;
+	
+	/**creates the AnalyserNode to receive frequency data
+	 * the node is connected to the audios array => when audios change, this method should be executed
+	 */
+	function buildAudioAnalyser() {
+		var source = audioContext.createMediaElementSource(audios[0]);
+		var analyser = audioContext.createAnalyser();
+
+		source.connect(analyser);
+		analyser.connect(audioContext.destination);
+		
+		analyser.fftSize = 32;
+		console.log(analyser.fftSize);
+		console.log(analyser.frequencyBinCount);
+		
+		audioAnalyser = analyser;
+	}
+	
+	/** gets information from audioAnalyser every 10 milliseconds to update frequency information provided by this service*/
+	setInterval(function(){
+		if(! audioAnalyser) {return;}
+		var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
+		audioAnalyser.getByteFrequencyData(frequencyData);
+		currentVolume = frequencyData[0]/255;	//TODO this should be average or max or something..
+		//if(frequencyData[0] > 0) {console.log(this.currentVolume);}
+	},10);
 
 	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
 	 * @param text
@@ -69,9 +100,14 @@ function GoogleTts() {
 		return function() {audio.play();}
 	}
 	
-	this.name = function() {
-		return "Google"
+	/*------------------------------------------------- public stuff -------------------------------------------------*/
+	
+	this.getCurrentVolume = function() {
+		return currentVolume;
 	}
+
+	/** the name of this service*/
+	this.name = "Google";
 	
 	/** reads given text on given language (stops playing if started)
 	 * @param text the text to be read
@@ -79,6 +115,7 @@ function GoogleTts() {
 	 */
 	this.read = function(text, lan) {
 		this.stop();
+		if(! text) {return;}
 
 		//google TTS API doesn't accept requests for longer than 100 characters texts
 		//we try to split by sentence ends, commas or spaces
@@ -93,6 +130,8 @@ function GoogleTts() {
 			}
 		}
 		audios[0].onloadeddata = function() {audios[0].play();}
+		
+		buildAudioAnalyser();
 	};
 	
 	/** stops playing the audio permanently (not only pause!)*/
