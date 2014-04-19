@@ -1,36 +1,34 @@
 function GoogleTts() {
 	var audios = [];
-	
+
 	var audioContext = new webkitAudioContext();
 	var audioAnalyser;
 	
 	var currentVolume = 0;
+
+	//calculates currentVolume every 10 milliseconds
+	setInterval(function(){
+		if(audioAnalyser) {
+			var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
+			audioAnalyser.getByteFrequencyData(frequencyData);
+			currentVolume = (frequencyData[0]/255) * 1.5;	//TODO this should be average or max or something..
+		}
+	},10);
 	
 	/**creates the AnalyserNode to receive frequency data
-	 * the node is connected to the audios array => when audios change, this method should be executed
-	 */
+	 * the node is connected to the audios array => when audios change, this method should be executed*/
 	function buildAudioAnalyser() {
-		var source = audioContext.createMediaElementSource(audios[0]);
 		var analyser = audioContext.createAnalyser();
-
-		source.connect(analyser);
 		analyser.connect(audioContext.destination);
-		
 		analyser.fftSize = 32;
-		console.log(analyser.fftSize);
-		console.log(analyser.frequencyBinCount);
-		
+
+		for(var i=0; i<audios.length; i++) {
+			var source = audioContext.createMediaElementSource(audios[i]);
+			source.connect(analyser);
+		}
+
 		audioAnalyser = analyser;
 	}
-	
-	/** gets information from audioAnalyser every 10 milliseconds to update frequency information provided by this service*/
-	setInterval(function(){
-		if(! audioAnalyser) {return;}
-		var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
-		audioAnalyser.getByteFrequencyData(frequencyData);
-		currentVolume = frequencyData[0]/255;	//TODO this should be average or max or something..
-		//if(frequencyData[0] > 0) {console.log(this.currentVolume);}
-	},10);
 
 	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
 	 * @param text
