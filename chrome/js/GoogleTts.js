@@ -2,33 +2,9 @@ function GoogleTts() {
 	var audios = [];
 
 	var audioContext = new webkitAudioContext();
-	var audioAnalyser;
-	
-	var currentVolume = 0;
-
-	//calculates currentVolume every 10 milliseconds
-	setInterval(function(){
-		if(audioAnalyser) {
-			var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
-			audioAnalyser.getByteFrequencyData(frequencyData);
-			currentVolume = (frequencyData[0]/255) * 1.5;	//TODO this should be average or max or something..
-		}
-	},10);
-	
-	/**creates the AnalyserNode to receive frequency data
-	 * the node is connected to the audios array => when audios change, this method should be executed*/
-	function buildAudioAnalyser() {
-		var analyser = audioContext.createAnalyser();
-		analyser.connect(audioContext.destination);
-		analyser.fftSize = 32;
-
-		for(var i=0; i<audios.length; i++) {
-			var source = audioContext.createMediaElementSource(audios[i]);
-			source.connect(analyser);
-		}
-
-		audioAnalyser = analyser;
-	}
+	var audioAnalyser = audioContext.createAnalyser();
+	audioAnalyser.connect(audioContext.destination);
+	audioAnalyser.fftSize = 32;
 
 	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
 	 * @param text
@@ -105,7 +81,9 @@ function GoogleTts() {
 	}
 
 	/** the name of this service*/
-	this.name = "Google";
+	this.getAudioAnalyser = function() {
+		return audioAnalyser;
+	}
 	
 	/** reads given text on given language (stops playing if started)
 	 * @param text the text to be read
@@ -122,14 +100,15 @@ function GoogleTts() {
 		audios = [];
 		for(var i=0; i<splitText.length; i++) {
 			audios.push(new Audio());
+			
+			//new audios are connected to the audioAnalyserNode in order to show colume on the icon
+			audioContext.createMediaElementSource(audios[i]).connect(audioAnalyser);	//TODO check if GC collects this
 			audios[i].src = buildUrl(splitText[i], lan);
 			if(i>0) {
 				audios[i-1].onended = createPlayCallback(audios[i]);
 			}
 		}
 		audios[0].onloadeddata = function() {audios[0].play();}
-		
-		buildAudioAnalyser();
 	};
 	
 	/** stops playing the audio permanently (not only pause!)*/

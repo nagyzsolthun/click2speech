@@ -5,12 +5,12 @@
 	"version": "0.1",
 	"content_scripts": [{
 		"matches": ["<all_urls>"],
-		"js": ["selection2speech.js"]
+		"js": ["js/content.js"]
 	}],
 	"permissions": ["http://*/","https://*/"],
-	"background" : {"page": "background.html"},
+	"background" : {"page": "html/background.html"},
 	"browser_action": {
-		"default_icon": "icon64.png",
-		"default_popup": "popup.html"
+		"default_icon": "img/icon64.png",
+		"default_popup": "html/popup.html"
 	}
 }
