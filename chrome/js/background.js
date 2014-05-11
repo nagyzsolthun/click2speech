@@ -4,9 +4,15 @@ var tts = new GoogleTts();
 //executed when message is received from content.js
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		if(request.hasOwnProperty("textToSpeech")) {
-			tts.read(request.textToSpeech, request.languageOfSpeech);
+		var text = request.textToSpeech;
+		if(text == null) {
+			return;
 		}
+		var lan = request.languageOfDocument;
+		if(lan == null) {	//some pages don't provide info about their language
+			lan = navigator.language;
+		}
+		tts.read(text,lan);
 	}
 );
 
