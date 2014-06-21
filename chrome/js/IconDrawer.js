@@ -43,9 +43,9 @@ function IconDrawer() {
 	
 	//================================================= public =================================================
 
-	/** updates icon to show given volume
+	/** draws icon to show given volume
 	* @param volume [0-1] volume*/
-	this.updateIcon = function(volume) {
+	this.drawTurnedOn = function(volume) {
 		document.getElementById("iconTemplate").width = size;	//to clear canvas
 		
 		drawCircle({color:htmlColor({b:0.5+volume/2}), x:quarter,y:quarter,r:quarter});
@@ -63,6 +63,21 @@ function IconDrawer() {
 	
 		drawCircle({color:htmlColor({r:1,g:1,b:1,a:0.5}), x:2*quarter,y:2*quarter,r:shineRadius,borderWidth: size/64});
 	
+		chrome.browserAction.setIcon({
+			imageData: ctx.getImageData(0, 0, 19, 19)
+		});
+	}
+	
+	this.drawTurnedOff = function() {
+		document.getElementById("iconTemplate").width = size;	//to clear canvas
+		
+		drawCircle({color:htmlColor({}), x:quarter,y:quarter,r:quarter});
+		drawCircle({color:htmlColor({}), x:3*quarter,y:quarter,r:quarter});
+		drawCircle({color:htmlColor({}), x:3*quarter,y:3*quarter,r:quarter});
+		drawCircle({color:htmlColor({}), x:quarter,y:3*quarter,r:quarter});
+		
+		drawCircle({color:htmlColor({}), x:2*quarter,y:2*quarter,r:quarter,borderWidth: size/64});
+		
 		chrome.browserAction.setIcon({
 			imageData: ctx.getImageData(0, 0, 19, 19)
 		});

@@ -1,0 +1,14 @@
+#onoffbutton {
+	text-align: center;
+	width: 4em;
+	height: 1.2em;
+	font-size: 400%;
+	 -webkit-border-radius: 15px;
+	 border: 2px inset black;
+}
+
+.tts-off #onoffbutton {background-color:#00aa00;}
+.tts-off #onoffbutton:hover {background-color:#00ff00;}
+
+.tts-on #onoffbutton {background-color:#aa0000;}
+.tts-on #onoffbutton:hover {background-color:#ff0000;}

@@ -1,62 +1,12 @@
 function GoogleTts() {
+	var textSplitter = new TextSplitter();
+	
 	var audios = [];
 
 	var audioContext = new webkitAudioContext();
 	var audioAnalyser = audioContext.createAnalyser();
 	audioAnalyser.connect(audioContext.destination);
 	audioAnalyser.fftSize = 32;
-
-	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
-	 * @param text
-	 * @param re the regexp to be matched - hbas to be global
-	 * @param limit the index of last character under which we search for match
-	 */
-	function lastMatch(text, re, limit) {
-		var result = -1;
-		var regexpResult;
-		while(regexpResult = re.exec(text)) {
-			var index = regexpResult.index + regexpResult[0].length;
-			if(index > limit || index < 0) {
-				break;
-			} else {
-				result = index;
-			}
-		}
-		re.lastIndex = 0;	//to reset lastIdnex counter. Otherwise regexp would count amtching from last matching index..
-		return result;
-	}
-	
-	/** @return index of last match (end of it) under given limit OR given limit or no match found
-	 * @param text
-	 * @param reArray the regexps to be matched: the first regexp that has match under limit wins
-	 * @param limit the index of last character under which we search for match*/
-	function lastMatchArr(text, limit, reArray) {
-		for(var i=0; i<reArray.length; i++) {
-			var result = lastMatch(text, reArray[i], limit);
-			if(result > -1) return result;
-		}
-		return limit;
-	}
-	
-	/** @return array of strings - each string has a lower length then given limit
-	 * splitting happens by given regexps
-	 * @param text the text to be split
-	 * @param limit maximum length of strings in result
-	 * @param reArray array of regexps to use for splitting - regexps has to be global
-	 */
-	function splitToLimit(text, limit, reArray) {
-		var result = [];
-		while(text.length > limit) {
-			var indexOfSplit = lastMatchArr(text, limit, reArray);
-			result.push(text.substr(0, indexOfSplit));
-			text = text.substr(indexOfSplit);
-		}
-		if(text.length > 0) {
-			result.push(text);
-		}
-		
-		return result;
-	}
 	
 	/** @return the url of Google TTS to send request
 	 * @param text the text to read - length has to be max 100 characters
@@ -85,7 +35,7 @@ function GoogleTts() {
 		return audioAnalyser;
 	}
 	
-	/** reads given text on given language (stops playing if started)
+	/** reads given text on given language (stops playing if already is playing)
 	 * @param text the text to be read
 	 * @param lan the language of reading
 	 */
@@ -95,7 +45,7 @@ function GoogleTts() {
 
 		//google TTS API doesn't accept requests for longer than 100 characters texts
 		//we try to split by sentence ends, commas or spaces
-		var splitText = splitToLimit(text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
+		var splitText = textSplitter.splitToLimit(text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
 		
 		audios = [];
 		for(var i=0; i<splitText.length; i++) {
