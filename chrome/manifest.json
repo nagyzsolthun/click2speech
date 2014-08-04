@@ -7,7 +7,7 @@
 		"matches": ["<all_urls>"],
 		"js": ["js/content.js"]
 	}],
-	"permissions": ["http://*/","https://*/"],
+	"permissions": ["http://*/","https://*/", "storage"],
 	"background" : {"page": "html/background.html"},
 	"browser_action": {
 		"default_icon": "img/icon64.png",
