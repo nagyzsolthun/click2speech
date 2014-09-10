@@ -20,7 +20,7 @@ function TextSplitter() {
 		return result;
 	}
 	
-	/** @return index of last match (end of it) under given limit OR given limit or no match found
+	/** @return index of last match (end of it) under given limit OR given limit if no match found
 	 * @param text
 	 * @param reArray the regexps to be matched: the first matching regexp under limit wins
 	 * @param limit the index of last character under which we search for match*/

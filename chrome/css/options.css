@@ -1,0 +1,35 @@
+.control {
+	font-size: 30px;
+	padding: 1em;
+}
+
+.control:hover {
+	background-color:#F5F5F5;
+}
+
+/* ===================================== speed settings =====================================*/
+#speedRange {
+	width: 50%;
+}
+
+/* ===================================== start event settings =====================================*/
+#starEventtList {
+	list-style: none;
+	margin: 0;
+}
+
+#starEventtList input,label:hover {
+	background-color:#AEA;
+}
+
+/* ===================================== test & save =====================================*/
+#textToRead {
+	font-size: 20px;
+	font-style: italic;
+}
+
+#testButton {
+	font-size: 20px;
+	background-color: #EEE;
+	border: 1px solid #888;
+}

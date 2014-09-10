@@ -52,7 +52,11 @@ chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		console.log(request.action + " received");
 		switch(request.action) {
-			case("tts-read"): read(request.textToSpeech, request.languageOfDocument || navigator.language); break;
+			case("tts-read"): read({
+				text: request.textToSpeech
+				,lan: request.languageOfDocument || navigator.language
+				,speed: request.speedOfSpeech || 1
+			}); break;
 			case("tts-turnOn"): turnOn(); break;
 			case("tts-turnOff"): turnOff(); break;
 			case("tts-getStatus"): turnedOn ? sendResponse({turnedOn:true}) : sendResponse({turnedOn:false}); break;
