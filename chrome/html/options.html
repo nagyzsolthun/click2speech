@@ -1,10 +1,5 @@
 <html lang="en">
 	<div class="control">
-		<div>Speed of Speech</div>
-		<input id="speedRange" type="range" name="volume" min="1" max="4" step="0.1">
-	</div>
-
-	<div class="control">
 		<div>Speech Start</div>
 		<ul id="starEventtList">
 			<li>
@@ -22,11 +17,16 @@
 		</ul>
 	</div>
 	
-	<div id="testAndSave">
-		<input type="text" id="textToRead" value="test text">
-		<button type="button" id="testButton">Test Settings</button>
+	<div class="control">
+		<div>Speed of Speech</div>
+		<input id="speedNumber" type="number" min="0.5" max="4" step="0.1" value="1">
+		<input id="speedRange" type="range" name="volume" min="0.5" max="4" step="0.1" value="1">
+	</div>
+	
+	<div id="testArea">
+		<textarea rows="10" cols="50" id="textToRead" value="will be set from javascript"></textarea>
 	</div>
 
 	<link rel="stylesheet" type="text/css" href="../css/options.css">
-	<script type="text/javascript" src="../js/options.js"></script>
+	<script data-main="../js/options.js" src="../js/require.js"></script>
 </html>

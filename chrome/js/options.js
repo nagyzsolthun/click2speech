@@ -1,18 +1,28 @@
-(function() {
-	var speed = 1.0;
+/** @param testLines the text to show at the bottom of options page */
+require(["testLines"], function(testLines) {
+	var speedNumber = document.getElementById("speedNumber");
 	var speedRange = document.getElementById("speedRange");
-	speedRange.onchange = function() {
-		speed = this.value;
+	chrome.runtime.sendMessage({action: "tts-getSpeed"}, function(response) {
+		speedNumber.value = response.speed;
+		speedRange.value = response.speed;
+	});
+	speedNumber.onchange = function() {
+		chrome.runtime.sendMessage({action: "tts-setSpeed",speed: this.value});
+		speedRange.value = this.value;
 	}
-
-	var testButton = document.getElementById("testButton");
-	testButton.onclick = function() {
-		var textToRead = document.getElementById("textToRead").value;
+	speedRange.oninput = function() {
+		chrome.runtime.sendMessage({action: "tts-setSpeed",speed: this.value});
+		speedNumber.value = this.value;
+	}
+	
+	var textToRead = document.getElementById("textToRead");
+	textToRead.value = testLines[navigator.language];
+	
+	textToRead.onmousedown = function() {
 		chrome.runtime.sendMessage({
-			action: "tts-read"
-			,textToSpeech: textToRead
-			,speedOfSpeech: speed
-			,languageOfDocument: document.documentElement.lang
+			action: "tts-read",
+			textToSpeech: getSelection().toString(),
+			languageOfDocument: document.documentElement.lang
 		});
 	}
-}());
+});

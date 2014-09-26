@@ -1,4 +1,5 @@
 var turnedOn = true;
+var speed = 1;
 
 var iconDrawer = new IconDrawer();
 var ttsService = new GoogleTts();
@@ -23,10 +24,29 @@ function turnOff() {
 	chrome.storage.local.set({'tts-status': 'off'}, function() {});
 }
 
-var audioAnalyser = ttsService.getAudioAnalyser();
-var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
+function setSpeed(newSpeed) {
+	speed = newSpeed;
+	ttsService.setSpeed(speed);
+}
+
+//initial setting of status (on/off)
+chrome.storage.local.get('tts-status', function(items) {
+	var status = items['tts-status'];
+	if(status == 'on') {
+		turnOn();
+	} else {
+		turnOff();
+	}
+});
+
+//initial setting of speed
+chrome.storage.local.get('tts-speed', function(items) {
+	speed = items['tts-speed'] || 1;
+});
 
 //icon is redrawn when volume of speech changes
+var audioAnalyser = ttsService.getAudioAnalyser();
+var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
 var previousVolume = 0;
 setInterval(function(){	
 	if(! turnedOn) {return;}
@@ -37,16 +57,6 @@ setInterval(function(){
 	}
 },10);
 
-//initial setting
-chrome.storage.local.get('tts-status', function(items) {
-	var status = items['tts-status'];
-	if(status == 'on') {
-		turnOn();
-	} else {
-		turnOff();
-	}
-});
-
 //receiving messages from cotnent script (to read) and popup (turnon/turnoff/getstatus)
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
@@ -55,10 +65,12 @@ chrome.runtime.onMessage.addListener(
 			case("tts-read"): read({
 				text: request.textToSpeech
 				,lan: request.languageOfDocument || navigator.language
-				,speed: request.speedOfSpeech || 1
+				,speed: speed
 			}); break;
 			case("tts-turnOn"): turnOn(); break;
 			case("tts-turnOff"): turnOff(); break;
 			case("tts-getStatus"): turnedOn ? sendResponse({turnedOn:true}) : sendResponse({turnedOn:false}); break;
+			case("tts-setSpeed"): setSpeed(request.speed); break;
+			case("tts-getSpeed"): sendResponse({speed: speed}); break;
 		}
 	});

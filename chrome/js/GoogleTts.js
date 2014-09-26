@@ -46,7 +46,7 @@ function GoogleTts() {
 		audios = [];
 		for(var i=0; i<splitText.length; i++) {
 			audios.push(new Audio());
-			audios[i].defaultPlaybackRate = c.speed;	//why default and not simple playbackRate?
+			audios[i].defaultPlaybackRate = c.speed;
 			//new audios are connected to the audioAnalyserNode in order to show colume on the icon
 			audioContext.createMediaElementSource(audios[i]).connect(audioAnalyser);	//TODO check if GC collects this
 			audios[i].src = buildUrl(splitText[i], c.lan);
@@ -64,5 +64,11 @@ function GoogleTts() {
 			audios[i].removeAttribute("src");
 		}
 		audios = [];
+	}
+	
+	this.setSpeed = function(speed) {
+		for(var i=0; i<audios.length; i++) {
+			audios[i].playbackRate = speed;
+		}
 	}
 }
