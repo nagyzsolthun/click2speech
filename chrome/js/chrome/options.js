@@ -1,5 +1,9 @@
-/** @param testLines the text to show at the bottom of options page */
-require(["testLines"], function(testLines) {
+require.config({
+	baseUrl: "/../js/modules"
+});
+
+/** @param TestLines the text to show at the bottom of options page */
+require(["TestLines"], function(testLines) {
 	var speedNumber = document.getElementById("speedNumber");
 	var speedRange = document.getElementById("speedRange");
 	chrome.runtime.sendMessage({action: "tts-getSpeed"}, function(response) {

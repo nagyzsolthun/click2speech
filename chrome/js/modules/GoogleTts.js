@@ -1,6 +1,4 @@
-function GoogleTts() {
-	var textSplitter = new TextSplitter();
-	
+define(["TextSplitter"], function(textSplitter) {	
 	var audios = [];
 
 	var audioContext = new webkitAudioContext();
@@ -24,19 +22,20 @@ function GoogleTts() {
 		return function() {audio.play();}
 	}
 	
-	/*------------------------------------------------- public stuff -------------------------------------------------*/
+	//================================================= public =================================================
+	/** the object to be returned */
+	var tts = {};
 
-	/** the name of this service*/
-	this.getAudioAnalyser = function() {
+	/** the audio analizer node - used for drawing the icon*/
+	tts.getAudioAnalyser = function() {
 		return audioAnalyser;
 	}
 	
 	/** reads given text on given language (stops playing if already is playing)
 	 * @param c.text the text to be read
-	 * @param c.lan the language of reading
-	 */
-	this.read = function(c) {
-		this.stop();
+	 * @param c.lan the language of reading */
+	tts.read = function(c) {
+		tts.stop();
 		if(! c.text) {return;}
 
 		//google TTS API doesn't accept requests for longer than 100 characters texts
@@ -58,7 +57,7 @@ function GoogleTts() {
 	};
 	
 	/** stops playing the audio (not only pause!)*/
-	this.stop = function() {
+	tts.stop = function() {
 		for(var i=0; i<audios.length; i++) {
 			audios[i].pause();
 			audios[i].removeAttribute("src");
@@ -66,9 +65,12 @@ function GoogleTts() {
 		audios = [];
 	}
 	
-	this.setSpeed = function(speed) {
+	/** sets the speed of playing */
+	tts.setSpeed = function(speed) {
 		for(var i=0; i<audios.length; i++) {
 			audios[i].playbackRate = speed;
 		}
 	}
-}
+	
+	return tts;
+});

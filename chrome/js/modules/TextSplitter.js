@@ -1,5 +1,5 @@
 /** provides functions to split a text in a way that it ends at end of sentence, at comma, or end of word */
-function TextSplitter() {
+define(function() {
 	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
 	 * @param text
 	 * @param re the regexp to be matched - must be global!
@@ -32,13 +32,17 @@ function TextSplitter() {
 		return limit;
 	}
 	
+	//================================================= public =================================================
+	/** the object to be returned */
+	var splitter = {};
+	
 	/** @return array of strings - each string has a lower length then given limit
 	 * splitting happens by given regexps
 	 * @param text the text to be split
 	 * @param limit maximum length of strings in result
 	 * @param reArray array of regexps to use for splitting - regexps must be global!
 	 */
-	this.splitToLimit = function(text, limit, reArray) {
+	splitter.splitToLimit = function(text, limit, reArray) {
 		var result = [];
 		while(text.length > limit) {
 			var indexOfSplit = lastMatchArr(text, limit, reArray);
@@ -50,4 +54,6 @@ function TextSplitter() {
 		}
 		return result;
 	}
-}
+	
+	return splitter;
+});

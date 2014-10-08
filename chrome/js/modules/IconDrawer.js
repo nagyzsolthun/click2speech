@@ -1,7 +1,8 @@
-function IconDrawer() {
+/**draws the icon of WebReader - the look depends on the volume of playing and the status (on/off) */
+define(function() {
 	var size = 18;
 	var quarter = size/4;
-	var ctx = document.getElementById("iconTemplate").getContext("2d");
+	var ctx;
 
 	/** draws a circle with given parameters
 	* @param c.color = color of circle
@@ -42,10 +43,17 @@ function IconDrawer() {
 	}
 	
 	//================================================= public =================================================
+	/** the object to be returned */
+	var drawer = {};
+	
+	/** @param context the 2d context of the canvas where the icon will be drawn*/
+	drawer.setContext = function(context) {
+		ctx = context;
+	}
 
 	/** draws icon to show given volume
 	* @param volume [0-1] volume*/
-	this.drawTurnedOn = function(volume) {
+	drawer.drawTurnedOn = function(volume) {
 		document.getElementById("iconTemplate").width = size;	//to clear canvas
 		
 		drawCircle({color:htmlColor({b:0.5+volume/2}), x:quarter,y:quarter,r:quarter});
@@ -68,7 +76,7 @@ function IconDrawer() {
 		});
 	}
 	
-	this.drawTurnedOff = function() {
+	drawer.drawTurnedOff = function() {
 		document.getElementById("iconTemplate").width = size;	//to clear canvas
 		
 		drawCircle({color:htmlColor({}), x:quarter,y:quarter,r:quarter});
@@ -82,4 +90,6 @@ function IconDrawer() {
 			imageData: ctx.getImageData(0, 0, 19, 19)
 		});
 	}
-}
+	
+	return drawer;
+});
