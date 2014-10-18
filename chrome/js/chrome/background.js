@@ -4,6 +4,15 @@ require.config({
 require(["GoogleTts","IconDrawer"], function(ttsService, iconDrawer) {
 	var turnedOn = true;
 	var speed = 1;
+	var iconCanvas = document.getElementById("iconTemplate");
+	
+	/** iconDrawer draws the icon on a canvas, this function shows the canvas on the toolbar */
+	function loadIconToToolbar() {
+		chrome.browserAction.setIcon({
+			imageData: iconCanvas.getContext("2d").getImageData(0, 0, 19, 19)
+		});
+	}
+	iconDrawer.setCanvas(iconCanvas);
 
 	function read(text, lan) {
 		if(! turnedOn) {return;}
@@ -13,6 +22,7 @@ require(["GoogleTts","IconDrawer"], function(ttsService, iconDrawer) {
 	function turnOn() {
 		turnedOn = true;
 		iconDrawer.drawTurnedOn(0);
+		loadIconToToolbar();
 		chrome.runtime.sendMessage({action: "tts-turnedOn"});
 		chrome.storage.local.set({'tts-status': 'on'}, function() {});
 	}
@@ -21,6 +31,7 @@ require(["GoogleTts","IconDrawer"], function(ttsService, iconDrawer) {
 		turnedOn = false;
 		ttsService.stop();	//in case it is reading, we stop it
 		iconDrawer.drawTurnedOff();
+		loadIconToToolbar();
 		chrome.runtime.sendMessage({action: "tts-turnedOff"});
 		chrome.storage.local.set({'tts-status': 'off'}, function() {});
 	}
@@ -29,8 +40,6 @@ require(["GoogleTts","IconDrawer"], function(ttsService, iconDrawer) {
 		speed = newSpeed;
 		ttsService.setSpeed(speed);
 	}
-
-	iconDrawer.setContext(document.getElementById("iconTemplate").getContext("2d"));
 
 	//initial setting of status (on/off)
 	chrome.storage.local.get('tts-status', function(items) {
@@ -57,6 +66,7 @@ require(["GoogleTts","IconDrawer"], function(ttsService, iconDrawer) {
 		var currentVolume = (frequencyData[0]/255);	//TODO this should be average or max or something..
 		if(previousVolume != currentVolume) {
 			iconDrawer.drawTurnedOn(currentVolume);
+			loadIconToToolbar();
 		}
 	},10);
 

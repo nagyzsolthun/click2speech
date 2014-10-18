@@ -1,31 +1,32 @@
 /**draws the icon of WebReader - the look depends on the volume of playing and the status (on/off) */
 define(function() {
-	var size = 18;
+	var size = 18;	//TODO from setter
 	var quarter = size/4;
 	var ctx;
+	var canvas;
 
-	/** draws a circle with given parameters
-	* @param c.color = color of circle
-	* @param c.x x coordinate of middle of circle
-	* @param c.y y coordinate of middle of circle
-	* @param c.r radius of circle
-	* 
-	* @c.borderWidth width of border
-	* @c.borderColor color of border (defaults to black)
+	/** draws a filled circle with given parameters to the middle of the canvas
+	* @param c.color color
+	* @param c.r radius
 	*/
-	function drawCircle(c) {
+	function drawBall(c) {
 		ctx.fillStyle = c.color;
-	
 		ctx.beginPath();
-		ctx.arc(c.x, c.y, c.r, 0, 2 * Math.PI, false);
-		if(c.borderWidth) {	//0 lineWidth doesnt seem to be working
-			ctx.lineWidth = c.borderWidth;
-			ctx.strokeStyle = c.borderColor || "black";
-			ctx.stroke();
-		}
-
-		ctx.closePath();
+		ctx.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
 		ctx.fill();
+	}
+	
+	/** draws a non-filled circle with given parameters to the middle of the canvas
+	* @param c.color color
+	* @param c.width width
+	* @param c.r radius
+	*/
+	function drawRing(c) {
+		ctx.lineWidth = c.width;
+		ctx.strokeStyle = c.color;
+		ctx.beginPath();
+		ctx.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
+		ctx.stroke();
 	}
 
 	/** @return a html compatible color string from given parameters
@@ -46,49 +47,31 @@ define(function() {
 	/** the object to be returned */
 	var drawer = {};
 	
-	/** @param context the 2d context of the canvas where the icon will be drawn*/
-	drawer.setContext = function(context) {
-		ctx = context;
+	drawer.setCanvas = function(cnv) {
+		canvas = cnv;
+		ctx = canvas.getContext("2d");
 	}
 
 	/** draws icon to show given volume
 	* @param volume [0-1] volume*/
 	drawer.drawTurnedOn = function(volume) {
-		document.getElementById("iconTemplate").width = size;	//to clear canvas
-		
-		drawCircle({color:htmlColor({b:0.5+volume/2}), x:quarter,y:quarter,r:quarter});
-		drawCircle({color:htmlColor({r:0.5+volume/2}), x:3*quarter,y:quarter,r:quarter});
-		drawCircle({color:htmlColor({r:0.5+volume/2, b:0.5+volume/2}), x:3*quarter,y:3*quarter,r:quarter});
-		drawCircle({color:htmlColor({g:0.5+volume/2}), x:quarter,y:3*quarter,r:quarter});
-
-		//center
-		drawCircle({color:htmlColor({r:1,g:1}), x:2*quarter,y:2*quarter,r:quarter,borderWidth: size/64});
+		canvas.width = size;	//to clear canvas
+		drawBall({color:htmlColor({g:1}),r:quarter*0.9});			//green circle in center
+		drawRing({color:"black", r:quarter*0.9, width:size/16});	//black ring around center
+		drawRing({color:"green", r:2*quarter*0.9, width:size/16});	//green outer ring
 	
-		var shineRadius;
-		if(volume>1) shineRadius = quarter*2;	//max
-		if(volume<0.5) shineRadius = quarter;	//min
-		if(! shineRadius) shineRadius = quarter*2*volume;
-	
-		drawCircle({color:htmlColor({r:1,g:1,b:1,a:0.5}), x:2*quarter,y:2*quarter,r:shineRadius,borderWidth: size/64});
-	
-		chrome.browserAction.setIcon({
-			imageData: ctx.getImageData(0, 0, 19, 19)
-		});
+		//the circle showing the current volume of playing
+		if(volume < 0.1) return;
+		if(volume > 1) volume = 1;
+		var shineRadius = quarter + quarter*volume;
+		drawBall({color:htmlColor({g:1,a:0.5}),r:shineRadius});
 	}
 	
 	drawer.drawTurnedOff = function() {
-		document.getElementById("iconTemplate").width = size;	//to clear canvas
-		
-		drawCircle({color:htmlColor({}), x:quarter,y:quarter,r:quarter});
-		drawCircle({color:htmlColor({}), x:3*quarter,y:quarter,r:quarter});
-		drawCircle({color:htmlColor({}), x:3*quarter,y:3*quarter,r:quarter});
-		drawCircle({color:htmlColor({}), x:quarter,y:3*quarter,r:quarter});
-		
-		drawCircle({color:htmlColor({}), x:2*quarter,y:2*quarter,r:quarter,borderWidth: size/64});
-		
-		chrome.browserAction.setIcon({
-			imageData: ctx.getImageData(0, 0, 19, 19)
-		});
+		canvas.width = size;	//to clear canvas
+		drawBall({color:"grey",r:quarter*0.9});						//circle in center
+		drawRing({color:"black", r:quarter*0.9, width:size/16});	//black ring around center
+		drawRing({color:"black",r:2*quarter*0.9,width: size/16});	//black outer ring
 	}
 	
 	return drawer;
