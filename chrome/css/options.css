@@ -1,6 +1,45 @@
+body {
+	margin: 0;
+	font-family: sans-serif;
+}
+
+/* ===================================== left panel settings =====================================*/
+
+#panel {
+	height: 100%;
+	/*background-color: #eee;*/
+	background: -webkit-linear-gradient(left, #efefef, #efefef 98%, #888);
+	float: left;
+	position:fixed;
+	border-right: 1px solid gray;
+}
+
+#panel h1 {
+	font-size: 25px;
+	margin: 0.5em;
+}
+
+#panel h2 {
+	padding: 0.5em 1em;
+	text-align: right;
+	border-top: 1px solid gray;
+	border-bottom: 1px solid gray;
+}
+
+.optionsPageSelector {
+	background-color: #fff;
+}
+
+/* ===================================== content settings =====================================*/
+
+#content {
+	margin: 0 0 0 360px;
+}
+
 .control {
 	font-size: 30px;
 	padding: 1em;
+	border-bottom: 1px solid gray;
 }
 
 .control:hover {
@@ -42,12 +81,5 @@
 }
 
 #starEventtList input,label:hover {
-	background-color:#AEA;
-}
-
-/* ===================================== test & save =====================================*/
-#textToRead {
-	color: blue;
-	font-size: 16px;
-	font-style: italic;
+	background-color:#4f4;
 }
