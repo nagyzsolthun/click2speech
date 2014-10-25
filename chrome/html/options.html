@@ -1,29 +1,29 @@
 <html lang="en">
 	<div id="panel">
 		<h1>Options</h1>
-		<h2 class="optionsPageSelector">general</h2>
+		<h2 class="optionsPageSelector hoverable">general</h2>
 		<img src="../img/options-logo.svg"/>
 	</div>
 	<div id="content">
-		<div class="control">
+		<div class="control hoverable">
 			<div>Speech Start</div>
-			<ul id="starEventtList">
-				<li>
-					<input type="radio" name="startAction" id="mouseupRadio" value="mouseup">
-					<label for="mouseupRadio">after selected</label>
+			<ul id="readEventList">
+				<li data-event="mouseUp">
+					<img src="../img/selected-option-icon.svg"/>
+					<span>after selected</span>
 				</li>
-				<li>
-					<input type="radio" name="startAction" id="mousedownRadio" value="mousedown">
-					<label for="mousedownRadio">after click</label>
+				<li data-event="mouseDown">
+					<img src="../img/selected-option-icon.svg"/>
+					<span>after click</span>
 				</li>
-				<li>
-					<input type="radio" name="startAction" id="keyboardRadio" value="keypressed">
-					<label for="keyboardRadio">keyboard</label>
-				</li>	
+				<li data-event="keyboard">
+					<img src="../img/selected-option-icon.svg"/>
+					<span>keyboard</span>
+				</li>
 			</ul>
 		</div>
 		
-		<div class="control">
+		<div class="control hoverable">
 			<div>Speed of Speech</div>
 			<input id="speedNumber" type="number" min="0.5" max="4" step="0.1" value="1">
 			<input id="speedRange" type="range" min="0.5" max="4" step="0.1" value="1">

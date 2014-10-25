@@ -45,7 +45,7 @@ define(["TextSplitter"], function(textSplitter) {
 		audios = [];
 		for(var i=0; i<splitText.length; i++) {
 			audios.push(new Audio());
-			audios[i].defaultPlaybackRate = c.speed;
+			audios[i].defaultPlaybackRate = c.speed || 1;
 			//new audios are connected to the audioAnalyserNode in order to show colume on the icon
 			audioContext.createMediaElementSource(audios[i]).connect(audioAnalyser);	//TODO check if GC collects this
 			audios[i].src = buildUrl(splitText[i], c.lan);

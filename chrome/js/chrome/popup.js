@@ -16,15 +16,15 @@ require([], function() {
 	document.getElementById('onoffbutton').addEventListener('click', function(){
 		if(turnedOn) {
 			turnOff();
-			chrome.runtime.sendMessage({action: "tts-turnOff"});
+			chrome.runtime.sendMessage({action: "webReader.turnOff"});
 		} else {
 			turnOn();
-			chrome.runtime.sendMessage({action: "tts-turnOn"});
+			chrome.runtime.sendMessage({action: "webReader.turnOn",});
 		}
 	});
 
-	chrome.runtime.sendMessage({action: "tts-getStatus"}, function(response) {
-		if(response.turnedOn) {
+	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
+		if(settings.turnedOn) {
 			turnOn();
 		} else {
 			turnOff();

@@ -3,14 +3,20 @@ body {
 	font-family: sans-serif;
 }
 
+/* ===================================== hoverable and clickable =====================================*/
+
+/* adds a light highlight when pointer hovers over these elements*/
+.hoverable:hover {
+	background-color:#f0fff0;
+}
+
 /* ===================================== left panel settings =====================================*/
 
 #panel {
 	height: 100%;
-	/*background-color: #eee;*/
-	background: -webkit-linear-gradient(left, #efefef, #efefef 98%, #888);
+	background: -webkit-linear-gradient(left, #f8f8f8, #f8f8f8 98%, #aaa);
 	float: left;
-	position:fixed;
+	margin: 0 10px 0 0;
 	border-right: 1px solid gray;
 }
 
@@ -19,21 +25,20 @@ body {
 	margin: 0.5em;
 }
 
-#panel h2 {
+.optionsPageSelector {
+	background-color: #fff;
 	padding: 0.5em 1em;
 	text-align: right;
 	border-top: 1px solid gray;
 	border-bottom: 1px solid gray;
 }
 
-.optionsPageSelector {
-	background-color: #fff;
-}
-
 /* ===================================== content settings =====================================*/
 
 #content {
-	margin: 0 0 0 360px;
+	/* the content shouldn't flow under the left panel */
+	/* http://colinaarts.com/articles/the-magic-of-overflow-hidden/#making-room-for-floats */
+	overflow:hidden;
 }
 
 .control {
@@ -42,17 +47,13 @@ body {
 	border-bottom: 1px solid gray;
 }
 
-.control:hover {
-	background-color:#F5F5F5;
-}
-
 /* ===================================== speed settings =====================================*/
 #speedNumber {
 	width: 2em;
 	font-size: 30px;
 }
 #speedRange {
-	width: 50%;
+	width: 100%;
 	-webkit-appearance: none;
 	border-radius: 1px;
 	background-color: #888;
@@ -75,11 +76,22 @@ body {
 }
 
 /* ===================================== start event settings =====================================*/
-#starEventtList {
+#readEventList {
 	list-style: none;
 	margin: 0;
 }
 
-#starEventtList input,label:hover {
+#readEventList img {
+	width: 0.7em;
+	visibility: hidden;	/*only the selected oens will be visible*/
+}
+
+#readEventList li.selected img {
+	visibility: visible;
+}
+
+/*the highlighted text*/
+#readEventList li:hover span{
 	background-color:#4f4;
+	border-radius: 0.4em;	/*the highlighted area has rounded corners this way*/
 }
