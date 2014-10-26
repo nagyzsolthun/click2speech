@@ -30,7 +30,10 @@ require([], function() {
 				}); break;
 				case("keyboard"):
 					//TODO keyboard
-					alert("keyboard - not impelemented yet!");
+					alert("keyboard - not implemented yet!");
+					/*chrome.storage.local.clear(function() {
+						alert("cleared storage");
+					});*/
 					break;
 			}
 			
@@ -55,7 +58,9 @@ require([], function() {
 		var selected = null;
 		for(var i=0; i<readEventSelectors.length; i++) {
 			if(readEventSelectors[i].dataset.event == settings.readEvent) {
-				readEventSelectedCallback(readEventSelectors, i)();	//TODO: more straightforward?
+				readEventSelectedCallback(readEventSelectors, i)();
+				//TODO: more straightforward?
+				//TODO: shouldn't send setReadEvent in this case
 			}
 		}
 	});

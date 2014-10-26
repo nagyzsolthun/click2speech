@@ -17,8 +17,8 @@ define([], function() {
 		
 		//we have not cached => lets cache
 		chrome.storage.local.get('webReaderSettings', function(items) {
-			cache = items['webReaderSettings'];
-			if(cache != null) {	//=> there are settings persisted
+			cache = items.webReaderSettings;
+			if(cache) {	//=> there are settings persisted
 				response(cache);
 				return;
 			}
@@ -26,7 +26,9 @@ define([], function() {
 			//settings are not persisted (first ever execution)
 			cache = {speed:1,turnedOn:true,readEvent:"mouseUp"}
 			response(cache);
-			chrome.storage.local.set({webReaderSettings:cache}, function() {});
+			chrome.storage.local.set({webReaderSettings:cache}, function() {
+				console.log("first ever execution: default settings persisted");
+			});
 		});
 	}
 	
