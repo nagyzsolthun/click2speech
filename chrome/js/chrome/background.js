@@ -76,7 +76,7 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 					ttsService.setSpeed(request.speed);
 					break;
 				case("webReader.read"):
-					read({text: request.textToSpeech,lan: request.languageOfDocumentttsService || navigator.language});
+					read({text: request.text,lan: request.languageOfDocumentttsService || navigator.language});
 					break;
 			}
 		}
