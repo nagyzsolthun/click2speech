@@ -2,8 +2,14 @@
 define(function() {
 	var size = 18;	//TODO from setter
 	var quarter = size/4;
+
 	var ctx;
 	var canvas;
+	
+	var renderedIcon;	//stores the last drawn icon
+	var animationId;	//the id of the last started animation
+	
+	var onRenderFinished = function() {};	//execued whenever the icon is redrawn
 
 	/** draws a filled circle with given parameters to the middle of the canvas
 	* @param c.color color
@@ -28,51 +34,145 @@ define(function() {
 		ctx.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
 		ctx.stroke();
 	}
+	
+	/** @return a filled rgba object - or null if given o is null
+	 * @param o.r the red component of result - defaults to 0
+	 * @param o.g the green component of result - defaults to 0
+	 * @param o.b the blue component of result - defaults to 0
+	 * @param o.a the alpha component of result - defaults to 1
+	 */
+	function rgba(o) {
+		if(!o) return null;
+		var result = {};
+		result.r = o.r || 0;
+		result.g = o.g || 0;
+		result.b = o.b || 0;
+		result.a = (o.a!=null)?o.a:1;	//if o.a is zero, we want to keep it as is
+		return result;
+	}
 
 	/** @return a html compatible color string from given parameters
-	* @param c.r red [0-1] (default is 0)
-	* @param c.g green [0-1] (default is 0)
-	* @param c.b blue [0-1] (default is 0)
-	* @param c.a aplha [0-1] where 0 is totally transparent (default is 1)
+	 * @param o rgba object
 	*/
-	function htmlColor(c) {
-		var r = c.r? Math.round(c.r*255): 0;
-		var g = c.g? Math.round(c.g*255): 0;
-		var b = c.b? Math.round(c.b*255): 0;
-		var a = c.a?c.a:1;
-		return "rgba(+"+r+","+g+","+b+","+a+")";
+	function htmlColor(o) {
+		if(!o) return "rgba(0,0,0,0)";
+
+		var r = Math.round(o.r*255);
+		var g = Math.round(o.g*255);
+		var b = Math.round(o.b*255);
+		var a = o.a;
+		return "rgba("+r+","+g+","+b+","+a+")";
+	}
+	
+	/** draws the icon with given colors
+	 * @param icon.innerFill: the fill color of the circle inside as rgba object
+	 * @param icon.innerRing: the color of the inenr ring as rgba object
+	 * @param icon.outerFill: the fill color of the circle outside as rgba object
+	 * @param icon.outerRing: the color of the outer ring as rgba object
+	 */
+	function render(icon) {
+		var transparent = "rgba(0,0,0,0)";
+		
+		canvas.width = size;	//to clear canvas
+		drawBall({color:htmlColor(icon.outerFill) || transparent,r:quarter*2*0.9});
+		drawRing({color:htmlColor(icon.outerRing) || transparent, r:quarter*2*0.9, width:size/16});
+		
+		drawBall({color:htmlColor(icon.innerFill) || transparent,r:quarter*0.9});
+		drawRing({color:htmlColor(icon.innerRing) || transparent, r:quarter*0.9, width:size/16});
+		
+		renderedIcon = icon;
+		onRenderFinished();
+	}
+	
+	/** @return the mix of given 2 colors with given weights
+	 * @param c1 the first color as rgba object
+	 * @param c2 the second color as rgba object
+	 * @param s the state of the transition: 0 is the beginning, 1 is the end*/
+	function mix(c1, c2, s) {
+		var result = {};
+		if(!c1 && !c2) return;
+		c1 = c1 || {r:c2.r,g:c2.g,b:c2.b,a:0};	//null source is transparent target
+		c2 = c2 || {r:c1.r,g:c1.g,b:c1.b,a:0};	//null target is transparent source
+
+		result.r = c1.r*(1-s) + c2.r*s;
+		result.g = c1.g*(1-s) + c2.g*s;
+		result.b = c1.b*(1-s) + c2.b*s;
+		result.a = c1.a*(1-s) + c2.a*s;
+		return result;
+	}
+	
+	/** animates a transition between the current icon and the one given in c
+	 * @param c.length the length of the animation
+	 * @param c.fps frames per second (defaults to 100)
+	 * @param c.icon the icon to draw
+	 */
+	function setIcon(c) {
+		if(animationId) window.clearInterval(animationId);
+		if(!c.length || !renderedIcon) {
+			render(c.icon);
+			return;
+		}
+		
+		var fps = c.fps || 100;
+		var from = renderedIcon;	//source of the animation
+
+		var allFrames = c.length*fps;
+		var currentFrame = 0;
+		animationId = window.setInterval(function() {
+			if(++currentFrame > allFrames) {
+				window.clearInterval(animationId);
+				return;
+			}
+			render({
+				innerFill:mix(from.innerFill, c.icon.innerFill, currentFrame/allFrames)
+				,innerRing:mix(from.innerRing, c.icon.innerRing, currentFrame/allFrames)
+				,outerFill:mix(from.outerFill, c.icon.outerFill, currentFrame/allFrames)
+				,outerRing:mix(from.outerRing, c.icon.outerRing, currentFrame/allFrames)
+			});
+		}, 1000/fps);
+	}
+	
+	/** @return the icon to draw when turned off */
+	function turnedOffIcon() {
+		return {
+			innerFill: rgba({a:0.5})	//grey
+			,innerRing: rgba({}) //black
+			,outerFill: null	//transparent
+			,outerRing: rgba({})	//black
+		}
+	}
+	
+	/** @return the icon to draw when turned on or playing
+	 * @param volume the volume of playing */
+	function turnedOnIcon(volume) {
+		return {
+			innerFill: rgba({g:1})
+			,innerRing: rgba({})	//black
+			,outerFill: volume?rgba({g:1,a:volume}):null
+			,outerRing: rgba({g:0})
+		}
 	}
 	
 	//================================================= public =================================================
 	/** the object to be returned */
-	var drawer = {};
-	
-	drawer.setCanvas = function(cnv) {
-		canvas = cnv;
-		ctx = canvas.getContext("2d");
-	}
-
-	/** draws icon to show given volume
-	* @param volume [0-1] volume*/
-	drawer.drawTurnedOn = function(volume) {
-		canvas.width = size;	//to clear canvas
-		drawBall({color:htmlColor({g:1}),r:quarter*0.9});			//green circle in center
-		drawRing({color:"black", r:quarter*0.9, width:size/16});	//black ring around center
-		drawRing({color:"green", r:2*quarter*0.9, width:size/16});	//green outer ring
-	
-		//the circle showing the current volume of playing
-		if(volume < 0.1) return;
-		if(volume > 1) volume = 1;
-		var shineRadius = quarter + quarter*volume;
-		drawBall({color:htmlColor({g:1,a:0.5}),r:shineRadius});
+	var drawer = {
+		set canvas(cnv) {canvas = cnv;ctx = canvas.getContext("2d");}
+		,set onRenderFinished(callback) {onRenderFinished = callback;}
 	}
 	
+	drawer.drawTurnedOn = function() {
+		//first execution: transform from default icon (off)
+		if(!renderedIcon) setIcon({icon:turnedOffIcon()});
+		setIcon({icon: turnedOnIcon(),length: 0.3});
+	}
 	drawer.drawTurnedOff = function() {
-		canvas.width = size;	//to clear canvas
-		drawBall({color:"grey",r:quarter*0.9});						//circle in center
-		drawRing({color:"black", r:quarter*0.9, width:size/16});	//black ring around center
-		drawRing({color:"black",r:2*quarter*0.9,width: size/16});	//black outer ring
+		setIcon({icon: turnedOffIcon(),length: 0.3});
 	}
 	
+	drawer.drawPlaying = function(volume) {
+		if(volume < 0) return;
+		if(volume > 1) volume = 1;
+		setIcon({icon:turnedOnIcon(volume)});	//transmission length is 0 here!
+	}
 	return drawer;
 });

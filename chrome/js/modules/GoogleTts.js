@@ -1,10 +1,12 @@
-define(["TextSplitter"], function(textSplitter) {	
+define(["TextSplitter"], function(textSplitter) {
+	var speed = 1;
 	var audios = [];
-
+	var audioNodes = [];
 	var audioContext = new webkitAudioContext();
 	var audioAnalyser = audioContext.createAnalyser();
 	audioAnalyser.connect(audioContext.destination);
 	audioAnalyser.fftSize = 32;
+	var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
 	
 	/** @return the url of Google TTS to send request
 	 * @param text the text to read - length has to be max 100 characters
@@ -17,19 +19,22 @@ define(["TextSplitter"], function(textSplitter) {
 		return result;
 	}
 
-	//http://stackoverflow.com/questions/21959827/javascript-play-multiple-audios-after-each-other
+	/** @return a callback that needs to be executed when an audio is expected to play
+	 * if the data is loaded, the audio starts playing right away
+	 * if the data is not loaded, the audio starts playing when data is loaded*/
 	function createPlayCallback(audio) {
-		return function() {audio.play();}
+		return function() {
+			if(audio.readyState == 4) audio.play();
+			else audio.onloadeddata = audio.play;
+		}
 	}
 	
 	//================================================= public =================================================
 	/** the object to be returned */
-	var tts = {};
-
-	/** the audio analizer node - used for drawing the icon*/
-	tts.getAudioAnalyser = function() {
-		return audioAnalyser;
-	}
+	var tts = {
+		/** @return the audioAnalyser node, used for drawing the icon */
+		get audioAnalyser() {return audioAnalyser;}
+	};
 	
 	/** reads given text on given language (stops playing if already is playing)
 	 * @param c.text the text to be read
@@ -43,30 +48,35 @@ define(["TextSplitter"], function(textSplitter) {
 		var splitText = textSplitter.splitToLimit(c.text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
 		
 		audios = [];
-		for(var i=0; i<splitText.length; i++) {
-			audios.push(new Audio());
-			audios[i].defaultPlaybackRate = c.speed || 1;
-			//new audios are connected to the audioAnalyserNode in order to show colume on the icon
-			audioContext.createMediaElementSource(audios[i]).connect(audioAnalyser);	//TODO check if GC collects this
-			audios[i].src = buildUrl(splitText[i], c.lan);
-			if(i>0) {
-				audios[i-1].onended = createPlayCallback(audios[i]);
-			}
-		}
-		audios[0].onloadeddata = function() {audios[0].play();}
+		audioNodes.forEach(function(node){node.disconnect();});
+		audioNodes = [];
+		
+		splitText.forEach(function(part, i) {
+			var audio = new Audio();
+			audio.defaultPlaybackRate = speed;
+			audio.src = buildUrl(part, c.lan);
+			audios.push(audio);
+			
+			var audioNode = audioContext.createMediaElementSource(audios[i]);
+			audioNode.connect(audioAnalyser);
+			
+			if(i==0) audio.onloadeddata = createPlayCallback(audio);
+			else audios[i-1].onended = createPlayCallback(audio);
+		});
 	};
 	
 	/** stops playing the audio (not only pause!)*/
 	tts.stop = function() {
-		for(var i=0; i<audios.length; i++) {
-			audios[i].pause();
-			audios[i].removeAttribute("src");
-		}
+		audios.forEach(function(audio) {
+			audio.pause();
+			audio.removeAttribute("src");
+		});
 		audios = [];
 	}
 	
 	/** sets the speed of playing */
-	tts.setSpeed = function(speed) {
+	tts.setSpeed = function(newSpeed) {
+		speed = newSpeed;
 		for(var i=0; i<audios.length; i++) {
 			audios[i].playbackRate = speed;
 		}

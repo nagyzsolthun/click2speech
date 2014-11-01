@@ -8,7 +8,7 @@
 			chrome.runtime.sendMessage({
 				action: "webReader.read",
 				text: getSelection().toString(),
-				languageOfDocument: document.documentElement.lang
+				lan: document.documentElement.lang
 			});
 		}, 10);
 	}
@@ -18,7 +18,7 @@
 		chrome.runtime.sendMessage({
 			action: "webReader.read",
 			text: getSelection().toString(),
-			languageOfDocument: document.documentElement.lang
+			lan: document.documentElement.lang
 		});
 	}
 
