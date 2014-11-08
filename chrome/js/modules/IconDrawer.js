@@ -142,14 +142,23 @@ define(function() {
 		}
 	}
 	
-	/** @return the icon to draw when turned on or playing
-	 * @param volume the volume of playing */
-	function turnedOnIcon(volume) {
+	/** @return the icon to draw when turned on*/
+	function turnedOnIcon() {
 		return {
 			innerFill: rgba({g:1})
 			,innerRing: rgba({})	//black
-			,outerFill: volume?rgba({g:1,a:volume}):null
-			,outerRing: rgba({g:0})
+			,outerFill: null
+			,outerRing: rgba({g:0.5})
+		}
+	}
+	
+	/** @return the icon to draw when playing*/
+	function playingIcon() {
+		return {
+			innerFill: rgba({g:1})
+			,innerRing: rgba({})	//black
+			,outerFill: rgba({g:1,a:1})	//green
+			,outerRing: rgba({g:0.5})
 		}
 	}
 	
@@ -169,10 +178,8 @@ define(function() {
 		setIcon({icon: turnedOffIcon(),length: 0.3});
 	}
 	
-	drawer.drawPlaying = function(volume) {
-		if(volume < 0) return;
-		if(volume > 1) volume = 1;
-		setIcon({icon:turnedOnIcon(volume)});	//transmission length is 0 here!
+	drawer.drawPlaying = function() {
+		setIcon({icon:playingIcon(),length:0.3});	//transmission length is 0 here!
 	}
 	return drawer;
 });

@@ -1,12 +1,9 @@
 define(["TextSplitter"], function(textSplitter) {
 	var speed = 1;
 	var audios = [];
-	var audioNodes = [];
-	var audioContext = new webkitAudioContext();
-	var audioAnalyser = audioContext.createAnalyser();
-	audioAnalyser.connect(audioContext.destination);
-	audioAnalyser.fftSize = 32;
-	var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
+	
+	var onStart = function() {};	//executed when playing starts
+	var onEnd = function() {};	//executed when playing ends
 	
 	/** @return the url of Google TTS to send request
 	 * @param text the text to read - length has to be max 100 characters
@@ -18,6 +15,19 @@ define(["TextSplitter"], function(textSplitter) {
 		var result = ttsurl + "?q=" + text + "&tl="+lan;
 		return result;
 	}
+	
+	/** @return a callback for the first audio element's onloadeddata:
+	 * a) audio start playing
+	 * b) onStart is executed*/
+	function createFirstLoadedCallback(audio) {
+		return function () {
+			audio.play();
+			onStart();
+		}
+	}
+	
+	/** @return the callback to be used for the 
+	function createLast
 
 	/** @return a callback that needs to be executed when an audio is expected to play
 	 * if the data is loaded, the audio starts playing right away
@@ -32,8 +42,9 @@ define(["TextSplitter"], function(textSplitter) {
 	//================================================= public =================================================
 	/** the object to be returned */
 	var tts = {
-		/** @return the audioAnalyser node, used for drawing the icon */
-		get audioAnalyser() {return audioAnalyser;}
+		/** given callback is executed when playing starts */
+		set onStart(callback) { onStart = callback || function() {};}
+		,set onEnd(callback) { onEnd = callback || function() {};}
 	};
 	
 	/** reads given text on given language (stops playing if already is playing)
@@ -47,21 +58,28 @@ define(["TextSplitter"], function(textSplitter) {
 		//we try to split by sentence ends, commas or spaces
 		var splitText = textSplitter.splitToLimit(c.text, 100, [/\.\s/g, /\,\s/g, /\s/g]);
 		
-		audios = [];
-		audioNodes.forEach(function(node){node.disconnect();});
-		audioNodes = [];
-		
 		splitText.forEach(function(part, i) {
 			var audio = new Audio();
 			audio.defaultPlaybackRate = speed;
 			audio.src = buildUrl(part, c.lan);
 			audios.push(audio);
 			
-			var audioNode = audioContext.createMediaElementSource(audios[i]);
-			audioNode.connect(audioAnalyser);
-			
-			if(i==0) audio.onloadeddata = createPlayCallback(audio);
-			else audios[i-1].onended = createPlayCallback(audio);
+			//first element starts playing when onloadedData + executes onStart
+			if(i==0) audio.onloadeddata = function() {
+				audio.play()
+				onStart();
+			}
+			else {	//other elements start playing after previous ends AND after their data loads
+				audios[i-1].onended = function() {
+					if(audio.readyState == 4) audio.play();
+					else audio.onloadeddata = audio.play;
+				}
+			}
+
+			//last element should call onEnd
+			if(i == splitText.length-1) {
+				audio.onended = onEnd;
+			}
 		});
 	};
 	
@@ -72,6 +90,7 @@ define(["TextSplitter"], function(textSplitter) {
 			audio.removeAttribute("src");
 		});
 		audios = [];
+		onEnd();
 	}
 	
 	/** sets the speed of playing */

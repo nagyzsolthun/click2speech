@@ -22,15 +22,6 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 		});
 	}
 
-	function turnOn() {
-		iconDrawer.drawTurnedOn();
-	}
-
-	function turnOff() {
-		ttsService.stop();	//in case it is reading, we stop it
-		iconDrawer.drawTurnedOff();
-	}
-
 	/** notifies the contentjs' to set their readEvents */
 	function sendSetReadEvent() {
 		chrome.tabs.query({}, function(tabs) {
@@ -56,11 +47,12 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 					break;
 				case("webReader.turnOn"):
 					settingsHandler.set("turnedOn",true);
-					turnOn();
+					iconDrawer.drawTurnedOn();
 					break;
 				case("webReader.turnOff"):
 					settingsHandler.set("turnedOn",false);
-					turnOff();
+					ttsService.stop();	//in case it is reading, we stop it
+					iconDrawer.drawTurnedOff();
 					break;
 				case("webReader.setReadEvent"):
 					settingsHandler.set("readEvent",request.readEvent);
@@ -85,22 +77,11 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 		else iconDrawer.drawTurnedOff();
 	});
 	
-	//icon is redrawn when volume of speech changes
-	var audioAnalyser = ttsService.audioAnalyser;
-	var frequencyData = new Uint8Array(audioAnalyser.frequencyBinCount);
- 	var previousVolume = 0;
- 	setInterval(function(){
- 		settingsHandler.getAll(function(settings) {
- 			if(!settings.turnedOn) {return;}
-			audioAnalyser.getByteFrequencyData(frequencyData);
-			var currentVolume = 0;
-			for(var i=0; i<frequencyData.length; i++) {	//get the loadest frequency
-				currentVolume = (currentVolume > frequencyData[i]/255)?currentVolume:frequencyData[i]/255;
-			}
- 			if(previousVolume != currentVolume) {
- 				iconDrawer.drawPlaying(currentVolume);
-			}
-			previousVolume = currentVolume;
-		})
-	});
+	ttsService.onStart = function() {
+		iconDrawer.drawPlaying()
+	}
+	
+	ttsService.onEnd = function() {
+		iconDrawer.drawTurnedOn()
+	}
 });
