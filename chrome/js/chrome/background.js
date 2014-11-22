@@ -22,11 +22,11 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 		});
 	}
 
-	/** notifies the contentjs' to set their readEvents */
-	function sendSetReadEvent() {
+	/** notifies the contentjs' to set their selectEvents */
+	function sendSetSelectEvent() {
 		chrome.tabs.query({}, function(tabs) {
 			settingsHandler.getAll(function(settings) {
-				var message = {action:"webReader.setReadEvent",readEvent:settings.readEvent};
+				var message = {action:"webReader.setSelectEvent",selectEvent:settings.selectEvent};
 				for (var i=0; i<tabs.length; i++) {
 					chrome.tabs.sendMessage(tabs[i].id, message);
 				}
@@ -54,9 +54,9 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 					ttsService.stop();	//in case it is reading, we stop it
 					iconDrawer.drawTurnedOff();
 					break;
-				case("webReader.setReadEvent"):
-					settingsHandler.set("readEvent",request.readEvent);
-					sendSetReadEvent();
+				case("webReader.setSelectEvent"):
+					settingsHandler.set("selectEvent",request.selectEvent);
+					sendSetSelectEvent();
 					break;
 				case("webReader.setSpeed"):
 					settingsHandler.set("speed",request.speed);
@@ -70,7 +70,7 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 	);
 
 	// ===================================== initial settings =====================================
-	sendSetReadEvent();
+	sendSetSelectEvent();
 	settingsHandler.getAll(function(settings) {
 		ttsService.setSpeed(settings.speed);
 		if(settings.turnedOn) iconDrawer.drawTurnedOn();

@@ -76,22 +76,39 @@ body {
 }
 
 /* ===================================== start event settings =====================================*/
-#readEventList {
+#selectEventList {
 	list-style: none;
 	margin: 0;
 }
 
-#readEventList img {
+#selectEventList img {
 	width: 0.7em;
 	visibility: hidden;	/*only the selected oens will be visible*/
 }
 
-#readEventList li.selected img {
+#selectEventList li.selected img {
 	visibility: visible;
 }
 
 /*the highlighted text*/
-#readEventList li:hover span{
+#selectEventList li:hover span{
 	background-color:#4f4;
 	border-radius: 0.4em;	/*the highlighted area has rounded corners this way*/
+}
+
+/** only visible when keyboard readEvent is selected */
+#keySelectorWindow {
+	position:fixed;
+	background-color:white;
+	border: 1px solid black;
+	text-align: center;
+	
+	width: 40em;
+	
+	/** lets center the div: http://stackoverflow.com/questions/17069435/center-fixed-div-with-dynamic-width-css*/
+	top: 0;
+	right: 0;
+    left: 0;
+	margin-right: auto;
+    margin-left: auto;
 }

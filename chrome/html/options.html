@@ -6,19 +6,15 @@
 	</div>
 	<div id="content">
 		<div class="control hoverable">
-			<div>Speech Start</div>
-			<ul id="readEventList">
-				<li data-event="mouseUp">
+			<div>Selection</div>
+			<ul id="selectEventList">
+				<li data-event="pointedParagraph">
 					<img src="../img/selected-option-icon.svg"/>
-					<span>after selected</span>
+					<span>pointed paragraph</span>
 				</li>
-				<li data-event="mouseDown">
+				<li data-event="browserSelect">
 					<img src="../img/selected-option-icon.svg"/>
-					<span>after click</span>
-				</li>
-				<li data-event="keyboard">
-					<img src="../img/selected-option-icon.svg"/>
-					<span>keyboard</span>
+					<span>browser provided selection</span>
 				</li>
 			</ul>
 		</div>
@@ -30,6 +26,11 @@
 		</div>
 	
 	</div>
+	
+	<!-- <div id="keySelectorWindow">
+		<h1>Press the key that will start reading</h1>
+		<div>press esc to cancel</div>
+	<div> -->
 
 	<link rel="stylesheet" type="text/css" href="../css/options.css">
 	<script data-main="../js/chrome/options.js" src="../js/lib/require.js"></script>

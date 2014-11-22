@@ -24,7 +24,7 @@ define([], function() {
 			}
 
 			//settings are not persisted (first ever execution)
-			cache = {speed:1,turnedOn:true,readEvent:"mouseUp"}
+			cache = {speed:1,turnedOn:true,selectEvent:"pointedParagraph"}
 			response(cache);
 			chrome.storage.local.set({webReaderSettings:cache}, function() {
 				console.log("first ever execution: default settings persisted");

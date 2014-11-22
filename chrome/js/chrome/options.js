@@ -2,68 +2,46 @@ require.config({
 	baseUrl: "/../js/modules"
 });
 
-/** @param TestLines the text to show at the bottom of options page */
 require([], function() {
-	// ======================================== Read Event ========================================
+	// ======================================== Select Event ========================================
 	/** @return a callback that:
-	 * 1. removes the "selected" class from all readEventSelectors
+	 * 1. removes the "selected" class from all given elements (options)
 	 * 2. adds "selected" class to the node with selectedIndex index
-	 * 3. sends setReadEvent
-	 * @param readEventSelectors the nodelist (or array) that holds the elements to remove selected from
+	 * 3. sends setSelectEvent
+	 * @param options the nodelist (or array) that holds the elements to remove "selected" class from
 	 * @param selectedIndex the index of the node to add "selected" class
 	*/
-	function readEventSelectedCallback(readEventSelectors, selectedIndex) {
+	function onSelect(options, selectedIndex) {
 		return function() {
-			for(var i=0; i<readEventSelectors.length; i++) {
-				readEventSelectors[i].classList.remove("selected");
+			for(var i=0; i<options.length; i++) {
+				options[i].classList.remove("selected");
 			}
-			var readEventSelector = readEventSelectors[selectedIndex];
-			readEventSelector.classList.add("selected");
-			switch(readEventSelector.dataset.event) {
-				case("mouseUp"): chrome.runtime.sendMessage({
-					action:"webReader.setReadEvent",
-					readEvent:"mouseUp"
+			var selectEventSelector = options[selectedIndex];
+			selectEventSelector.classList.add("selected");
+			switch(selectEventSelector.dataset.event) {	//TODO: this whole switch stuff is unnecessary
+				case("pointedParagraph"): chrome.runtime.sendMessage({
+					action:"webReader.setSelectEvent",
+					selectEvent:"pointedParagraph"
 				}); break;
-				case("mouseDown"): chrome.runtime.sendMessage({
-					action:"webReader.setReadEvent",
-					readEvent:"mouseDown"
+				case("browserSelect"): chrome.runtime.sendMessage({
+					action:"webReader.setSelectEvent",
+					selectEvent:"browserSelect"
 				}); break;
-				case("keyboard"):
-					//TODO keyboard
-					alert("keyboard - not implemented yet!");
-					/*chrome.storage.local.clear(function() {
-						alert("cleared storage");
-					});*/
-					break;
 			}
-			
+			/*chrome.storage.local.clear(function() {
+				alert("cleared storage");
+			});*/
 		}
 	}
 	
-	var readEventSelectors = document.querySelectorAll("#readEventList li");
-	for(var i=0; i<readEventSelectors.length; i++) {
-		readEventSelectors[i].onclick = readEventSelectedCallback(readEventSelectors, i);
+	var selectEventSelectors = document.querySelectorAll("#selectEventList li");
+	for(var i=0; i<selectEventSelectors.length; i++) {
+		selectEventSelectors[i].onclick = onSelect(selectEventSelectors, i);
 	}
 	
 	// ======================================== Speed Settings ========================================
 	var speedNumber = document.getElementById("speedNumber");
 	var speedRange = document.getElementById("speedRange");
-	
-	//set the initial value of the range
-	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
-		speedNumber.value = settings.speed;
-		speedRange.value = settings.speed;
-		
-		var readEventSelectors = document.querySelectorAll("#readEventList li");
-		var selected = null;
-		for(var i=0; i<readEventSelectors.length; i++) {
-			if(readEventSelectors[i].dataset.event == settings.readEvent) {
-				readEventSelectedCallback(readEventSelectors, i)();
-				//TODO: more straightforward?
-				//TODO: shouldn't send setReadEvent in this case
-			}
-		}
-	});
 
 	speedNumber.onchange = function() {
 		chrome.runtime.sendMessage({action: "webReader.setSpeed",speed: this.value});
@@ -73,4 +51,19 @@ require([], function() {
 		chrome.runtime.sendMessage({action: "webReader.setSpeed",speed: this.value});
 		speedNumber.value = this.value;
 	}
+	
+	// ======================================== init ========================================
+	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
+		speedNumber.value = settings.speed;
+		speedRange.value = settings.speed;
+		
+		var selectEventSelectors = document.querySelectorAll("#selectEventList li");
+		for(var i=0; i<selectEventSelectors.length; i++) {
+			if(selectEventSelectors[i].dataset.event == settings.selectEvent) {
+				onSelect(selectEventSelectors, i).call();
+				//TODO: more straightforward?
+				//TODO: shouldn't send setSelectEvent in init case
+			}
+		}
+	});
 });
