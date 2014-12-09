@@ -7,7 +7,12 @@ define(function() {
 	var canvas;
 	
 	var renderedIcon;	//stores the last drawn icon
-	var animationId;	//the id of the last started animation
+
+	//whenever a transition starts this variable is set as the target
+	//so when an animation starts in the menawhile, targetIcon will set at the end
+	var targetIcon;
+
+	var transitionId;	//the id of the last started transition
 	
 	var onRenderFinished = function() {};	//execued whenever the icon is redrawn
 
@@ -106,8 +111,10 @@ define(function() {
 	 * @param c.fps frames per second (defaults to 100)
 	 * @param c.icon the icon to draw
 	 */
-	function setIcon(c) {
-		if(animationId) window.clearInterval(animationId);
+	function drawTransition(c) {
+		targetIcon = c.icon;
+		
+		if(transitionId) window.clearInterval(transitionId);
 		if(!c.length || !renderedIcon) {
 			render(c.icon);
 			return;
@@ -118,9 +125,9 @@ define(function() {
 
 		var allFrames = c.length*fps;
 		var currentFrame = 0;
-		animationId = window.setInterval(function() {
+		transitionId = window.setInterval(function() {
 			if(++currentFrame > allFrames) {
-				window.clearInterval(animationId);
+				window.clearInterval(transitionId);
 				return;
 			}
 			render({
@@ -130,6 +137,19 @@ define(function() {
 				,outerRing:mix(from.outerRing, c.icon.outerRing, currentFrame/allFrames)
 			});
 		}, 1000/fps);
+	}
+	
+	/** animates several transitions after each other
+	 * @param a is an array of animations, where animation c is:
+	 * 		@param c.length the length of the animation
+	 * 		@param c.fps frames per second (defaults to 100)
+	 * 		@param c.icon the icon to draw*/
+	function animate(a) {
+		var lengthSum = 0;	//this variable holds the sum of length of animations - when the next animation starts
+		a.forEach(function(c){
+			window.setTimeout(function(){drawTransition(c);}, lengthSum*1000);
+			lengthSum += c.length || 0;
+		});
 	}
 	
 	/** @return the icon to draw when turned off */
@@ -162,6 +182,16 @@ define(function() {
 		}
 	}
 	
+	/** @return the icon to show when error occours */
+	function errorIcon() {
+		return {
+			innerFill: rgba({r:1})
+			,innerRing: rgba({})	//black
+			,outerFill: rgba({r:1})
+			,outerRing: rgba({})	//black
+		}
+	}
+	
 	//================================================= public =================================================
 	/** the object to be returned */
 	var drawer = {
@@ -171,15 +201,23 @@ define(function() {
 	
 	drawer.drawTurnedOn = function() {
 		//first execution: transform from default icon (off)
-		if(!renderedIcon) setIcon({icon:turnedOffIcon()});
-		setIcon({icon: turnedOnIcon(),length: 0.3});
+		if(!renderedIcon) drawTransition({icon:turnedOffIcon()});
+		drawTransition({icon: turnedOnIcon(),length: 0.3});
 	}
+	
 	drawer.drawTurnedOff = function() {
-		setIcon({icon: turnedOffIcon(),length: 0.3});
+		drawTransition({icon: turnedOffIcon(),length: 0.3});
 	}
 	
 	drawer.drawPlaying = function() {
-		setIcon({icon:playingIcon(),length:0.3});	//transmission length is 0 here!
+		drawTransition({icon:playingIcon(),length:0.3});
+	}
+	
+	drawer.drawMissed = function() {
+		animate([
+			{icon:errorIcon(), length:0.2}
+			,{icon:targetIcon, length:0.2}
+		]);
 	}
 	return drawer;
 });

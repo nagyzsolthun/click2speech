@@ -1,15 +1,17 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
+	//this function is set depnding on the settings (non or readOnClick)
+	function onClick() {
+		console.log("onClick default - should not execute");
+	}
+	
+	//this function is set depnding on the settings (browser-select OR pointed paragraph)
 	var getTextToRead = function() {
-		console.log("should not execute");
-	};	//thsi function is set depnding on the settings (browser-select OR pointed paragraph)
+		console.log("getTextToRead default - should not execute");
+	};
 	
 	// ============================================= pointed paragraph =============================================
 	//TODO: make code look better
-	//TODO: selected text should actually be read
-	//TODO: rethink options page
-	//TODO: animated highlight of text!!
-	//TODO: limit length?
 	var selectedBackGround = "#4f4";
 	var selectedElement;
 	var selectedOriginalBackground;
@@ -43,6 +45,7 @@
 		var hoveredNodes = document.querySelectorAll(":hover");
 		if(hoveredNodes.length) {
 			hoveredElement = hoveredNodes[hoveredNodes.length - 1];	//take the element on the deepest position
+			//TODO not the last one, the first one that contains text directly
 		}
 		
 		//the element is already selected
@@ -74,8 +77,32 @@
 		return getSelection().toString();
 	}
 	
+	// ============================================= read and missed functions ============================================= 
+	/** reads the text to be read (painted paragraph / selected text) */
+	function readText() {
+		console.log("read on click");
+		chrome.runtime.sendMessage({
+			action: "webReader.read",
+			text: getTextToRead(),
+			lan: document.documentElement.lang
+		});
+	}
+	
+	/** sends "missed" message to background */
+	function sendMissed() {
+		chrome.runtime.sendMessage({action: "webReader.missed"});
+	}
+	
 	// ============================================= general =============================================
+	
+	/** sets up onClick function to start reading or send missed message */
+	function setClickReadEventListener(enabled) {
+		if(enabled) onClick = readText;
+		else onClick = sendMissed;
+	}
 
+	/** 1. sets up getTextToRead function to either use pointed paragraph or browser-select
+	 2. starts selecting the pointed paragraph when poitnedParagraph given*/
 	function setSelectEventListener(selectEvent) {
 		//TODO keyboard + click settings
 
@@ -96,24 +123,30 @@
 	/** to react when setting is changed in options*/
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {
-			if(request.action == "webReader.setSelectEvent") {
-				console.log("received: " + request.selectEvent);
-				setSelectEventListener(request.selectEvent);
+			if(request.action != "webReader.set") return;
+			console.log("received: " + request.setting + " " + request.value);
+			switch(request.setting) {
+				case("selectEvent"):
+					setSelectEventListener(request.value);
+					break;
+				case("clickReadEvent"):
+					setClickReadEventListener(request.value);
+					break;
+				case("keyboardReadEvent"):
+					//TODO
+					break;
 			}
 		}
 	);
 
 	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(response) {
 		setSelectEventListener(response.selectEvent);
+		setClickReadEventListener(response.clickReadEvent);
+		//TODO keyboard
 	});
 	
 	//TODO make settings for this
 	document.addEventListener("mousedown", function(){
-		console.log("mouseDown");
-		chrome.runtime.sendMessage({
-			action: "webReader.read",
-			text: getTextToRead(),
-			lan: document.documentElement.lang
-		});
+		onClick();
 	})
 })();

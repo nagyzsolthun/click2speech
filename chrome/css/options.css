@@ -48,11 +48,12 @@ body {
 }
 
 /* ===================================== speed settings =====================================*/
-#speedNumber {
+
+.numberInput {
 	width: 2em;
 	font-size: 30px;
 }
-#speedRange {
+.rangeInput {
 	width: 100%;
 	-webkit-appearance: none;
 	border-radius: 1px;
@@ -61,37 +62,44 @@ body {
 	vertical-align: middle;
 }
 
-#speedRange::-webkit-slider-thumb {
+.rangeInput::-webkit-slider-thumb {
 	-webkit-appearance: none;
-	border-radius: 60px;
-	border: 1px solid gray;
-	background-color: #eee;
-	box-shadow:inset 0 0 4px #444;
-	height: 30px;
-	width: 30px;
+	background-color: #fff;	/* so transparents parts of the image are white */
+	background-image: url('../img/unselectedSingleOption.svg');
+	background-size: contain;
+	height: 32px;
+	width: 32px;
 }
 
-#speedRange:hover::-webkit-slider-thumb {
-	background-color: #0f0;
+.rangeInput:hover::-webkit-slider-thumb {
+	/*background-color: #0f0;*/
+	background-image: url('../img/selectedSingleOption.svg');
 }
 
 /* ===================================== start event settings =====================================*/
-#selectEventList {
+.choiceList {
 	list-style: none;
 	margin: 0;
 }
 
-#selectEventList img {
-	width: 0.7em;
-	visibility: hidden;	/*only the selected oens will be visible*/
+.choiceList > :before {
+	/** placeholder for the option checked image */
+	margin-right: .2em;
+    background-size: .7em;
+	width: .7em;
+	height: .7em;
+    content: "";
+	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
 }
 
-#selectEventList li.selected img {
-	visibility: visible;
-}
+.singleChoiceList > :before				{background-image: url('../img/unselectedSingleOption.svg');}
+.singleChoiceList > .selected:before	{background-image: url('../img/selectedSingleOption.svg');}
 
-/*the highlighted text*/
-#selectEventList li:hover span{
+.multipleChoiceList > :before			{background-image: url('../img/unselectedMultipleOption.svg');}
+.multipleChoiceList > .selected:before	{background-image: url('../img/selectedMultipleOption.svg');}
+
+/** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
+.choiceList > li:hover > * {
 	background-color:#4f4;
 	border-radius: 0.4em;	/*the highlighted area has rounded corners this way*/
 }

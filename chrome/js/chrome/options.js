@@ -2,68 +2,76 @@ require.config({
 	baseUrl: "/../js/modules"
 });
 
-require([], function() {
-	// ======================================== Select Event ========================================
-	/** @return a callback that:
-	 * 1. removes the "selected" class from all given elements (options)
-	 * 2. adds "selected" class to the node with selectedIndex index
-	 * 3. sends setSelectEvent
-	 * @param options the nodelist (or array) that holds the elements to remove "selected" class from
-	 * @param selectedIndex the index of the node to add "selected" class
-	*/
-	function onSelect(options, selectedIndex) {
-		return function() {
-			for(var i=0; i<options.length; i++) {
-				options[i].classList.remove("selected");
-			}
-			var selectEventSelector = options[selectedIndex];
-			selectEventSelector.classList.add("selected");
-			switch(selectEventSelector.dataset.event) {	//TODO: this whole switch stuff is unnecessary
-				case("pointedParagraph"): chrome.runtime.sendMessage({
-					action:"webReader.setSelectEvent",
-					selectEvent:"pointedParagraph"
-				}); break;
-				case("browserSelect"): chrome.runtime.sendMessage({
-					action:"webReader.setSelectEvent",
-					selectEvent:"browserSelect"
-				}); break;
-			}
-			/*chrome.storage.local.clear(function() {
-				alert("cleared storage");
-			});*/
-		}
-	}
-	
-	var selectEventSelectors = document.querySelectorAll("#selectEventList li");
-	for(var i=0; i<selectEventSelectors.length; i++) {
-		selectEventSelectors[i].onclick = onSelect(selectEventSelectors, i);
-	}
-	
-	// ======================================== Speed Settings ========================================
-	var speedNumber = document.getElementById("speedNumber");
-	var speedRange = document.getElementById("speedRange");
+require(["optionsElementFactory"], function(elementFactory) {
 
-	speedNumber.onchange = function() {
-		chrome.runtime.sendMessage({action: "webReader.setSpeed",speed: this.value});
-		speedRange.value = this.value;
-	}
-	speedRange.oninput = function() {
-		chrome.runtime.sendMessage({action: "webReader.setSpeed",speed: this.value});
-		speedNumber.value = this.value;
+	/** notifies background about a changed setting*/
+	function sendSet(setting, value) {
+		chrome.runtime.sendMessage({
+			action:"webReader.set"
+			,setting: setting
+			,value: value
+		});
 	}
 	
-	// ======================================== init ========================================
-	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
-		speedNumber.value = settings.speed;
-		speedRange.value = settings.speed;
+	/** @return an element with "control hoverable" classes + an optional titleElement with given title content */
+	function createControlElement(title) {
+		var result = document.createElement("div");
+		result.className = "control hoverable";
 		
-		var selectEventSelectors = document.querySelectorAll("#selectEventList li");
-		for(var i=0; i<selectEventSelectors.length; i++) {
-			if(selectEventSelectors[i].dataset.event == settings.selectEvent) {
-				onSelect(selectEventSelectors, i).call();
-				//TODO: more straightforward?
-				//TODO: shouldn't send setSelectEvent in init case
-			}
+		if(title) {
+			var titleElement = document.createElement("div");
+			titleElement.innerHTML = title;
+			result.appendChild(titleElement);
 		}
+		
+		return result;
+	}
+	
+	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
+		// ======================================== select Settings ========================================
+		var selectEventList = elementFactory.createSingleChoiceList({
+			options: [
+				{text:"pointed paragraph",value:"pointedParagraph", selected:settings.selectEvent=="pointedParagraph"}
+				,{text:"browser provided selection",value:"browserSelect", selected:settings.selectEvent=="browserSelect"}
+			]
+			,onselect: function(value) {sendSet("selectEvent", value);}
+		});
+		
+		var selectControl = createControlElement("Selection");
+		selectControl.appendChild(selectEventList);
+
+		document.getElementById("content").appendChild(selectControl);
+		
+		// ======================================== read event ========================================
+		//TODO: implement these
+		var readEventList = elementFactory.createMultipleChoiceList({
+			options: [
+				{text:"click",value:"readOnClick", selected:settings.selectEvent=="pointedParagraph"}
+				,{text:"keyboard",value:"readOnKeyboard", selected:settings.selectEvent=="browserSelect"}
+			]
+			,onselect: function(value, isSelected) {
+				switch(value) {
+					case("readOnClick"): sendSet("clickReadEvent",isSelected); break;
+					case("readOnKeyboard"): sendSet("keyboardReadEvent","key"); break;
+				}
+			}
+		});
+		
+		var readEventControl = createControlElement("Read Event");
+		readEventControl.appendChild(readEventList);
+
+		document.getElementById("content").appendChild(readEventControl);
+		
+		// ======================================== speed Settings ========================================
+		var speedRange = elementFactory.createNumberedRange({
+			min: .5, max: 4, step: .1, value: settings.speed, onchange: function(value) {
+				sendSet("speed", value);
+			}
+		});
+		var speedControl = createControlElement("Speed of Speech");
+		speedControl.appendChild(speedRange);
+
+		document.getElementById("content").appendChild(speedControl);
+		
 	});
 });
