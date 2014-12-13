@@ -1,5 +1,5 @@
 /**draws the icon of WebReader - the look depends on the volume of playing and the status (on/off) */
-define(function() {
+define(function(rgbaAnimationHandler) {
 	var size = 18;	//TODO from setter
 	var quarter = size/4;
 
@@ -12,7 +12,7 @@ define(function() {
 	//so when an animation starts in the menawhile, targetIcon will set at the end
 	var targetIcon;
 
-	var transitionId;	//the id of the last started transition
+	var animationId;	//the id of the last started transition
 	
 	var onRenderFinished = function() {};	//execued whenever the icon is redrawn
 
@@ -106,90 +106,99 @@ define(function() {
 		return result;
 	}
 	
-	/** animates a transition between the current icon and the one given in c
+	/** animates several transitions after each other
+	 * @param a.forever if true the animation from the begining when finishes
+	 * @param a.fps the fps of the enaimation (100 by default)
+	 * @param a.transitions is an array of transitions, where trannsition t is:
+	 * 		@param t.length the length of the transition (transition between the rendered icon and given icon)
+	 * 		@param t.icon the icon to draw*/
+	function animate(a) {
+		targetIcon = a.transitions[a.transitions.length-1].icon;
+		
+		if(animationId) window.clearInterval(animationId);
+		
+		var fps = a.fps || 100;
+		
+		var transitionIndex = 0;	//we iterate over each transition and animate it
+		var currentTransition = a.transitions[transitionIndex];
+		var from = renderedIcon || currentTransition.icon;	//source of the animation
+		var to = currentTransition.icon;
+
+		var allFrames = currentTransition.length*fps || 1;	//how many frames will the transition take?
+		var currentFrame = 0;
+		animationId = window.setInterval(function() {
+			if(++currentFrame > allFrames) {	//reached the end of a transition
+				currentTransition = a.transitions[++transitionIndex];
+				if(! currentTransition) {
+					if(a.forever) {
+						transitionIndex = 0;
+						currentTransition = a.transitions[0];
+					} else {
+						window.clearInterval(animationId);
+						return;
+					}
+				}
+
+				from = renderedIcon;
+				to = currentTransition.icon;
+				allFrames = currentTransition.length*fps || 1;
+				currentFrame = 0;
+			}
+			render({
+				innerFill:mix(from.innerFill, to.innerFill, currentFrame/allFrames)
+				,innerRing:mix(from.innerRing, to.innerRing, currentFrame/allFrames)
+				,outerFill:mix(from.outerFill, to.outerFill, currentFrame/allFrames)
+				,outerRing:mix(from.outerRing, to.outerRing, currentFrame/allFrames)
+			});
+		}, 1000/fps);
+	}
+	
+	/** animates a transition between the current icon and the one given in c (alias for a simple animation call)
 	 * @param c.length the length of the animation
 	 * @param c.fps frames per second (defaults to 100)
 	 * @param c.icon the icon to draw
 	 */
 	function drawTransition(c) {
-		targetIcon = c.icon;
-		
-		if(transitionId) window.clearInterval(transitionId);
-		if(!c.length || !renderedIcon) {
-			render(c.icon);
-			return;
-		}
-		
-		var fps = c.fps || 100;
-		var from = renderedIcon;	//source of the animation
-
-		var allFrames = c.length*fps;
-		var currentFrame = 0;
-		transitionId = window.setInterval(function() {
-			if(++currentFrame > allFrames) {
-				window.clearInterval(transitionId);
-				return;
-			}
-			render({
-				innerFill:mix(from.innerFill, c.icon.innerFill, currentFrame/allFrames)
-				,innerRing:mix(from.innerRing, c.icon.innerRing, currentFrame/allFrames)
-				,outerFill:mix(from.outerFill, c.icon.outerFill, currentFrame/allFrames)
-				,outerRing:mix(from.outerRing, c.icon.outerRing, currentFrame/allFrames)
-			});
-		}, 1000/fps);
-	}
-	
-	/** animates several transitions after each other
-	 * @param a is an array of animations, where animation c is:
-	 * 		@param c.length the length of the animation
-	 * 		@param c.fps frames per second (defaults to 100)
-	 * 		@param c.icon the icon to draw*/
-	function animate(a) {
-		var lengthSum = 0;	//this variable holds the sum of length of animations - when the next animation starts
-		a.forEach(function(c){
-			window.setTimeout(function(){drawTransition(c);}, lengthSum*1000);
-			lengthSum += c.length || 0;
+		animate({
+			transitions:[{icon:c.icon,length:c.length}]
+			,fps: c.fps
 		});
 	}
 	
-	/** @return the icon to draw when turned off */
-	function turnedOffIcon() {
-		return {
-			innerFill: rgba({a:0.5})	//grey
-			,innerRing: rgba({}) //black
-			,outerFill: null	//transparent
-			,outerRing: rgba({})	//black
-		}
+	var turnedOffIcon = {
+		innerFill: rgba({a:0.5})	//grey
+		,innerRing: rgba({}) //black
+		,outerFill: null	//transparent
+		,outerRing: rgba({})	//black
 	}
 	
-	/** @return the icon to draw when turned on*/
-	function turnedOnIcon() {
-		return {
-			innerFill: rgba({g:1})
-			,innerRing: rgba({})	//black
-			,outerFill: null
-			,outerRing: rgba({g:0.5})
-		}
+	var turnedOnIcon = {
+		innerFill: rgba({g:1})
+		,innerRing: rgba({})	//black
+		,outerFill: null
+		,outerRing: rgba({g:0.5})
 	}
 	
-	/** @return the icon to draw when playing*/
-	function playingIcon() {
-		return {
-			innerFill: rgba({g:1})
-			,innerRing: rgba({})	//black
-			,outerFill: rgba({g:1,a:1})	//green
-			,outerRing: rgba({g:0.5})
-		}
+	var loadingIcon = {
+		innerFill: rgba({b:1})
+		,innerRing: rgba({})	//black
+		,outerFill: rgba({b:1,a:1})	//blue
+		,outerRing: rgba({b:0.5})
+	}
+	
+	var playingIcon = {
+		innerFill: rgba({g:1})
+		,innerRing: rgba({})	//black
+		,outerFill: rgba({g:1,a:1})	//green
+		,outerRing: rgba({g:0.5})
 	}
 	
 	/** @return the icon to show when error occours */
-	function errorIcon() {
-		return {
-			innerFill: rgba({r:1})
-			,innerRing: rgba({})	//black
-			,outerFill: rgba({r:1})
-			,outerRing: rgba({})	//black
-		}
+	var errorIcon = {
+		innerFill: rgba({r:1})
+		,innerRing: rgba({})	//black
+		,outerFill: rgba({r:1})
+		,outerRing: rgba({})	//black
 	}
 	
 	//================================================= public =================================================
@@ -201,23 +210,40 @@ define(function() {
 	
 	drawer.drawTurnedOn = function() {
 		//first execution: transform from default icon (off)
-		if(!renderedIcon) drawTransition({icon:turnedOffIcon()});
-		drawTransition({icon: turnedOnIcon(),length: 0.3});
+		if(!renderedIcon)
+			animate({
+				transitions:[
+					{icon:turnedOffIcon}
+					,{icon: turnedOnIcon,length: 0.3}
+				]
+			});
+		else drawTransition({icon: turnedOnIcon,length: 0.3});
 	}
 	
 	drawer.drawTurnedOff = function() {
-		drawTransition({icon: turnedOffIcon(),length: 0.3});
+		drawTransition({icon: turnedOffIcon,length: 0.3});
 	}
 	
 	drawer.drawPlaying = function() {
-		drawTransition({icon:playingIcon(),length:0.3});
+		drawTransition({icon:playingIcon,length:0.3});
 	}
 	
 	drawer.drawMissed = function() {
-		animate([
-			{icon:errorIcon(), length:0.2}
-			,{icon:targetIcon, length:0.2}
-		]);
+		animate({
+			transitions: [
+				{icon:errorIcon, length:0.1}
+				,{icon:targetIcon || renderedIcon, length:0.5}
+			]
+		});
+	}
+	
+	drawer.drawLoading = function() {
+		animate({
+			transitions: [
+				{icon:loadingIcon, length:0.2}
+				,{icon:targetIcon || renderedIcon, length:0.5}
+			]
+		});
 	}
 	return drawer;
 });

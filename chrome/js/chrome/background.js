@@ -59,11 +59,12 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 				case("webReader.read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
+					iconDrawer.drawLoading();
 					break;
 				case("webReader.missed"):
 					console.log("missed received");
 					ttsService.stop();
-					iconDrawer.drawMissed()
+					iconDrawer.drawMissed();
 					break;
 				case("webReader.set"):
 					console.log("set " + request.setting + ": " + request.value + " received");
