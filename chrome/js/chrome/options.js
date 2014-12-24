@@ -46,8 +46,8 @@ require(["optionsElementFactory"], function(elementFactory) {
 		//TODO: implement these
 		var readEventList = elementFactory.createMultipleChoiceList({
 			options: [
-				{text:"click",value:"readOnClick", selected:settings.selectEvent=="pointedParagraph"}
-				,{text:"keyboard",value:"readOnKeyboard", selected:settings.selectEvent=="browserSelect"}
+				{text:"click",value:"readOnClick", selected:settings.clickReadEvent==true}
+				,{text:"keyboard",value:"readOnKeyboard", selected:settings.keyboardReadEvent!=null}
 			]
 			,onselect: function(value, isSelected) {
 				switch(value) {

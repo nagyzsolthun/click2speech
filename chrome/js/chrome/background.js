@@ -1,7 +1,7 @@
 require.config({
 	baseUrl: "/../js/modules"
 });
-require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(settingsHandler, ttsService, iconDrawer) {
+require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settingsHandler, ttsService, iconDrawer) {
 	var iconCanvas = document.getElementById("iconTemplate");
 	iconDrawer.canvas = iconCanvas;
 	iconDrawer.onRenderFinished = loadIconToToolbar;
@@ -63,7 +63,6 @@ require(["../chrome/SettingsHandler","GoogleTts","IconDrawer"], function(setting
 					break;
 				case("webReader.missed"):
 					console.log("missed received");
-					ttsService.stop();
 					iconDrawer.drawMissed();
 					break;
 				case("webReader.set"):
