@@ -129,7 +129,7 @@
 				case("selectEvent"):
 					setSelectEventListener(request.value);
 					break;
-				case("clickReadEvent"):
+				case("readOnClick"):
 					setClickReadEventListener(request.value);
 					break;
 				case("keyboardReadEvent"):
@@ -141,7 +141,7 @@
 
 	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(response) {
 		setSelectEventListener(response.selectEvent);
-		setClickReadEventListener(response.clickReadEvent);
+		setClickReadEventListener(response.readOnClick);
 		//TODO keyboard
 	});
 	

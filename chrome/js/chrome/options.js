@@ -1,77 +1,81 @@
-require.config({
-	baseUrl: "/../js/modules"
+app = angular.module('optionsApp', []);
+
+/** notifies background.js about a changed setting*/
+function sendSet(setting, value) {
+	chrome.runtime.sendMessage({action:"webReader.set",setting: setting,value: value});
+	console.log("webreader.set: " + setting + " " + value);
+}
+
+var settingsReceivedListeners = [];
+chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
+	settingsReceivedListeners.forEach(function(listener) {
+		listener(settings);
+	});
 });
 
-require(["optionsElementFactory"], function(elementFactory) {
+//================================== select event ==================================
+app.controller('selectEventOptionsController', function($scope) {
+	$scope.selectEventOptions = [
+		{value:"pointedParagraph", text:"pointed paragraph", selected:false}
+		,{value:"browserSelect", text:"browser provided selection", selected:false}
+	];
+	$scope.onClick = function(clickedOption) {
+		$scope.selectEventOptions.forEach(function(option) {option.selected = false;});
+		clickedOption.selected = true;
+		sendSet("selectEvent", clickedOption.value);
+	}
+	settingsReceivedListeners.push(function(settings) {
+		$scope.selectEventOptions.forEach(function(option) {option.selected = (settings.selectEvent == option.value);});
+		$scope.$digest();	//so angular recognizes the change
+	});
+});
 
-	/** notifies background about a changed setting*/
-	function sendSet(setting, value) {
-		chrome.runtime.sendMessage({
-			action:"webReader.set"
-			,setting: setting
-			,value: value
+//================================== read event ==================================
+app.controller('readEventOptionsController', function($scope) {
+	$scope.readEventOptions = [
+		{value:"readOnClick", text:"click", selected:false}
+		,{value:"readOnKeyboard", text:"keyboard", selected:false}
+	];
+	$scope.onClick = function(clickedOption) {
+		clickedOption.selected = clickedOption.selected?false:true;
+		//a boolean is stored for each option.value
+		sendSet(clickedOption.value, clickedOption.selected);
+	}
+	settingsReceivedListeners.push(function(settings) {
+		$scope.readEventOptions.forEach(function(option) {
+			//a boolean is stored for each option.value
+			option.selected = (settings[option.value]);
 		});
+		$scope.$digest();	//so angular recognizes the change
+	});
+});
+
+//================================== speed ==================================
+app.controller('speedRangeController', function($scope) {
+	$scope.speed = {
+		min: 0.5, max: 4, step: 0.1, value:1
 	}
 	
-	/** @return an element with "control hoverable" classes + an optional titleElement with given title content */
-	function createControlElement(title) {
-		var result = document.createElement("div");
-		result.className = "control hoverable";
-		
-		if(title) {
-			var titleElement = document.createElement("div");
-			titleElement.innerHTML = title;
-			result.appendChild(titleElement);
-		}
-		
-		return result;
-	}
+	$scope.$watch('speed.value', function() {
+		//range provides updates as strings and not numbers => need to convert
+		//https://github.com/angular/angular.js/issues/5892
+		$scope.speed.value = parseFloat($scope.speed.value);
+		sendSet("speed", $scope.speed.value);
+	});
 	
-	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
-		// ======================================== select Settings ========================================
-		var selectEventList = elementFactory.createSingleChoiceList({
-			options: [
-				{text:"pointed paragraph",value:"pointedParagraph", selected:settings.selectEvent=="pointedParagraph"}
-				,{text:"browser provided selection",value:"browserSelect", selected:settings.selectEvent=="browserSelect"}
-			]
-			,onselect: function(value) {sendSet("selectEvent", value);}
-		});
-		
-		var selectControl = createControlElement("Selection");
-		selectControl.appendChild(selectEventList);
+	settingsReceivedListeners.push(function(settings) {
+		//string needs to be converted to number - angular otherwise throws numberFormatError
+		$scope.speed.value = Number(settings.speed) || 1;
+		$scope.$digest();	//so angular recognizes the change
+	});
+});
 
-		document.getElementById("content").appendChild(selectControl);
-		
-		// ======================================== read event ========================================
-		//TODO: implement these
-		var readEventList = elementFactory.createMultipleChoiceList({
-			options: [
-				{text:"click",value:"readOnClick", selected:settings.clickReadEvent==true}
-				,{text:"keyboard",value:"readOnKeyboard", selected:settings.keyboardReadEvent!=null}
-			]
-			,onselect: function(value, isSelected) {
-				switch(value) {
-					case("readOnClick"): sendSet("clickReadEvent",isSelected); break;
-					case("readOnKeyboard"): sendSet("keyboardReadEvent","key"); break;
-				}
-			}
-		});
-		
-		var readEventControl = createControlElement("Read Event");
-		readEventControl.appendChild(readEventList);
-
-		document.getElementById("content").appendChild(readEventControl);
-		
-		// ======================================== speed Settings ========================================
-		var speedRange = elementFactory.createNumberedRange({
-			min: .5, max: 4, step: .1, value: settings.speed, onchange: function(value) {
-				sendSet("speed", value);
-			}
-		});
-		var speedControl = createControlElement("Speed of Speech");
-		speedControl.appendChild(speedRange);
-
-		document.getElementById("content").appendChild(speedControl);
-		
+//================================== services ==================================
+app.controller('ttsServiceChooserController', function($scope) {
+	$scope.services = [];
+	
+	chrome.runtime.sendMessage({action: "webReader.getTtsServiceNames"}, function(names) {
+		$scope.services = names;
+		$scope.$digest();	//so angular recognizes the change
 	});
 });

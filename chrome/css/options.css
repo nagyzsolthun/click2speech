@@ -84,7 +84,7 @@ body {
 
 .choiceList > :before {
 	/** placeholder for the option checked image */
-	margin-right: .2em;
+	margin-right: 0;
     background-size: .7em;
 	width: .7em;
 	height: .7em;

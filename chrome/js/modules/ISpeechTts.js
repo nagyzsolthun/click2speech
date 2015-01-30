@@ -1,5 +1,5 @@
 /** @return a WebAudioReader with set up buildUrlArr and getCutLength method to use iSpeech */
-define(["TextSplitter","WebAudioReader"], function(textSplitter, webAudioReader) {
+define(["TextSplitter","WebAudioReader"], function(TextSplitter, WebAudioReader) {
 
 	/** @return the url of Google TTS to send request
 	 * @param c.text the text to read - length has to be max 100 characters
@@ -20,8 +20,8 @@ define(["TextSplitter","WebAudioReader"], function(textSplitter, webAudioReader)
 	}
 	
 	/** @return length of "Powered by iSpeech" at the end of the returned audio
-	 * @param c.lan the language (some have the promo text, some dont)*/
-	webAudioReader.getCutLength = function(c) {
+	 * @param c.lan the language (some have the promo text, some don't)*/
+	function getCutLength(c) {
 		switch(c.lan) {
 			case("en-US"): return 1.85;
 			case("en-GB"): return 1.85;
@@ -29,10 +29,10 @@ define(["TextSplitter","WebAudioReader"], function(textSplitter, webAudioReader)
 		}
 	}
 
-	webAudioReader.buildUrlArr = function(c) {
-		//iSpeech only accepts max 32 words
-		//we try to split by sentence ends, commas or spaces
-		var splitText = textSplitter.splitToWord({
+	//iSpeech only accepts max 32 words
+	//we try to split by sentence ends, commas or spaces
+	function buildUrlArr(c) {
+		var splitText = TextSplitter.splitToWord({
 			text: c.text
 			,limit: 32
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
@@ -47,5 +47,8 @@ define(["TextSplitter","WebAudioReader"], function(textSplitter, webAudioReader)
 		});
 	};
 	
-	return webAudioReader;
+	var reader = new WebAudioReader({name: "iSpeech", buildUrlArr: buildUrlArr, getCutLength: getCutLength});
+	
+	console.log("iSpeechTts initialized");
+	return reader;
 });

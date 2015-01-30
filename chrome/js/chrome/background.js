@@ -1,7 +1,7 @@
 require.config({
 	baseUrl: "/../js/modules"
 });
-require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settingsHandler, ttsService, iconDrawer) {
+require(["../chrome/SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandler, tts, iconDrawer) {
 	var iconCanvas = document.getElementById("iconTemplate");
 	iconDrawer.canvas = iconCanvas;
 	iconDrawer.onRenderFinished = loadIconToToolbar;
@@ -18,12 +18,13 @@ require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settin
 	function read(c) {
 		settingsHandler.getAll(function(settings) {
 			if(! settings.turnedOn) {return;}
-			ttsService.read({text:c.text,lan:c.lan});
+			tts.read({text:c.text,lan:c.lan});
 		});
 	}
 	
 	/** notifies all contentJs' about a changed setting */
 	function setContentJsSetting(setting, value) {
+		console.log("notife content: set " + setting + ": " + value);
 		chrome.tabs.query({}, function(tabs) {
 			settingsHandler.getAll(function(settings) {
 				var message = {action:"webReader.set",setting:setting,value:value};
@@ -45,6 +46,10 @@ require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settin
 						sendResponse(settings);
 					});
 					break;
+				case("webReader.getTtsServiceNames"):
+					console.log("getTtsServiceNames received");
+					sendResponse(tts.serviceNames);
+					break;
 				case("webReader.turnOn"):
 					console.log("turnOn received");
 					settingsHandler.set("turnedOn",true);
@@ -53,7 +58,7 @@ require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settin
 				case("webReader.turnOff"):
 					console.log("turnOff received");
 					settingsHandler.set("turnedOn",false);
-					ttsService.stop();	//in case it is reading, we stop it
+					tts.stop();	//in case it is reading, we stop it
 					iconDrawer.drawTurnedOff();
 					break;
 				case("webReader.read"):
@@ -70,9 +75,10 @@ require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settin
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
 						case("selectEvent"): setContentJsSetting("selectEvent", request.value); break;
-						case("clickReadEvent"): setContentJsSetting("clickReadEvent", request.value); break;
+						case("readOnClick"): setContentJsSetting("readOnClick", request.value); break;
+						case("readOnKeyboard"): setContentJsSetting("readOnKeyboard", request.value); break;	//TODO
 						case("keyboardReadEvent"): break; //TODO
-						case("speed"): ttsService.setSpeed(request.value); break;
+						case("speed"): tts.set("speed",request.value); break;
 					}
 					break;
 			}
@@ -80,17 +86,12 @@ require(["../chrome/SettingsHandler","ISpeechTts","IconDrawer"], function(settin
 	);
 
 	// ===================================== initial settings =====================================
+	tts.set("onStart", function() {iconDrawer.drawPlaying()});
+	tts.set("onEnd", function() {iconDrawer.drawTurnedOn()});
+	
 	settingsHandler.getAll(function(settings) {
-		ttsService.setSpeed(settings.speed);
+		tts.set("speed", settings.speed);
 		if(settings.turnedOn) iconDrawer.drawTurnedOn();
 		else iconDrawer.drawTurnedOff();
 	});
-	
-	ttsService.onStart = function() {
-		iconDrawer.drawPlaying()
-	}
-	
-	ttsService.onEnd = function() {
-		iconDrawer.drawTurnedOn()
-	}
 });
