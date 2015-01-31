@@ -5,13 +5,13 @@
 	"version": "0.1",
 	"content_scripts": [{
 		"matches": ["<all_urls>"],
-		"js": ["js/chrome/content.js"]
+		"js": ["content/content.js"]
 	}],
 	"permissions": ["http://*/","https://*/", "storage"],
-	"background" : {"page": "html/background.html"},
-	"options_page": "html/options.html",
+	"background" : {"page": "background/background.html"},
+	"options_page": "options/html/options.html",
 	"browser_action": {
-		"default_icon": "img/icon64.png",
-		"default_popup": "html/popup.html"
+		"default_icon": "icon64.png",
+		"default_popup": "popup/popup.html"
 	}
 }

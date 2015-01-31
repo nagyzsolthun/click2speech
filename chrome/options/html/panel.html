@@ -1,0 +1,10 @@
+<div id="panel" ng-controller="panelController">
+	<h1>Options</h1>
+	<h2 class="optionsPageSelector" ng-class="{active:isActive('/general')}" ng-click="redirect('general')">
+		<span>general</span>
+	</h2>
+	<h2 class="optionsPageSelector" ng-class="{active:isActive('/reading')}" ng-click="redirect('reading')">
+		<span>reading</span>
+	</h2>
+	<img src="../img/optionsLogo.svg"/>
+</div>

@@ -1,4 +1,4 @@
-app = angular.module('optionsApp', []);
+app = angular.module('optionsApp', ['ngRoute']);
 
 /** notifies background.js about a changed setting*/
 function sendSet(setting, value) {
@@ -7,10 +7,31 @@ function sendSet(setting, value) {
 }
 
 var settingsReceivedListeners = [];
-chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
-	settingsReceivedListeners.forEach(function(listener) {
-		listener(settings);
+function applySettings() {
+	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
+		settingsReceivedListeners.forEach(function(listener) {
+			listener(settings);
+		});
 	});
+}
+applySettings();
+
+app.config(function($routeProvider) {
+	$routeProvider.when('/general', {templateUrl: 'generalOptions.html'});
+	$routeProvider.when('/reading', {templateUrl: 'readingOptions.html'});
+	$routeProvider.otherwise({redirectTo: '/general'});
+});
+
+//================================== panel ==================================
+app.controller('panelController', function($scope, $location) {
+	$scope.isActive = function(path) {
+		return path == $location.path();
+	}
+	$scope.redirect = function(path) {
+		settingsReceivedListeners = [];	//TODO check if needed
+		$location.path(path);
+		applySettings();	//when redirected, new scopes are created - we set the values again
+	}
 });
 
 //================================== select event ==================================
@@ -53,14 +74,17 @@ app.controller('readEventOptionsController', function($scope) {
 //================================== speed ==================================
 app.controller('speedRangeController', function($scope) {
 	$scope.speed = {
-		min: 0.5, max: 4, step: 0.1, value:1
+		min: 0.5, max: 4, step: 0.1
 	}
 	
 	$scope.$watch('speed.value', function() {
 		//range provides updates as strings and not numbers => need to convert
 		//https://github.com/angular/angular.js/issues/5892
 		$scope.speed.value = parseFloat($scope.speed.value);
-		sendSet("speed", $scope.speed.value);
+		
+		//BUG: sendSet is sent every startup
+		//if is needed because the initial value is Nan, and setSet gets called because the above conversion
+		if($scope.speed.value) sendSet("speed", $scope.speed.value);
 	});
 	
 	settingsReceivedListeners.push(function(settings) {

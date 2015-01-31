@@ -3,13 +3,6 @@ body {
 	font-family: sans-serif;
 }
 
-/* ===================================== hoverable and clickable =====================================*/
-
-/* adds a light highlight when pointer hovers over these elements*/
-.hoverable:hover {
-	background-color:#f0fff0;
-}
-
 /* ===================================== left panel settings =====================================*/
 
 #panel {
@@ -26,11 +19,31 @@ body {
 }
 
 .optionsPageSelector {
-	background-color: #fff;
+	background-color: #fbfbfb;
 	padding: 0.5em 1em;
+	margin: 2px 0;
 	text-align: right;
 	border-top: 1px solid gray;
 	border-bottom: 1px solid gray;
+}
+
+.optionsPageSelector.active {
+	background-color: #dfd;
+	/*background: -webkit-linear-gradient(left, #afa, #fff);*/
+	border-top: 1px solid gray;
+	border-bottom: 1px solid gray;
+}
+
+.optionsPageSelector:hover {
+	background-color: #4f4;
+}
+
+/* ===================================== hoverable and clickable =====================================*/
+
+/* adds a light highlight when pointer hovers over these elements*/
+.hoverable:hover {
+	background: none;	/*TODO set bakcground for selected selector */
+	background-color:#f0fff0;
 }
 
 /* ===================================== content settings =====================================*/
@@ -65,7 +78,7 @@ body {
 .rangeInput::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	background-color: #fff;	/* so transparents parts of the image are white */
-	background-image: url('../img/unselectedSingleOption.svg');
+	background-image: url('img/unselectedSingleOption.svg');
 	background-size: contain;
 	height: 32px;
 	width: 32px;
@@ -73,7 +86,7 @@ body {
 
 .rangeInput:hover::-webkit-slider-thumb {
 	/*background-color: #0f0;*/
-	background-image: url('../img/selectedSingleOption.svg');
+	background-image: url('img/selectedSingleOption.svg');
 }
 
 /* ===================================== start event settings =====================================*/
@@ -92,11 +105,11 @@ body {
 	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
 }
 
-.singleChoiceList > :before				{background-image: url('../img/unselectedSingleOption.svg');}
-.singleChoiceList > .selected:before	{background-image: url('../img/selectedSingleOption.svg');}
+.singleChoiceList > :before				{background-image: url('img/unselectedSingleOption.svg');}
+.singleChoiceList > .selected:before	{background-image: url('img/selectedSingleOption.svg');}
 
-.multipleChoiceList > :before			{background-image: url('../img/unselectedMultipleOption.svg');}
-.multipleChoiceList > .selected:before	{background-image: url('../img/selectedMultipleOption.svg');}
+.multipleChoiceList > :before			{background-image: url('img/unselectedMultipleOption.svg');}
+.multipleChoiceList > .selected:before	{background-image: url('img/selectedMultipleOption.svg');}
 
 /** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
 .choiceList > li:hover > * {

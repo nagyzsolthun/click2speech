@@ -1,0 +1,15 @@
+<!-- ng-csp needed for google-chrome: eval is not used in that case TODO check -->
+<html ng-app="optionsApp" ng-csp lang="en">
+	<ng-include src="'panel.html'"></ng-include>
+	<div id="content" ng-view></div>
+	
+	<!-- <div id="keySelectorWindow">
+		<h1>Press the key that will start reading</h1>
+		<div>press esc to cancel</div>
+	<div> -->
+
+	<link rel="stylesheet" type="text/css" href="../options.css">
+	<script src="../../lib/angular.min.js"></script>
+	<script src="../../lib/angular-route.min.js"></script>
+	<script src="../js/options.js"></script>
+</html>

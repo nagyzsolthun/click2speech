@@ -1,8 +1,5 @@
-require.config({
-	baseUrl: "/../js/modules"
-});
-require(["../chrome/SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandler, tts, iconDrawer) {
-	var iconCanvas = document.getElementById("iconTemplate");
+require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandler, tts, iconDrawer) {
+	var iconCanvas = document.createElement("canvas");
 	iconDrawer.canvas = iconCanvas;
 	iconDrawer.onRenderFinished = loadIconToToolbar;
 	
