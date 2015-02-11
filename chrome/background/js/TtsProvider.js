@@ -13,17 +13,12 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 			ttsArray.forEach(function(tts) {result.push(tts.name);});
 			return result;
 		}
-	};
-	/** @param callback is executed when the active tts changes with the following parameters (and when subscribed)
-	 * 		@param c.active the name of the active tts
-	 * 		@param c.availables the name of the available tts' (including the active one)
-	 * 		@param c.unavailables the of the uavaiable tts'
-	 */
-	provider.subscribeOnChanges = function(callback) {
-		return {
-			active: [googleTts.name, iSpechTts.name]	//TODO..
+		,set preferredTts(name) {
+			ttsArray.forEach(function(tts) {
+				if(tts.name == name) activeTts = tts;	//TODO error handling
+			});
 		}
-	}
+	};
 	
 	provider.read = function(c) {activeTts.read(c);}
 	provider.stop = function() {activeTts.stop();}

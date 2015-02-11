@@ -1,13 +1,13 @@
+<div class="control hoverable" ng-controller="ttsServiceChooserController">
+	<div>Service</div>
+	<ul class="choiceList singleChoiceList">
+		<li ng-repeat="option in options" ng-class="{selected: option.selected}" ng-click="onClick(option)">
+			<span>{{option.tts}}</span>
+		</li>
+	</ul>
+</div>
 <div class="control hoverable" ng-controller="speedRangeController">
 	<div>Speed of Speech</div>
 	<input class="numberInput" type="number" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 	<input class="rangeInput" type="range" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
-</div>
-<div class="control hoverable" ng-controller="ttsServiceChooserController">
-	<div>Service</div>
-	<ul class="choiceList singleChoiceList">
-		<li ng-repeat="service in services">
-			<span>{{service}}</span>
-		</li>
-	</ul>
 </div>
