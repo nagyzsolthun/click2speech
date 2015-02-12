@@ -11,7 +11,7 @@ function getSettings(callback) {
 }
 
 app.config(function($routeProvider) {
-	$routeProvider.when('/general', {templateUrl: 'generalOptions.html'});
-	$routeProvider.when('/reading', {templateUrl: 'readingOptions.html'});
+	$routeProvider.when('/general', {templateUrl: 'generalOptions.html', controller: 'generalOptionsController'});
+	$routeProvider.when('/reading', {templateUrl: 'readingOptions.html', controller: 'readingOptionsController'});
 	$routeProvider.otherwise({redirectTo: '/general'});
 });
