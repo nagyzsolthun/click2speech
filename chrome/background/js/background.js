@@ -84,8 +84,8 @@ require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandle
 	);
 
 	// ===================================== initial settings =====================================
-	tts.set("onStart", function() {iconDrawer.drawPlaying()});
-	tts.set("onEnd", function() {iconDrawer.drawTurnedOn()});
+	tts.onStart = function() {iconDrawer.drawPlaying()};
+	tts.onEnd = function() {iconDrawer.drawTurnedOn()};
 	
 	settingsHandler.getAll(function(settings) {
 		tts.set("speed", settings.speed);

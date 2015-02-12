@@ -16,10 +16,12 @@ define(function() {
 		
 		var onStart = function() {};	//executed when playing starts
 		var onEnd = function() {};	//executed when playing ends
-		
-		Object.defineProperty(this, 'name', {
-			get: function() {return readerConfig.name;}
-		});
+		var onError = function(url, code) {};	//executed when error occours
+
+		Object.defineProperty(this, 'name',		{get: function() {return readerConfig.name;}});
+		Object.defineProperty(this, 'onStart',	{set: function(callback) {onStart = callback;}});
+		Object.defineProperty(this, 'onEnd',	{set: function(callback) {onEnd = callback;}});
+		Object.defineProperty(this, 'onError',	{set: function(callback) {onError = callback;}});		
 		
 		/** sets up @param c.audio to stop before the end by @param c.cutEnd */
 		function setCutEnd(c) {
@@ -34,13 +36,10 @@ define(function() {
 		// ======================================= public =======================================
 		this.set = function(setting, value) {
 			switch(setting) {
-				case("onStart"): onStart = value; break;
-				case("onEnd"): onStart = value; break;
 				case("speed"):
 					speed = value;
 					audios.forEach(function(audio) {audio.playbackRate = speed;});
 					break;
-				
 			}
 		}
 		
@@ -52,12 +51,17 @@ define(function() {
 			
 			if(! c.text) return;
 			var urlArr = readerConfig.buildUrlArr(c);
+			//TODO remove this stuff, its only for testing
+			if(c.text == "this text will cause an error") {
+				urlArr = ["muhahahahaerror"];
+			}
 			var cutEnd = readerConfig.getCutLength?readerConfig.getCutLength(c):null;
 
 			urlArr.forEach(function(url, i) {
 				var audio = new Audio();
 				audio.defaultPlaybackRate = speed;
-				audio.src = encodeURI(url);
+				audio.src = encodeURI(url);	
+				audio.onerror = onError(audio.src);
 				audios.push(audio);
 				if(cutEnd) setCutEnd({audio: audio,cutEnd: cutEnd});
 				
