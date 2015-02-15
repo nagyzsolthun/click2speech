@@ -75,7 +75,7 @@ require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandle
 						case("readOnClick"): setContentJsSetting("readOnClick", request.value); break;
 						case("readOnKeyboard"): setContentJsSetting("readOnKeyboard", request.value); break;	//TODO
 						case("keyboardReadEvent"): break; //TODO
-						case("speed"): tts.set("speed",request.value); break;
+						case("speed"): tts.speed = request.value; break;
 						case("preferredTts"): tts.preferredTts = request.value; break;
 					}
 					break;
@@ -88,7 +88,7 @@ require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandle
 	tts.onEnd = function() {iconDrawer.drawTurnedOn()};
 	
 	settingsHandler.getAll(function(settings) {
-		tts.set("speed", settings.speed);
+		tts.speed = settings.speed;
 		if(settings.turnedOn) iconDrawer.drawTurnedOn();
 		else iconDrawer.drawTurnedOff();
 	});

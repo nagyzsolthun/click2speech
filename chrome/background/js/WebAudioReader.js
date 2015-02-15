@@ -11,17 +11,9 @@ define(function() {
 	 * 	@param lan the language of the document
 	 */
 	function WebAudioReader(readerConfig) {
-		var speed = 1;
 		var audios = [];
-		
-		var onStart = function() {};	//executed when playing starts
-		var onEnd = function() {};	//executed when playing ends
-		var onError = function(url, code) {};	//executed when error occours
 
-		Object.defineProperty(this, 'name',		{get: function() {return readerConfig.name;}});
-		Object.defineProperty(this, 'onStart',	{set: function(callback) {onStart = callback;}});
-		Object.defineProperty(this, 'onEnd',	{set: function(callback) {onEnd = callback;}});
-		Object.defineProperty(this, 'onError',	{set: function(callback) {onError = callback;}});		
+		Object.defineProperty(this, 'name', {get: function() {return readerConfig.name;}});		
 		
 		/** sets up @param c.audio to stop before the end by @param c.cutEnd */
 		function setCutEnd(c) {
@@ -34,22 +26,17 @@ define(function() {
 		}
 		
 		// ======================================= public =======================================
-		this.set = function(setting, value) {
-			switch(setting) {
-				case("speed"):
-					speed = value;
-					audios.forEach(function(audio) {audio.playbackRate = speed;});
-					break;
-			}
-		}
-		
 		/** reads given text on given language (stops playing if already is playing)
 		* @param c.text the text to be read
-		* @param c.lan the language of reading */
+		* @param c.lan the language of reading
+		* @param c.speed the speed of reading (defaults to 1)
+		* @param c.onStart called when audio starts playing
+		* @param c.onEnd called when playing finishes
+		* @param c.onError called when error has raised
+		*/
 		this.read = function(c) {
-			this.stop();
-			
-			if(! c.text) return;
+			this.stop(c.onEnd);
+
 			var urlArr = readerConfig.buildUrlArr(c);
 			//TODO remove this stuff, its only for testing
 			if(c.text == "this text will cause an error") {
@@ -59,14 +46,15 @@ define(function() {
 
 			urlArr.forEach(function(url, i) {
 				var audio = new Audio();
-				audio.defaultPlaybackRate = speed;
-				audio.src = encodeURI(url);	
-				audio.onerror = onError(audio.src);
+				audio.defaultPlaybackRate = c.speed || 1;
+				audio.onpause = c.onEnd;
+				audio.src = encodeURI(url);
+				audio.onerror = function(){c.onError(audio.src);}
 				audios.push(audio);
 				if(cutEnd) setCutEnd({audio: audio,cutEnd: cutEnd});
 				
 				//first element starts playing when onloadedData + executes onStart
-				if(i==0) audio.oncanplay = function() {audio.play(); onStart();}
+				if(i==0) audio.oncanplay = function() {audio.play(); c.onStart();}
 				else {	//other elements start playing after previous ends AND after their data loads
 					audios[i-1].onended = function() {
 						if(audio.readyState == 4) audio.play();
@@ -74,12 +62,12 @@ define(function() {
 					}
 				}
 				//last element should call onEnd
-				if(i == urlArr.length-1) audio.onended = onEnd;
+				if(i == urlArr.length-1) audio.onended = c.onEnd;
 			});	//end forEach
 		}; //end read
 		
 		/** stops playing the audio (not only pause!)*/
-		this.stop = function() {
+		this.stop = function(onEnd) {
 			audios.forEach(function(audio) {
 				audio.pause();
 				audio.src = "";
