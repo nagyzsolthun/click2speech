@@ -47,6 +47,10 @@ require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandle
 					console.log("getTtsServiceNames received");
 					sendResponse(tts.serviceNames);
 					break;
+				case("webReader.testTtsServices"):
+					console.log("testTtsServices received");
+					tts.test(request.tts, sendResponse);
+					return true;	//very important: keeps sendResponse channel open until it is used
 				case("webReader.turnOn"):
 					console.log("turnOn received");
 					settingsHandler.set("turnedOn",true);

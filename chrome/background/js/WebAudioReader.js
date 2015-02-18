@@ -13,7 +13,16 @@ define(function() {
 	function WebAudioReader(readerConfig) {
 		var audios = [];
 
-		Object.defineProperty(this, 'name', {get: function() {return readerConfig.name;}});		
+		Object.defineProperty(this, 'name', {get: function() {return readerConfig.name;}});
+		
+		//TODO some nicer way..
+		Object.defineProperty(this, 'speed', {
+			set: function(speed) {
+				audios.forEach(function(audio) {
+					audio.playbackRate = speed;
+				});
+			}
+		});
 		
 		/** sets up @param c.audio to stop before the end by @param c.cutEnd */
 		function setCutEnd(c) {
@@ -74,6 +83,22 @@ define(function() {
 			});
 			audios = [];
 			onEnd();
+		}
+		
+		/** @param callback called with a boolean flag indicating if the test passed */
+		this.test = function(callback) {
+			var urlArr = readerConfig.buildUrlArr({
+				text:(Date.now() % 1000).toString()	//a random text to send
+				,lan: "en-US"
+			});
+			var audio = new Audio();
+			audio.onerror = function() {
+				callback(false);
+			}
+			audio.oncanplay = function() {
+				callback(true);
+			}
+			audio.src = encodeURI(urlArr[0]);
 		}
 	}
 	

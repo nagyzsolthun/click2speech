@@ -1,9 +1,17 @@
+function testTts(tts, callback) {
+	chrome.runtime.sendMessage({action: "webReader.testTtsServices", tts:tts}, function(success) {
+		console.log(tts + " " + success);
+	});
+}
+
 angular.module('optionsApp')
 .controller('readingOptionsController', function($scope) {
 	$scope.services = [];
 	$scope.speed = {min: 0.5, max: 4, step: 0.1}
 	
 	$scope.onClick = function(clickedOption) {
+		if(clickedOption.status != "available") return;
+
 		$scope.services.forEach(function(service) {service.selected = false;});
 		clickedOption.selected = true;
 		sendSet("preferredTts", clickedOption.name);
@@ -19,9 +27,18 @@ angular.module('optionsApp')
 	});
 
 	chrome.runtime.sendMessage({action: "webReader.getTtsServiceNames"}, function(names) {
-		names.forEach(function(name) {$scope.services.push({name: name, selected: false});});
+		names.forEach(function(name) {
+			var ttsService = {name: name, selected: false, status: "loading"};
+			$scope.services.push(ttsService);
+			chrome.runtime.sendMessage({action: "webReader.testTtsServices", tts:name}, function(success) {
+				if(success) ttsService.status = "available";
+				else ttsService.status = "unavailable";
+				$scope.$digest();
+			});
+		});
 		$scope.$digest();	//so angular recognizes the change
 	});
+	
 	getSettings(function(settings) {
 		$scope.services.forEach(function(service) {
 			service.selected = (service.name == settings.preferredTts);

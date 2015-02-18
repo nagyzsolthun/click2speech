@@ -18,7 +18,12 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 			ttsArray.forEach(function(tts) {result.push(tts.name);});
 			return result;
 		}
-		,set speed(value) {speed = value;}
+		,set speed(value) {
+			speed = value;
+			ttsArray.forEach(function(tts) {
+				tts.speed = speed;	//TODO check!
+			});
+		}
 		,set onStart(callback) {onStart = callback;}
 		,set onEnd(callback) {onEnd = callback;}
 		,set onError(callback) {onError = callback;}
@@ -50,15 +55,14 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 		activeTts.stop(onEnd);
 	}
 	
-	/** settings of reading are set through this function
-	 * all tts' same function is executed - so if they dont implement e.g. to set speed, they just ignore the call
-	 * @param setting the name if the setting
-	 * @param value the value of the setting*/
-	provider.set = function(setting, value) {
+	/** @param callback is called when a tts is tested
+	 * 		@param c.success true if test passed, false if failed */
+	provider.test = function(name, callback) {
 		ttsArray.forEach(function(tts) {
-			tts.set(setting, value);
+			if(tts.name == name) tts.test(callback);
 		});
 	}
+
 
 	console.log("ttsProvider initialized");
 	return provider;

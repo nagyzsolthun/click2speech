@@ -1,7 +1,10 @@
 <div class="control hoverable">
 	<div>Service</div>
 	<ul class="choiceList singleChoiceList">
-		<li ng-repeat="service in services" ng-class="{selected: service.selected}" ng-click="onClick(service)">
+		<li	ng-repeat="service in services"
+			class="{{service.status}}"
+			ng-class="{selected: service.selected}"
+			ng-click="onClick(service)">
 			<span>{{service.name}}</span>
 		</li>
 	</ul>

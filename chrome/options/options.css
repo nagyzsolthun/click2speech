@@ -42,7 +42,7 @@ body {
 
 /* adds a light highlight when pointer hovers over these elements*/
 .hoverable:hover {
-	background: none;	/*TODO set bakcground for selected selector */
+	background: none;
 	background-color:#f0fff0;
 }
 
@@ -78,7 +78,7 @@ body {
 .rangeInput::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	background-color: #fff;	/* so transparents parts of the image are white */
-	background-image: url('img/unselectedSingleOption.svg');
+	background-image: url('img/radio.svg');
 	background-size: contain;
 	height: 32px;
 	width: 32px;
@@ -86,7 +86,7 @@ body {
 
 .rangeInput:hover::-webkit-slider-thumb {
 	/*background-color: #0f0;*/
-	background-image: url('img/selectedSingleOption.svg');
+	background-image: url('img/radioSelected.svg');
 }
 
 /* ===================================== start event settings =====================================*/
@@ -95,8 +95,24 @@ body {
 	margin: 0;
 }
 
+.choiceList > .loading, .unavailable {
+	color: grey;
+}
+
+/* animation for loading: the loading icon rotates behind the option */
+.choiceList > .loading:after {
+	margin-right: 0;
+    background-size: .7em;
+	width: .7em;
+	height: .7em;
+    content: "";
+	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
+	background-image: url('img/radioLoading.svg');
+	-webkit-animation:rotate 2s linear infinite;
+}
+
+/** placeholder for the image before the option (empty/filled circle/square) */
 .choiceList > :before {
-	/** placeholder for the option checked image */
 	margin-right: 0;
     background-size: .7em;
 	width: .7em;
@@ -105,17 +121,21 @@ body {
 	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
 }
 
-.singleChoiceList > :before				{background-image: url('img/unselectedSingleOption.svg');}
-.singleChoiceList > .selected:before	{background-image: url('img/selectedSingleOption.svg');}
+@-webkit-keyframes rotate { 100% { -webkit-transform: rotate(360deg); } }
 
-.multipleChoiceList > :before			{background-image: url('img/unselectedMultipleOption.svg');}
-.multipleChoiceList > .selected:before	{background-image: url('img/selectedMultipleOption.svg');}
+.singleChoiceList > :before						{background-image: url('img/radio.svg');}
+.singleChoiceList > .selected:before			{background-image: url('img/radioSelected.svg');}
+.singleChoiceList > .selected.loading:before	{background-image: url('img/radioSelectedLoading.svg');}
+.singleChoiceList > .selected.unavailable:before	{background-image: url('img/radioSelectedUnavailable.svg');}
+
+.multipleChoiceList > :before			{background-image: url('img/check.svg');}
+.multipleChoiceList > .selected:before	{background-image: url('img/checkSelected.svg');}
 
 /** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
-.choiceList > li:hover > * {
-	background-color:#4f4;
-	border-radius: 0.4em;	/*the highlighted area has rounded corners this way*/
-}
+.choiceList > li:hover > * {border-radius: 0.4em;}	/*all types of choices have rounded highlight */
+.choiceList > li:hover > * 				{background-color:#4f4;}
+.choiceList > li.loading:hover > * 		{background-color:#ccc;}
+.choiceList > li.unavailable:hover > *	{background-color:#ccc;}
 
 /** only visible when keyboard readEvent is selected */
 #keySelectorWindow {
