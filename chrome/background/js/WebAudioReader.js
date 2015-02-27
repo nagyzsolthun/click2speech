@@ -56,7 +56,6 @@ define(function() {
 			urlArr.forEach(function(url, i) {
 				var audio = new Audio();
 				audio.defaultPlaybackRate = c.speed || 1;
-				audio.onpause = c.onEnd;
 				audio.src = encodeURI(url);
 				audio.onerror = function(){c.onError(audio.src);}
 				audios.push(audio);

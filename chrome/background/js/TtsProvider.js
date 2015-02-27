@@ -20,9 +20,7 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 		}
 		,set speed(value) {
 			speed = value;
-			ttsArray.forEach(function(tts) {
-				tts.speed = speed;	//TODO check!
-			});
+			activeTts.speed = speed; //in case rading is going on TODO check if setting is available
 		}
 		,set onStart(callback) {onStart = callback;}
 		,set onEnd(callback) {onEnd = callback;}

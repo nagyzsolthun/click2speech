@@ -1,4 +1,4 @@
-require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandler, tts, iconDrawer) {
+require(["SettingsHandler", "TtsProvider","icon/drawer"], function(settingsHandler, tts, iconDrawer) {
 	var iconCanvas = document.createElement("canvas");
 	iconDrawer.canvas = iconCanvas;
 	iconDrawer.onRenderFinished = loadIconToToolbar;
@@ -69,7 +69,7 @@ require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandle
 					break;
 				case("webReader.missed"):
 					console.log("missed received");
-					iconDrawer.drawMissed();
+					iconDrawer.drawError();
 					break;
 				case("webReader.set"):
 					console.log("set " + request.setting + ": " + request.value + " received");
@@ -88,8 +88,8 @@ require(["SettingsHandler", "TtsProvider","IconDrawer"], function(settingsHandle
 	);
 
 	// ===================================== initial settings =====================================
-	tts.onStart = function() {iconDrawer.drawPlaying()};
-	tts.onEnd = function() {iconDrawer.drawTurnedOn()};
+	tts.onStart = iconDrawer.drawPlaying;
+	tts.onEnd = iconDrawer.drawTurnedOn;
 	
 	settingsHandler.getAll(function(settings) {
 		tts.speed = settings.speed;
