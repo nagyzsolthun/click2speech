@@ -4,9 +4,10 @@
  */
 define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 	var ttsArray = [googleTts, iSpechTts];
-	var activeTts = googleTts;
+	var activeTts = null;
 	
 	var speed = 1;
+	var onLoading = function() {};	//executed when loading starts
 	var onStart = function() {};	//executed whenever any of the tts services start reading
 	var onEnd = function() {};	//executed whenever any of the tts services stop reading
 	var onError = function(tts, url) {};	//executed whenever any of the tts services fails to read
@@ -22,6 +23,7 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 			speed = value;
 			activeTts.speed = speed; //in case rading is going on TODO check if setting is available
 		}
+		,set onLoading(callback) {onLoading = callback;}
 		,set onStart(callback) {onStart = callback;}
 		,set onEnd(callback) {onEnd = callback;}
 		,set onError(callback) {onError = callback;}
@@ -34,13 +36,15 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 	
 	provider.read = function(c) {
 		if(!c.text) {
-			activeTts.stop(onEnd);
+			activeTts.stop();
+			onEnd();
 			return;
 		}
 		activeTts.read({
 			text: c.text
 			,lan: c.lan
 			,speed: speed
+			,onLoading: function(){onLoading();}
 			,onStart: function(){onStart();}
 			,onEnd: function(){onEnd();}
 			,onError: function(url){

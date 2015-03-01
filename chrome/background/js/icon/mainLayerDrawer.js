@@ -17,13 +17,6 @@ define([], function() {
 		,outerRing: rgba({g:0.5})
 	}
 	
-	var loadingIcon = {
-		innerFill: rgba({b:1})
-		,innerRing: rgba({})	//black
-		,outerFill: rgba({b:1,a:1})	//blue
-		,outerRing: rgba({b:0.5})
-	}
-	
 	var playingIcon = {
 		innerFill: rgba({g:1})
 		,innerRing: rgba({})	//black
@@ -31,13 +24,20 @@ define([], function() {
 		,outerRing: rgba({g:0.5})
 	}
 	
-	/** @return the icon to show when error occours */
 	var errorIcon = {
 		innerFill: rgba({r:1})
 		,innerRing: rgba({})	//black
 		,outerFill: rgba({r:1})
 		,outerRing: rgba({})	//black
 	}
+	
+	var loadingIcon = {
+		innerFill: rgba({a:0.2})	//grey
+		,innerRing: rgba({})
+		,outerFill: null
+		,outerRing: null
+	}
+	
 	var renderedIcon = turnedOffIcon;	//stores the last drawn state
 	var targetIcon = turnedOffIcon;	//in case an animation request comes in while animating, this icon is will be the end
 	var animation;	//current/last-finished animation
@@ -170,11 +170,9 @@ define([], function() {
 		animation = {start: Date.now(),transitions: [{from:renderedIcon,to:playingIcon,length:300}]};
 	}
 	
-	drawer.animateReceived = function() {
-		animation = {start: Date.now(),transitions: [
-			{from:renderedIcon,to:loadingIcon,length:300}
-			,{from:loadingIcon,to:targetIcon,length:300}
-		]};
+	drawer.setLoading = function() {
+		targetIcon = loadingIcon;
+		animation = {start: Date.now(),transitions: [{from:renderedIcon,to:loadingIcon,length:300}]};
 	}
 	
 	drawer.animateError = function() {

@@ -39,12 +39,15 @@ define(function() {
 		* @param c.text the text to be read
 		* @param c.lan the language of reading
 		* @param c.speed the speed of reading (defaults to 1)
+		* @param c.onLoading called when loading started
 		* @param c.onStart called when audio starts playing
 		* @param c.onEnd called when playing finishes
 		* @param c.onError called when error has raised
 		*/
 		this.read = function(c) {
-			this.stop(c.onEnd);
+			this.stop();
+			c.onEnd();
+			c.onLoading();
 
 			var urlArr = readerConfig.buildUrlArr(c);
 			//TODO remove this stuff, its only for testing
@@ -52,7 +55,6 @@ define(function() {
 				urlArr = ["muhahahahaerror"];
 			}
 			var cutEnd = readerConfig.getCutLength?readerConfig.getCutLength(c):null;
-
 			urlArr.forEach(function(url, i) {
 				var audio = new Audio();
 				audio.defaultPlaybackRate = c.speed || 1;
@@ -75,13 +77,12 @@ define(function() {
 		}; //end read
 		
 		/** stops playing the audio (not only pause!)*/
-		this.stop = function(onEnd) {
+		this.stop = function() {
 			audios.forEach(function(audio) {
-				audio.pause();
+				audio.onerror = null;
 				audio.src = "";
 			});
 			audios = [];
-			onEnd();
 		}
 		
 		/** @param callback called with a boolean flag indicating if the test passed */

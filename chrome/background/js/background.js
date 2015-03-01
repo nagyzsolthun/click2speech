@@ -65,7 +65,6 @@ require(["SettingsHandler", "TtsProvider","icon/drawer"], function(settingsHandl
 				case("webReader.read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
-					iconDrawer.drawLoading();
 					break;
 				case("webReader.missed"):
 					console.log("missed received");
@@ -88,10 +87,12 @@ require(["SettingsHandler", "TtsProvider","icon/drawer"], function(settingsHandl
 	);
 
 	// ===================================== initial settings =====================================
+	tts.onLoading = iconDrawer.drawLoading;
 	tts.onStart = iconDrawer.drawPlaying;
 	tts.onEnd = iconDrawer.drawTurnedOn;
 	
 	settingsHandler.getAll(function(settings) {
+		tts.preferredTts = settings.preferredTts;
 		tts.speed = settings.speed;
 		if(settings.turnedOn) iconDrawer.drawTurnedOn();
 		else iconDrawer.drawTurnedOff();
