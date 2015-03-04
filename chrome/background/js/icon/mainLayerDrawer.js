@@ -1,7 +1,7 @@
 define([], function() {
-	var ctx;	//TODO shouldnt be an attribute
-	var size = 18;	//TODO from setter
-	var quarter = size/4;
+	var context;	//TODO maybe not as an attibute
+	var size;
+	var quarter;	//should be size/4
 	
 	var turnedOffIcon = {
 		innerFill: rgba({a:0.5})	//grey
@@ -32,8 +32,8 @@ define([], function() {
 	}
 	
 	var loadingIcon = {
-		innerFill: rgba({a:0.2})	//grey
-		,innerRing: rgba({})
+		innerFill: null
+		,innerRing: rgba({a:0.2})	//grey
 		,outerFill: null
 		,outerRing: null
 	}
@@ -46,10 +46,10 @@ define([], function() {
 	* @param c.color color
 	* @param c.r radius*/
 	function drawBall(c) {
-		ctx.fillStyle = c.color;
-		ctx.beginPath();
-		ctx.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
-		ctx.fill();
+		context.fillStyle = c.color;
+		context.beginPath();
+		context.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
+		context.fill();
 	}
 	
 	/** draws a non-filled circle with given parameters to the middle of the canvas
@@ -57,11 +57,11 @@ define([], function() {
 	* @param c.width width
 	* @param c.r radius*/
 	function drawRing(c) {
-		ctx.lineWidth = c.width;
-		ctx.strokeStyle = c.color;
-		ctx.beginPath();
-		ctx.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
-		ctx.stroke();
+		context.lineWidth = c.width;
+		context.strokeStyle = c.color;
+		context.beginPath();
+		context.arc(2*quarter, 2*quarter, c.r, 0, 2*Math.PI);
+		context.stroke();
 	}
 	
 	/** @return a filled rgba object - or null if given o is null
@@ -152,7 +152,11 @@ define([], function() {
 	
 	// ============================ public ============================
 	var drawer = {
-		set ctx(context) {ctx = context;}
+		set canvas(canvas) {
+			context = canvas.getContext("2d");
+			size = canvas.width;
+			quarter = size/4;
+		}
 	};
 	
 	drawer.setOn = function() {

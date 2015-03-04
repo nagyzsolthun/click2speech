@@ -1,14 +1,12 @@
 /**draws the icon of WebReader - the look depends on the volume of playing and the status (on/off) */
 define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDrawer, loadingLayerDrawer) {
-	var ctx;
 	var canvas;
-	
 	var animating = false;
 
 	/** calls the layers render() function with the current time until they all finish */
 	function render() {
 		animating = true;
-		canvas.width = 18;
+		canvas.width = canvas.width;
 		var finished = true;
 		finished &= mainLayerDrawer.render(Date.now());
 		finished &= loadingLayerDrawer.render(Date.now());
@@ -27,9 +25,8 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDr
 	var drawer = {
 		set canvas(cnv) {
 			canvas = cnv;
-			ctx = canvas.getContext("2d");
-			mainLayerDrawer.ctx = ctx;
-			loadingLayerDrawer.ctx = ctx;
+			mainLayerDrawer.canvas = canvas;
+			loadingLayerDrawer.canvas = canvas;
 		}
 		,set onRenderFinished(callback) {onRenderFinished = callback;}
 	}
