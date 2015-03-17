@@ -67,7 +67,7 @@ require(["SettingsHandler", "TtsProvider","icon/drawer"], function(settingsHandl
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
 					break;
-				case("webReader.missed"):
+				case("webReader.missed"):	//TODO get rid of this
 					console.log("missed received");
 					iconDrawer.drawError();
 					break;
@@ -91,6 +91,10 @@ require(["SettingsHandler", "TtsProvider","icon/drawer"], function(settingsHandl
 	tts.onLoading = iconDrawer.drawLoading;
 	tts.onStart = iconDrawer.drawPlaying;
 	tts.onEnd = iconDrawer.drawTurnedOn;
+	tts.onError = function(tts, url) {
+		//TODO provide this info in popup
+		iconDrawer.drawError();
+	}
 	
 	settingsHandler.getAll(function(settings) {
 		tts.preferredTts = settings.preferredTts;

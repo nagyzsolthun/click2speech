@@ -37,7 +37,6 @@ define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
 	provider.read = function(c) {
 		if(!c.text) {
 			activeTts.stop();
-			onEnd();
 			return;
 		}
 		activeTts.read({

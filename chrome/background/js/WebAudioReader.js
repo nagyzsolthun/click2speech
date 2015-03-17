@@ -14,8 +14,6 @@ define(function() {
 		var audios = [];
 
 		Object.defineProperty(this, 'name', {get: function() {return readerConfig.name;}});
-		
-		//TODO some nicer way..
 		Object.defineProperty(this, 'speed', {
 			set: function(speed) {
 				audios.forEach(function(audio) {
@@ -45,8 +43,9 @@ define(function() {
 		* @param c.onError called when error has raised
 		*/
 		this.read = function(c) {
+			var that = this;	//TODO
+			
 			this.stop();
-			c.onEnd();
 			c.onLoading();
 
 			var urlArr = readerConfig.buildUrlArr(c);
@@ -59,19 +58,27 @@ define(function() {
 				var audio = new Audio();
 				audio.defaultPlaybackRate = c.speed || 1;
 				audio.src = encodeURI(url);
-				audio.onerror = function(){c.onError(audio.src);}
+				audio.onerror = function(){
+					that.stop();
+					c.onError(audio.src);
+				}
 				audios.push(audio);
 				if(cutEnd) setCutEnd({audio: audio,cutEnd: cutEnd});
 				
-				//first element starts playing when onloadedData + executes onStart
-				if(i==0) audio.oncanplay = function() {audio.play(); c.onStart();}
+				if(i==0) { //first element starts playing when onloadedData + executes onStart
+					audio.oncanplay = function() {
+						audio.play();
+						c.onStart();
+					}
+				}
 				else {	//other elements start playing after previous ends AND after their data loads
 					audios[i-1].onended = function() {
 						if(audio.readyState == 4) audio.play();
 						else audio.oncanplay = audio.play;
 					}
 				}
-				//last element should call onEnd
+
+				//last element ending should call onEnd
 				if(i == urlArr.length-1) audio.onended = c.onEnd;
 			});	//end forEach
 		}; //end read
@@ -81,7 +88,10 @@ define(function() {
 			audios.forEach(function(audio) {
 				audio.onerror = null;
 				audio.src = "";
+				audio.load();
 			});
+			var last = audios[audios.length-1];
+			last && last.onended();	//onEnd is called
 			audios = [];
 		}
 		

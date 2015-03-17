@@ -56,8 +56,9 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDr
 	}
 	
 	drawer.drawError = function() {
-		mainLayerDrawer.animateError();
 		loadingLayerDrawer.setOff();
+		mainLayerDrawer.setError();
+		mainLayerDrawer.animateError();
 		animate();
 	}
 

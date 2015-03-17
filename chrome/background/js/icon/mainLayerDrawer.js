@@ -27,6 +27,13 @@ define([], function() {
 	var errorIcon = {
 		innerFill: rgba({r:1})
 		,innerRing: rgba({})	//black
+		,outerFill: null
+		,outerRing: rgba({})	//black
+	}
+	
+	var errorAnimationIcon = {
+		innerFill: rgba({r:1})
+		,innerRing: rgba({})	//black
 		,outerFill: rgba({r:1})
 		,outerRing: rgba({})	//black
 	}
@@ -169,6 +176,11 @@ define([], function() {
 		animation = {start: Date.now(),transitions: [{from:renderedIcon,to:turnedOffIcon,length:300}]};
 	}
 	
+	drawer.setError = function() {
+		targetIcon = errorIcon;
+		animation = {start: Date.now(),transitions: [{from:renderedIcon,to:turnedOffIcon,length:300}]};
+	}
+	
 	drawer.setPlaying = function() {
 		targetIcon = playingIcon;
 		animation = {start: Date.now(),transitions: [{from:renderedIcon,to:playingIcon,length:300}]};
@@ -181,8 +193,12 @@ define([], function() {
 	
 	drawer.animateError = function() {
 		animation = {start: Date.now(),transitions: [
-			{from:renderedIcon,to:errorIcon,length:300}
-			,{from:errorIcon,to:targetIcon,length:300}
+			{from:renderedIcon,to:errorAnimationIcon,length:200}
+			,{from:errorAnimationIcon,to:errorIcon,length:200}
+			,{from:errorIcon,to:errorAnimationIcon,length:200}
+			,{from:errorAnimationIcon,to:errorIcon,length:200}
+			,{from:errorIcon,to:errorAnimationIcon,length:200}
+			,{from:errorAnimationIcon,to:targetIcon,length:200}
 		]};
 	}
 
