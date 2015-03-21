@@ -1,14 +1,38 @@
-#onoffbutton {
+body {display: inline-block;}	/* so the size of the popup matches the size of its content */
+
+#errorNotification {
+	display:none;
 	text-align: center;
-	width: 4em;
-	height: 1.2em;
-	font-size: 400%;
-	 -webkit-border-radius: 15px;
-	 border: 2px inset black;
+	color: darkred;
+	font-size: 200%;
+	white-space: nowrap;
+	border-bottom: 2px inset darkred;
+	margin: 0 0 1em 0;
+	padding: 0.2em;
 }
 
-.tts-off #onoffbutton {background-color:#00aa00;}
-.tts-off #onoffbutton:hover {background-color:#00ff00;}
+#errorNotification > * {margin: .2em;}
 
-.tts-on #onoffbutton {background-color:#aa0000;}
-.tts-on #onoffbutton:hover {background-color:#ff0000;}
+#errorNotification.active {display:inline-block;}
+
+.button {
+	text-align: center;
+	color: black;
+	white-space: nowrap;
+	display: block;
+	-webkit-transition: background-color .2s ease-in-out;
+	border: 2px inset black;
+	-webkit-border-radius: 0.4em;
+	padding:.1em .2em;
+}
+
+.button:hover {
+	background-color:#00ff00;
+}
+
+#onOffButton {
+	font-size: 400%;
+}
+
+#onOffButton.ttsOn {background-color:#fff;}
+#onOffButton.ttsOn:hover {background-color:#f00;}

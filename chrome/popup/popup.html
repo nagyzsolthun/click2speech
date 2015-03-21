@@ -1,4 +1,12 @@
-<link rel="stylesheet" type="text/css" href="popup.css">
+<html ng-app="popupApp" ng-csp lang="en" ng-controller="popupController">
+	<div id="errorNotification" ng-class="{active: notification.active}">
+		<div>Google Tts error</div>
+		<div id="readingOtionsButtion" class="button" ng-click="openReadingOptions()">change Tts</div>
+		<div id="moreDetailsButton" class="button" ng-click="openUrl()">open URL</div>
+	</div>
+	<div id="onOffButton" class="button" ng-class="{ttsOn: button.ttsOn}" ng-click="onOffButtonClick()">{{button.text}}</div>
 
-<div id="onoffbutton">on/off</div>
-<script data-main="popup.js" src="../lib/require.js"></script>
+	<link rel="stylesheet" type="text/css" href="popup.css">
+	<script src="../lib/angular.min.js"></script>
+	<script src="popup.js"></script>
+</html>

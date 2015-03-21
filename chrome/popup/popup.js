@@ -1,33 +1,49 @@
-require([], function() {
-	var turnedOn = null;
+var app = angular.module('popupApp', []);
 
-	function turnOn() {
-		turnedOn = true;
-		document.body.className = "tts-on";
-		document.getElementById('onoffbutton').innerHTML = "turn off";
-	}
+app.controller('popupController', function($scope) {
+	$scope.button = {text: "on/off",ttsOn: false}
+	$scope.notification = {active: false, url:""}
 
-	function turnOff() {
-		turnedOn = false;
-		document.body.className = "tts-off";
-		document.getElementById('onoffbutton').innerHTML = "turn on";
-	}
-
-	document.getElementById('onoffbutton').addEventListener('click', function(){
-		if(turnedOn) {
-			turnOff();
+	$scope.onOffButtonClick = function() {
+		if($scope.button.ttsOn) {
 			chrome.runtime.sendMessage({action: "webReader.turnOff"});
-		} else {
-			turnOn();
-			chrome.runtime.sendMessage({action: "webReader.turnOn",});
-		}
-	});
-
-	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
-		if(settings.turnedOn) {
-			turnOn();
-		} else {
 			turnOff();
+		} else {
+			chrome.runtime.sendMessage({action: "webReader.turnOn"});
+			turnOn();
+		}
+	}
+	
+	$scope.openReadingOptions = function() {
+		var readingOptionsUrl = chrome.extension.getURL("options/html/options.html#/reading");
+		chrome.tabs.create({url: readingOptionsUrl});
+	}
+	
+	$scope.openUrl = function() {
+		chrome.tabs.create({url: $scope.notification.url});
+	}
+	
+	function turnOn() {
+		$scope.button.ttsOn = true;
+		$scope.button.text = "turn off";
+	}
+	
+	function turnOff() {
+		$scope.button.ttsOn = false;
+		$scope.button.text = "turn on";
+	}
+	
+	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(settings) {
+		if(settings.turnedOn) turnOn();
+		else turnOff();
+		$scope.$digest();
+	});
+	
+	chrome.runtime.sendMessage({action: "webReader.getErrorUrl"}, function(url) {
+		if(url) {
+			$scope.notification.active = true;
+			$scope.notification.url = url;
+			$scope.$digest();
 		}
 	});
 });

@@ -30,7 +30,7 @@ angular.module('optionsApp')
 		names.forEach(function(name) {
 			var ttsService = {name: name, selected: false, status: "loading"};
 			$scope.services.push(ttsService);
-			chrome.runtime.sendMessage({action: "webReader.testTtsServices", tts:name}, function(success) {
+			chrome.runtime.sendMessage({action: "webReader.testTtsService", tts:name}, function(success) {
 				if(success) ttsService.status = "available";
 				else ttsService.status = "unavailable";
 				$scope.$digest();
