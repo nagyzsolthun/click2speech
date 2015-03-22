@@ -2,7 +2,7 @@ var app = angular.module('popupApp', []);
 
 app.controller('popupController', function($scope) {
 	$scope.button = {text: "on/off",ttsOn: false}
-	$scope.notification = {active: false, url:""}
+	$scope.notification = {active: false, tts: "", url:""}
 
 	$scope.onOffButtonClick = function() {
 		if($scope.button.ttsOn) {
@@ -39,10 +39,11 @@ app.controller('popupController', function($scope) {
 		$scope.$digest();
 	});
 	
-	chrome.runtime.sendMessage({action: "webReader.getErrorUrl"}, function(url) {
-		if(url) {
+	chrome.runtime.sendMessage({action: "webReader.getError"}, function(error) {
+		if(error.url) {
 			$scope.notification.active = true;
-			$scope.notification.url = url;
+			$scope.notification.tts = error.tts;
+			$scope.notification.url = error.url;
 			$scope.$digest();
 		}
 	});

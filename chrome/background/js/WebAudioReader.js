@@ -50,17 +50,18 @@ define(function() {
 
 			var urlArr = readerConfig.buildUrlArr(c);
 			//TODO remove this stuff, its only for testing
-			if(c.text == "this text will cause an error") {
-				urlArr = ["muhahahahaerror"];
+			if(c.text == "make WebReader fail") {
+				urlArr = ["https://github.com/nagyzsolthun/WebReader"];
 			}
 			var cutEnd = readerConfig.getCutLength?readerConfig.getCutLength(c):null;
 			urlArr.forEach(function(url, i) {
 				var audio = new Audio();
 				audio.defaultPlaybackRate = c.speed || 1;
-				audio.src = encodeURI(url);
+				var encodedUrl = encodeURI(url);
+				audio.src = encodedUrl;
 				audio.onerror = function(){
 					that.stop();
-					c.onError(audio.src);
+					c.onError(encodedUrl);
 				}
 				audios.push(audio);
 				if(cutEnd) setCutEnd({audio: audio,cutEnd: cutEnd});

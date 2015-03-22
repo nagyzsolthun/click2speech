@@ -6,7 +6,7 @@ body {display: inline-block;}	/* so the size of the popup matches the size of it
 	color: darkred;
 	font-size: 200%;
 	white-space: nowrap;
-	border-bottom: 2px inset darkred;
+	border-bottom: 2px solid darkred;
 	margin: 0 0 1em 0;
 	padding: 0.2em;
 }
@@ -21,7 +21,7 @@ body {display: inline-block;}	/* so the size of the popup matches the size of it
 	white-space: nowrap;
 	display: block;
 	-webkit-transition: background-color .2s ease-in-out;
-	border: 2px inset black;
+	border: 2px solid black;
 	-webkit-border-radius: 0.4em;
 	padding:.1em .2em;
 }
