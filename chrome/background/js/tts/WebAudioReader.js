@@ -41,6 +41,7 @@ define(function() {
 		* @param c.onStart called when audio starts playing
 		* @param c.onEnd called when playing finishes
 		* @param c.onError called when error has raised
+		* 	@param url the url which caused the error
 		*/
 		this.read = function(c) {
 			var that = this;	//TODO

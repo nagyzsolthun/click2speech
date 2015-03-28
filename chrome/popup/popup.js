@@ -40,7 +40,7 @@ app.controller('popupController', function($scope) {
 	});
 	
 	chrome.runtime.sendMessage({action: "webReader.getError"}, function(error) {
-		if(error.url) {
+		if(error.tts) {
 			$scope.notification.active = true;
 			$scope.notification.tts = error.tts;
 			$scope.notification.url = error.url;
