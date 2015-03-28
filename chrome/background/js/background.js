@@ -1,4 +1,4 @@
-require(["SettingsHandler", "TtsProvider","icon/drawer"], function(settingsHandler, tts, iconDrawer) {
+require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsHandler, tts, iconDrawer) {
 	var iconCanvas = document.createElement("canvas");
 	iconCanvas.width = iconCanvas.height = 18;	//this is the size of the chrome icon TODO reference
 	iconDrawer.canvas = iconCanvas;

@@ -1,5 +1,5 @@
 /** @return a WebAudioReader with set up buildUrlArr and getCutLength method to use Google TTS */
-define(["TextSplitter","WebAudioReader"], function(TextSplitter, WebAudioReader) {
+define(["tts/TextSplitter","tts/WebAudioReader"], function(TextSplitter, WebAudioReader) {
 	/** @return the url of Google TTS to send request
 	 * @param text the text to read - length has to be max 100 characters
 	 * @param lan the language of reading*/

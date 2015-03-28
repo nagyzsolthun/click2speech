@@ -2,8 +2,8 @@
  * 1. provides the option to choose
  * 2. handles errors in them
  */
-define(["GoogleTts", "ISpeechTts"], function(googleTts, iSpechTts) {
-	var ttsArray = [googleTts, iSpechTts];
+define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSpechTts, OsTts) {
+	var ttsArray = [googleTts, iSpechTts, OsTts];
 	var activeTts = null;
 	
 	var speed = 1;
