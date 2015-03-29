@@ -1,6 +1,6 @@
 <html ng-app="popupApp" ng-csp lang="en" ng-controller="popupController">
 	<div id="errorNotification" ng-class="{active: notification.active}">
-		<div>{{notification.tts}} TTS error</div>
+		<div>{{notification.tts}} TTS error: {{notification.cause}}</div>
 		<div id="readingOtionsButtion" class="button" ng-click="openReadingOptions()">change TTS</div>
 		<div id="moreDetailsButton" class="button" ng-click="openUrl()">open URL</div>
 	</div>

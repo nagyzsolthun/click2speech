@@ -91,19 +91,24 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		}
 	);
 	// ===================================== error handling =====================================
-	var error = {tts: null,url: null};
+	//error.tts the name of the tts
+	//error.cause the cause of the error
+	//error.url if the cause is URL_ERROR, the url
+	var error = null;
 
 	// ===================================== initial settings =====================================
 	tts.onLoading = iconDrawer.drawLoading;
 	tts.onStart = function() {
-		error.tts = null;
-		error.url = null;
+		error = null;
 		iconDrawer.drawPlaying();
 	}
 	tts.onEnd = iconDrawer.drawTurnedOn;
-	tts.onError = function(tts, url) {
-		error.tts = tts;
-		error.url = url;
+	tts.onError = function(c) {
+		error = {
+			tts: c.tts
+			,cause: c.cause
+			,url: c.url	//TODO include this?
+		};
 		iconDrawer.drawError();
 	}
 	

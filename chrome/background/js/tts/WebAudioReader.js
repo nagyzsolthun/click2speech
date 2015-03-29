@@ -2,15 +2,17 @@
 define(function() {
 	
 	/** creates a webAudioReader
-	 * @param c.name name of the webAudioReader
-	 * @param c.buildUrlArr function that creates the urls that will be played squentially
-	 * 	@param text
-	 * 	@param lan the language of the document
-	 * @param c.getCutLength function that returns the length of audio to be ignored at the end (iSpeech "powered by iSpeech" sound)
-	 * 	@param text
-	 * 	@param lan the language of the document
+	 * @param readerConfig.name name of the webAudioReader
+	 * @param readerConfig.buildReadingParts function that creates array of ReadingParts
+	 * 		@return readingPart.text the text
+	 * 		@return readingPart.url the url
+	 * 		@return readingPart.cutEnd the length of audio to be ignored at the end (iSpeech "powered by iSpeech" sound)
+	 * 
+	 * 		@param text the whole text
+	 * 		@param lan the language
 	 */
 	function WebAudioReader(readerConfig) {
+		var readingParts = [];
 		var audios = [];
 		var errorAudios = {};	//map: audio => true if the audio encountured error
 
@@ -57,35 +59,44 @@ define(function() {
 			errorAudios = {};
 		}
 		
-		/** set up an audio file: plays after previous one ends and when its loading finishes
-		 * @param c.previous the previous audio in the squence
-		 * @param c.cutEnd (optional) stop before end of playing by this value
-		 * @param c.url the url of the audio
-		 * @param c.speed the speed of reading
-		 * @param c.onLoading called when loading starts
-		 * @param c.onStart called when an audio starts playing
-		 * @param c.onError called when the currently playing/loading audio has encountured error
-		 * 	@param url the url that caused the error
-		 */
-		function createAudio(c) {
-			var audio = new Audio();
-			audio.defaultPlaybackRate = c.speed || 1;
-			audio.src = encodeURI(c.url);
-			setCutEnd({audio:audio, cutEnd: c.cutEnd});
-			
-			//first audio
-			if(!c.previous) setupLoadingAudio({audio:audio, onLoading:c.onLoading, onStart:c.onStart, onError: c.onError});
-			else {
-				//not first audio
-				audio.onerror = function() {errorAudios[c.url] = true;}
-				c.previous.onended = function() {
-					if(errorAudios[c.url]) {stop();c.onError(); return;}	//TODO remaning text
-					if(audio.readyState == 4) audio.play();	//audio can play
-					else setupLoadingAudio({audio:audio, onLoading:c.onLoading, onStart:c.onStart, onError: c.onError});	//still loading
-				}
+		/** @return the text after the part on i index*/
+		function remainingText(i) {
+			var result = "";
+			for(; i<readingParts.length; i++) {
+				result += readingParts[i].text;
 			}
-			
-			return audio;
+			return result;
+		}
+		
+		/** @return a function that calls @param c.callback with the following values:
+		 * 		cause: "URL_ERROR"
+		 * 		url: url of part with index @param c.i
+		 * 		remaining: the remaining text to play*/
+		function createUrlError(c) {
+			return function() {
+				var part = readingParts[c.i];
+				c.callback({cause:"URL_ERROR",url:part.url,remaining:remainingText(c.i)});
+			}
+		}
+		
+		function setUpTest() {
+			readingParts = [];
+			readingParts.push({
+				text: "google"
+				,url: "https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
+			});
+			readingParts.push({
+				text: "iSpeech is set up to read a longer sentence"
+				,url: "http://www.ispeech.org/p/generic/getaudio?text=iSpeech is set up to read a longer sentence&voice=usenglishfemale&speed=0&action=convert"
+			});
+			readingParts.push({
+				text: "something random"
+				,url: "https://github.com/nagyzsolthun/WebReader"
+			});
+			readingParts.push({
+				text: "google again"
+				,url: "https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
+			});
 		}
 		
 		// ======================================= public =======================================
@@ -104,29 +115,44 @@ define(function() {
 			this.stop();
 			c.onLoading();
 			
-			var urlArr = readerConfig.buildUrlArr(c);
+			readingParts = readerConfig.buildReadingParts({text: c.text, lan:c.lan});
 			
-			//TODO remove these
-			//urlArr = [];
-			//urlArr.push("https://translate.google.co.uk/translate_tts?q=google&tl=en-US");
-			//urlArr.push("http://www.ispeech.org/p/generic/getaudio?text=iSpeech is set up to read a longer sentence&voice=usenglishfemale&speed=0&action=convert");
-			//urlArr.push("https://github.com/nagyzsolthun/WebReader");
+			//setUpTest();
 			
-			
-			var cutEnd = readerConfig.getCutLength?readerConfig.getCutLength({lan:c.lan}):null;
-			urlArr.forEach(function(url, i) {
-				var audio = createAudio({
-					previous: audios[i-1]
-					,cutEnd:cutEnd
-					,url:url
-					,speed:c.speed
-					,onLoading:c.onLoading
-					,onStart:c.onStart
-					,onError:c.onError
-				});
+			readingParts.forEach(function(part, i) {
+				var previous = audios[i-1];
+				
+				var audio = new Audio();
 				audios.push(audio);
-			});	
-			audios[audios.length-1].onended = c.onEnd;
+				
+				audio.defaultPlaybackRate = c.speed || 1;
+				audio.src = encodeURI(part.url);
+				setCutEnd({audio:audio, cutEnd: part.cutEnd});
+				
+				//set up onError callback with the urls and remaning text
+				var urlError = createUrlError({callback:c.onError, i:i});
+			
+				//first audio
+				if(!previous) setupLoadingAudio({audio:audio, onLoading:c.onLoading, onStart:c.onStart, onError: urlError});
+				else {
+					//not first audio
+					audio.onerror = function() {
+						errorAudios[part.url] = true;
+					}
+					previous.onended = function() {
+						if(errorAudios[part.url]) {
+							stop();
+							urlError();
+							return;
+						}
+						if(audio.readyState == 4) audio.play();	//audio can play
+						else setupLoadingAudio({audio:audio, onLoading:c.onLoading, onStart:c.onStart, onError: urlError});	//still loading
+					}
+				}
+				
+				//last audio
+				if(i == readingParts.length-1) audio.onended = c.onEnd;
+			});
 		};
 		
 		/** stops playing the audio (not only pause!)*/
@@ -138,14 +164,14 @@ define(function() {
 		
 		/** @param callback called with a boolean flag indicating if the test passed */
 		this.test = function(callback) {
-			var urlArr = readerConfig.buildUrlArr({
+			var readingParts = readerConfig.buildReadingParts({
 				text:(Date.now() % 1000).toString()	//a random text to send
 				,lan: "en-US"
 			});
 			var audio = new Audio();
 			audio.onerror = function() {callback(false);}
 			audio.oncanplay = function() {callback(true);}
-			audio.src = encodeURI(urlArr[0]);
+			audio.src = encodeURI(readingParts[0].url);
 		}
 	}
 	

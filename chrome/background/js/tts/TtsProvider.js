@@ -46,9 +46,13 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 			,onLoading: function(){onLoading();}
 			,onStart: function(){onStart();}
 			,onEnd: function(){onEnd();}
-			,onError: function(url){
-				console.log("error from " + activeTts.name + ": " + url);
-				onError(activeTts.name, url);
+			,onError: function(c){
+				console.log("error from " + activeTts.name + ": " + c.cause);
+				onError({
+					tts:activeTts.name
+					,cause:c.cause
+					,url:c.url	//TODO include this?
+				});
 			}
 		});
 	}

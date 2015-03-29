@@ -31,23 +31,23 @@ define(["tts/TextSplitter","tts/WebAudioReader"], function(TextSplitter, WebAudi
 
 	//iSpeech only accepts max 32 words
 	//we try to split by sentence ends, commas or spaces
-	function buildUrlArr(c) {
+	function buildReadingParts(c) {
 		var splitText = TextSplitter.splitToWord({
 			text: c.text
 			,limit: 32
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
-
-		return splitText.map(
-			function(part) {
-				return buildUrl({
-					text: part
-					,lan: c.lan
-			});
-		});
+		
+		return splitText.map(function(part) {
+			return {
+				text:part
+				,url:buildUrl({text:part, lan:c.lan})
+				,cutEnd:getCutLength({lan:c.lan})
+			}
+		})
 	};
 	
-	var reader = new WebAudioReader({name: "iSpeech", buildUrlArr: buildUrlArr, getCutLength: getCutLength});
+	var reader = new WebAudioReader({name: "iSpeech", buildReadingParts: buildReadingParts});
 	
 	console.log("iSpeechTts initialized");
 	return reader;
