@@ -43,8 +43,8 @@ app.controller('popupController', function($scope) {
 		if(error) {
 			$scope.notification.active = true;
 			$scope.notification.tts = error.tts;
-			$scope.notification.cause = error.cause;
-			if(error.cause == "URL_ERROR") {
+			$scope.notification.errorType = error.errorType;
+			if(error.errorType == "URL_ERROR") {
 				$scope.notification.url = error.url;
 			}
 			$scope.$digest();

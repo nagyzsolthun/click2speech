@@ -97,19 +97,16 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	var error = null;
 
 	// ===================================== initial settings =====================================
-	tts.onLoading = iconDrawer.drawLoading;
-	tts.onStart = function() {
-		error = null;
-		iconDrawer.drawPlaying();
-	}
-	tts.onEnd = iconDrawer.drawTurnedOn;
-	tts.onError = function(c) {
-		error = {
-			tts: c.tts
-			,cause: c.cause
-			,url: c.url	//TODO include this?
-		};
-		iconDrawer.drawError();
+	tts.onEvent = function(event) {
+		switch(event.type) {
+			case("loading"): iconDrawer.drawLoading(); break;
+			case("start"): error = null; iconDrawer.drawPlaying(); break;
+			case("end"): iconDrawer.drawTurnedOn(); break;
+			case("error"):
+				error = {tts:event.tts,errorType:event.errorType,url:event.url};	//TODO include url?
+				iconDrawer.drawError();
+				break;
+		}
 	}
 	
 	settingsHandler.getAll(function(settings) {

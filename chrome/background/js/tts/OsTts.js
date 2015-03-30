@@ -26,10 +26,9 @@ define([], function() {
 		* @param c.text the text to be read
 		* @param c.lan the language of reading
 		* @param c.speed the speed of reading (defaults to 1)
-		* @param c.onLoading called when loading started
-		* @param c.onStart called when audio starts playing
-		* @param c.onEnd called when playing finishes
-		* @param c.onError called when error has raised
+		* @param c.onEvent called when any event raised
+		* 	@param event.type the type of the event [loading,start,end,error]
+		* 	@param event.remaining the text that is not read in case of error
 		*/
 	reader.read = function(c) {
 		chrome.tts.getVoices(function(voices) {
@@ -44,10 +43,10 @@ define([], function() {
 				voiceName: voice.voiceName
 				,onEvent: function(event) {
 					switch(event.type) {
-						case("error"):		c.onError(); break;	//TODO reason
-						case("start"):		c.onStart(); break;
-						case("end"):		c.onEnd(); break;
-						case("interrupted"):c.onEnd(); break;
+						case("start"):		c.oEvent({type:"start"}); break;
+						case("end"):		c.oEvent({type:"end"}); break;
+						case("interrupted"):c.oEvent({type:"end"}); break;
+						case("error"):		c.oEvent({type:"error",errorType:"UNKOWN"}); break;	//TODO reason+remaning
 					}
 				}
 			});

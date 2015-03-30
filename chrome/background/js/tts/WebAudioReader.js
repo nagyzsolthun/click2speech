@@ -39,13 +39,13 @@ define(function() {
 		
 		/** audio starts playing when its loading finsihed
 		 * @param c.audio the audio
-		 * @param c.onLoading called in this function
-		 * @param c.onStart called when audio starts playing
-		 * @param c.onError called when error occured */
+		 * @param c.onEvent called when any event is raised (except error)
+		 * @param c.Error called when error is raised
+		 */
 		function setupLoadingAudio(c) {
-			c.onLoading();
-			c.audio.oncanplay = function() {c.audio.play();c.onStart();}
-			c.audio.onerror = function() {stop();c.onError();}	//TODO remaning text
+			c.onEvent({type:"loading"});
+			c.audio.oncanplay = function() {c.audio.play();c.onEvent({type:"start"});}
+			c.audio.onerror = function() {stop();c.onError}
 		}
 		
 		/** stops playing */
@@ -69,13 +69,14 @@ define(function() {
 		}
 		
 		/** @return a function that calls @param c.callback with the following values:
+		 * 		type: "error"
 		 * 		cause: "URL_ERROR"
 		 * 		url: url of part with index @param c.i
 		 * 		remaining: the remaining text to play*/
-		function createUrlError(c) {
+		function createRaiseUrlErrorEvent(c) {
 			return function() {
 				var part = readingParts[c.i];
-				c.callback({cause:"URL_ERROR",url:part.url,remaining:remainingText(c.i)});
+				c.callback({type:"error",errorType:"URL_ERROR",url:part.url,remaining:remainingText(c.i)});
 			}
 		}
 		
@@ -104,16 +105,15 @@ define(function() {
 		* @param c.text the text to be read
 		* @param c.lan the language of reading
 		* @param c.speed the speed of reading (defaults to 1)
-		* @param c.onLoading called when loading started
-		* @param c.onStart called when audio starts playing
-		* @param c.onEnd called when playing finishes
-		* @param c.onError called when error has raised
-		* 	@param url the url that caused the error
-		*	TODO remaining text
+		* @param c.onEvent called when any event raised
+		* 	@param event.type the type of the event [loading,start,end,error]
+		* 	@param event.remaining the text that is not read in case of error
+		* 	@param event.errorType in case of error event, the type, typically URL_ERROR
+		* 	@param event.url in case of URL_ERROR, the url that caused the error
 		*/
 		this.read = function(c) {
 			this.stop();
-			c.onLoading();
+			c.onEvent({type:"loading"});
 			
 			readingParts = readerConfig.buildReadingParts({text: c.text, lan:c.lan});
 			
@@ -129,11 +129,11 @@ define(function() {
 				audio.src = encodeURI(part.url);
 				setCutEnd({audio:audio, cutEnd: part.cutEnd});
 				
-				//set up onError callback with the urls and remaning text
-				var urlError = createUrlError({callback:c.onError, i:i});
+				//set up error callback with the urls and remaning text
+				var raiseUrlError = createRaiseUrlErrorEvent({callback:c.onEvent, i:i});
 			
 				//first audio
-				if(!previous) setupLoadingAudio({audio:audio, onLoading:c.onLoading, onStart:c.onStart, onError: urlError});
+				if(!previous) setupLoadingAudio({audio:audio, onEvent:c.onEvent, onError:raiseUrlError});
 				else {
 					//not first audio
 					audio.onerror = function() {
@@ -142,23 +142,23 @@ define(function() {
 					previous.onended = function() {
 						if(errorAudios[part.url]) {
 							stop();
-							urlError();
+							raiseUrlError();
 							return;
 						}
 						if(audio.readyState == 4) audio.play();	//audio can play
-						else setupLoadingAudio({audio:audio, onLoading:c.onLoading, onStart:c.onStart, onError: urlError});	//still loading
+						else setupLoadingAudio({audio:audio, onEvent:c.onEvent, onError:raiseUrlError});	//still loading
 					}
 				}
 				
 				//last audio
-				if(i == readingParts.length-1) audio.onended = c.onEnd;
+				if(i == readingParts.length-1) audio.onended = function(){c.onEvent({type:"end"});}
 			});
 		};
 		
 		/** stops playing the audio (not only pause!)*/
 		this.stop = function() {
 			var last = audios[audios.length-1];
-			last && last.onended();	//onEnd is called
+			last && last.onended();
 			stop();
 		}
 		

@@ -7,10 +7,12 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	var activeTts = null;
 	
 	var speed = 1;
-	var onLoading = function() {};	//executed when loading starts
-	var onStart = function() {};	//executed whenever any of the tts services start reading
-	var onEnd = function() {};	//executed whenever any of the tts services stop reading
-	var onError = function(tts, url) {};	//executed whenever any of the tts services fails to read
+	
+	/** called when event occours its parameter is the event
+	 * @param event.type the type of the event [loading,start,end,error]
+		* 	@param event.errorType in case of error event, the type, typically URL_ERROR
+		* 	@param event.url in case of URL_ERROR, the url that caused the error*/
+	var onEvent = function() {};
 	
 	// =============================== public ===============================
 	var provider = {
@@ -23,10 +25,7 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 			speed = value;
 			activeTts.speed = speed; //in case rading is going on TODO check if setting is available
 		}
-		,set onLoading(callback) {onLoading = callback;}
-		,set onStart(callback) {onStart = callback;}
-		,set onEnd(callback) {onEnd = callback;}
-		,set onError(callback) {onError = callback;}
+		,set onEvent(callback) {onEvent = callback;}
 		,set preferredTts(name) {
 			ttsArray.forEach(function(tts) {
 				if(tts.name == name) activeTts = tts;	//TODO error handling
@@ -43,16 +42,22 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 			text: c.text
 			,lan: c.lan
 			,speed: speed
-			,onLoading: function(){onLoading();}
-			,onStart: function(){onStart();}
-			,onEnd: function(){onEnd();}
-			,onError: function(c){
-				console.log("error from " + activeTts.name + ": " + c.cause);
-				onError({
-					tts:activeTts.name
-					,cause:c.cause
-					,url:c.url	//TODO include this?
-				});
+			,onEvent: function(event) {
+				switch(event.type) {
+					case("error"):
+						onEvent({
+							tts:activeTts.name	//TODO think about this delegation + handle the error
+							,type:event.type
+							,errorType: event.errorType
+							,url: event.url
+						});
+						break;
+					case("loading"):
+					case("start"):
+					case("end"): onEvent(event); break;
+					default: console.log("unkown event type: " + event.type); break;
+				}
+				
 			}
 		});
 	}
