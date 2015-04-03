@@ -3,8 +3,9 @@
  * 2. handles errors in them
  */
 define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSpechTts, OsTts) {
-	var ttsArray = [googleTts, iSpechTts, OsTts];
-	var activeTts = null;
+	var ttsArray = [googleTts, iSpechTts];	//TODO OsTts
+	var preferredTts = null;
+	var speech = null;
 	
 	var speed = 1;
 	
@@ -23,46 +24,42 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 		}
 		,set speed(value) {
 			speed = value;
-			activeTts.speed = speed; //in case rading is going on TODO check if setting is available
+			if(speech) speech.speed = speed; //in case rading is going on TODO check if setting is available
 		}
 		,set onEvent(callback) {onEvent = callback;}
 		,set preferredTts(name) {
 			ttsArray.forEach(function(tts) {
-				if(tts.name == name) activeTts = tts;	//TODO error handling
+				if(tts.name == name) preferredTts = tts;	//TODO error handling
 			});
 		}
 	};
 	
 	provider.read = function(c) {
-		if(!c.text) {
-			activeTts.stop();
-			return;
-		}
-		activeTts.read({
-			text: c.text
-			,lan: c.lan
-			,speed: speed
-			,onEvent: function(event) {
-				switch(event.type) {
-					case("error"):
-						onEvent({
-							tts:activeTts.name	//TODO think about this delegation + handle the error
-							,type:event.type
-							,errorType: event.errorType
-							,url: event.url
-						});
-						break;
-					case("loading"):
-					case("start"):
-					case("end"): onEvent(event); break;
-					default: console.log("unkown event type: " + event.type); break;
-				}
-				
+		if(speech) speech.stop();
+		if(!c.text) return;
+		
+		speech = preferredTts.prepare({text:c.text, lan:c.lan, speed:c.speed});
+		speech.onEvent = function(event) {
+			switch(event.type) {
+				case("error"):
+					onEvent({
+						tts:speech.tts	//TODO think about this delegation + handle the error
+						,type:event.type
+						,errorType: event.errorType
+						,url: event.url
+					});
+					break;
+				case("loading"):
+				case("start"):
+				case("end"): onEvent(event); break;
+				default: console.log("unkown event type: " + event.type); break;
 			}
-		});
+		}
+		
+		speech.play();
 	}
 	provider.stop = function() {
-		activeTts.stop(onEnd);
+		activeSpeech.stop(onEnd);
 	}
 	
 	/** @param callback is called when a tts is tested

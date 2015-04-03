@@ -1,33 +1,43 @@
-/** @return a WebAudioReader with set up buildUrlArr and getCutLength method to use Google TTS */
-define(["tts/TextSplitter","tts/WebAudioReader"], function(TextSplitter, WebAudioReader) {
+define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	/** @return the url of Google TTS to send request
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
-		//lan = lan.substr(2);
 		var ttsurl = "https://translate.google.co.uk/translate_tts";
 		var result = ttsurl + "?q=" + c.text + "&tl="+c.lan;
 		return result;
 	}
 	
-	//google TTS API doesn't accept requests for longer than 100 characters texts
-	//we try to split by sentence ends, commas or spaces
-	function buildReadingParts(c) {
-		var splitText = TextSplitter.splitToChar({
+	// =================================== public ===================================
+	var reader = {get name() {return "Google";}};
+
+	/** @return a speech object set up to read given text
+	 * @param c.text the text to read
+	 * @param c.lan the language of the text
+	 * @param c.speed the speed of reading */
+	reader.prepare = function(c) {
+		var textArr = TextSplitter.splitToChar({
 			text: c.text
 			,limit: 100
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
+		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:c.lan});});
 		
-		return splitText.map(function(part) {
-			return {
-				text:part
-				,url:buildUrl({text:part, lan:c.lan})
-			}
-		})
+		/*urlArr = [
+			"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
+			,"http://www.ispeech.org/p/generic/getaudio?text=iSpeech is set up to read a longer sentence&voice=usenglishfemale&speed=0&action=convert"
+			,"https://github.com/nagyzsolthun/WebReader"
+			,"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
+		];
+		textArr = ["google","iSpeech is set up to read a longer sentence", "something random that causes error.","google again"];*/
+		
+		return new UrlSpeech({tts:"Google", textArr:textArr, urlArr:urlArr, speed: c.speed});
 	}
 	
-	var reader = new WebAudioReader({name: "Google", buildReadingParts: buildReadingParts});
+	/** calls @param callback with true if Google Tts is available, false otherwise*/
+	reader.test = function(callback) {
+		callback(true);	//TODO!!!!!!!!!!!!!!!!!!!!!!!!
+	}
 
 	console.log("GoogleTts initialized");
 	return reader;

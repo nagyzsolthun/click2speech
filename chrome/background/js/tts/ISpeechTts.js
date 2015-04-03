@@ -1,5 +1,4 @@
-/** @return a WebAudioReader with set up buildUrlArr and getCutLength method to use iSpeech */
-define(["tts/TextSplitter","tts/WebAudioReader"], function(TextSplitter, WebAudioReader) {
+define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 
 	/** @return the url of Google TTS to send request
 	 * @param c.text the text to read - length has to be max 100 characters
@@ -20,34 +19,37 @@ define(["tts/TextSplitter","tts/WebAudioReader"], function(TextSplitter, WebAudi
 	}
 	
 	/** @return length of "Powered by iSpeech" at the end of the returned audio
-	 * @param c.lan the language (some have the promo text, some don't)*/
-	function getCutLength(c) {
-		switch(c.lan) {
+	 * @param lan the language (some have the promo text, some don't)*/
+	function getCutLength(lan) {
+		switch(lan) {
 			case("en-US"): return 1.85;
 			case("en-GB"): return 1.85;
 			default: return null;
 		}
 	}
 
-	//iSpeech only accepts max 32 words
-	//we try to split by sentence ends, commas or spaces
-	function buildReadingParts(c) {
-		var splitText = TextSplitter.splitToWord({
+	// =================================== public ===================================
+	var reader = {get name() {return "iSpeech";}};
+
+	/** @return a speech object set up to read given text
+	 * @param c.text the text to read
+	 * @param c.lan the language of the text
+	 * @param c.speed the speed of reading */
+	reader.prepare = function(c) {
+		var textArr = TextSplitter.splitToWord({
 			text: c.text
 			,limit: 32
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
+		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:c.lan});});
 		
-		return splitText.map(function(part) {
-			return {
-				text:part
-				,url:buildUrl({text:part, lan:c.lan})
-				,cutEnd:getCutLength({lan:c.lan})
-			}
-		})
-	};
+		return new UrlSpeech({tts:"iSpeech", textArr:textArr, urlArr:urlArr, speed: c.speed, cutLength: getCutLength(c.lan)});
+	}
 	
-	var reader = new WebAudioReader({name: "iSpeech", buildReadingParts: buildReadingParts});
+	/** calls @param callback with true if Google Tts is available, false otherwise*/
+	reader.test = function(callback) {
+		callback(true);	//TODO!!!!!!!!!!!!!!!!!!!!!!!!
+	}
 	
 	console.log("iSpeechTts initialized");
 	return reader;
