@@ -16,7 +16,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	function read(c) {
 		settingsHandler.getAll(function(settings) {
 			if(! settings.turnedOn) {return;}
-			tts.read({text:c.text,lan:c.lan});
+			tts.read({text:c.text,lan:c.lan,speed:settings.speed});
 		});
 	}
 	

@@ -21,7 +21,8 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 			,limit: 100
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
-		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:c.lan});});
+		var lan = c.lan || navigator.language;
+		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan});});
 		
 		//TODO remove this.. is only for testing
 		/*urlArr = [
@@ -38,7 +39,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
 		var text = Math.round(Math.random() * 1000);
-		var url = buildUrl({text:text, lan:"en-US"});	//TODO lan should be operating system's?
+		var url = buildUrl({text:text, lan:navigator.language});
 		UrlAudioTester.test({url:url, callback:callback});
 	}
 
