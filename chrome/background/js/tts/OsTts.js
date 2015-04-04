@@ -1,79 +1,61 @@
 /** @return a WebAudioReader with set up buildUrlArr and getCutLength method to use Google TTS */
 define([], function() {
-	
-	var reader = {get name() {return "Operating System";}}
-	
-	/** @return a voice that matches given params
-	 * @param c.voices the vices from which ro select
-	 * @param c.lan the language to match
-	 * @param c.gender the gender to match TODO*/
-	function getVoice(c) {
-		for(var i=0; i<c.voices.length; i++) {
-			if(c.voices[i].lang != c.lan) continue;
-			//TODO gender
-			return c.voices[i];
-		}
+
+	/** constructs a new OsSpeech isntance
+	* @param c.text the text to be read
+	* @param c.lan the language of reading
+	* @param c.speed the speed of reading (defaults to 1)*/
+	function OsSpeech(c) {
+		var voice = null;
+		var onVoiceAvailable = function() {}	//called when voice is found
+		var onEvent = function() {};
 		
-		//no exact matct, try to find if a dialect matches
-		for(var i=0; i<c.voices.length; i++) {
-			if(! c.voices[i].lang.match(new RegExp(c.lan+"-.*"))) continue;
-			//TODO gender
-			return c.voices[i];
-		}
-	}
-	
-	/** reads given text on given language (stops playing if already is playing)
-		* @param c.text the text to be read
-		* @param c.lan the language of reading
-		* @param c.speed the speed of reading (defaults to 1)
-		* @param c.onEvent called when any event raised
-		* 	@param event.type the type of the event [loading,start,end,error]
-		* 	@param event.remaining the text that is not read in case of error
-		*/
-	reader.read = function(c) {
-		chrome.tts.getVoices(function(voices) {
-			var voice = getVoice({voices: voices, lan:c.lan});
-			if(!voice) {
-				c.onError();	//TODO reason
+		this.play = function() {
+			//tested on Windows7: only English is supported
+			//other voiceNames than "native" use GoogleTts in the background, and just stop playing after 100 characters are reached
+			if(! c.lan.match(/en.*/)) {
+				onEvent({type:"error",errorType:"LANGUAGE"});	//TODO remaning
 				return;
 			}
-			
-			//TODO seems like text should be split
 			chrome.tts.speak(c.text,{
-				voiceName: voice.voiceName
+				voiceName: "native"
 				,onEvent: function(event) {
 					switch(event.type) {
-						case("start"):		c.oEvent({type:"start"}); break;
-						case("end"):		c.oEvent({type:"end"}); break;
-						case("interrupted"):c.oEvent({type:"end"}); break;
-						case("error"):		c.oEvent({type:"error",errorType:"UNKOWN"}); break;	//TODO reason+remaning
+						case("start"):		onEvent({type:"start"}); break;
+						case("end"):		onEvent({type:"end"}); break;
+						case("interrupted"):onEvent({type:"end"}); break;
+						case("error"):		onEvent({type:"error",errorType:"UNKOWN"}); break;	//TODO reason+remaning
 					}
 				}
 			});
-			
-			c.onLoading();
-		});
+		}
+		
+		this.stop = function() {
+			chrome.tts.stop();
+		}
+		
+		Object.defineProperty(this, 'tts', {get: function() {return c.tts;}});
+		Object.defineProperty(this, 'onEvent', {set: function(callback){onEvent = callback;}});
+		
 	}
 	
-	reader.stop = function() {
-		chrome.tts.stop();
+	// =================================== public ===================================
+	var reader = {get name() {return "Operating System";}}
+	
+	/** @return a speech object set up to read given text
+	 * @param c.text the text to read
+	 * @param c.lan the language of the text
+	 * @param c.speed the speed of reading */
+	reader.prepare = function(c) {
+		return new OsSpeech(c);
 	}
 	
 	/** @param callback called with a boolean flag indicating if the test passed */
 	reader.test = function(callback) {
-		if(chrome.tts.isSpeaking()) {
-			callback(true);
-			return;
-		}
-		chrome.tts.speak(
-			""
-			,{
-				onEvent: function(event) {
-					if(event.type == "error") callback(false);
-					else callback(true);
-				}
-			}
-		);
+		chrome.tts.getVoices(function(voices) {
+			if(voices.indexOf("native") < 0) callback(false)
+			else callback(true);
+		});
 	}
 
 	console.log("OsTts initialized");

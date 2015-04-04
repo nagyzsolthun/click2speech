@@ -14,16 +14,16 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		}
 		
 		var ttsurl = "http://www.ispeech.org/p/generic/getaudio";
-		var result = ttsurl + "?text=" + c.text + "&voice=" + voice + "&speed=0&action=convert";//TODO
+		var result = ttsurl + "?text=" + c.text + "&voice=" + voice + "&speed=-1&action=convert";//TODO
 		return result;
 	}
 	
 	/** @return length of "Powered by iSpeech" at the end of the returned audio
 	 * @param lan the language (some have the promo text, some don't)*/
-	function getCutLength(lan) {
+	function getCutEnd(lan) {
 		switch(lan) {
-			case("en-US"): return 1.85;
-			case("en-GB"): return 1.85;
+			case("en-US"): return 2.3;
+			case("en-GB"): return 2.3;
 			default: return null;
 		}
 	}
@@ -43,12 +43,14 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		});
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:c.lan});});
 		
-		return new UrlSpeech({tts:"iSpeech", textArr:textArr, urlArr:urlArr, speed: c.speed, cutLength: getCutLength(c.lan)});
+		return new UrlSpeech({tts:"iSpeech", textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(c.lan)});
 	}
 	
-	/** calls @param callback with true if Google Tts is available, false otherwise*/
+	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
-		callback(true);	//TODO!!!!!!!!!!!!!!!!!!!!!!!!
+		var text = Math.round(Math.random() * 1000);
+		var url = buildUrl({text:text, lan:"en-US"});	//TODO lan should be operating system's?
+		UrlAudioTester.test({url:url, callback:callback});
 	}
 	
 	console.log("iSpeechTts initialized");

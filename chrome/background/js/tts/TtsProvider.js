@@ -3,7 +3,7 @@
  * 2. handles errors in them
  */
 define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSpechTts, OsTts) {
-	var ttsArray = [googleTts, iSpechTts];	//TODO OsTts
+	var ttsArray = [googleTts, iSpechTts, OsTts];
 	var preferredTts = null;
 	var speech = null;
 	
@@ -63,7 +63,7 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	}
 	
 	/** @param callback is called when a tts is tested
-	 * 		@param c.success true if test passed, false if failed */
+	 * 		@param available true if test passed, false if failed */
 	provider.test = function(name, callback) {
 		ttsArray.forEach(function(tts) {
 			if(tts.name == name) tts.test(callback);

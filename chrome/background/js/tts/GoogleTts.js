@@ -1,4 +1,4 @@
-define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
+define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextSplitter, UrlSpeech, UrlAudioTester) {
 	/** @return the url of Google TTS to send request
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
@@ -23,6 +23,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		});
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:c.lan});});
 		
+		//TODO remove this.. is only for testing
 		/*urlArr = [
 			"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
 			,"http://www.ispeech.org/p/generic/getaudio?text=iSpeech is set up to read a longer sentence&voice=usenglishfemale&speed=0&action=convert"
@@ -34,9 +35,11 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		return new UrlSpeech({tts:"Google", textArr:textArr, urlArr:urlArr, speed: c.speed});
 	}
 	
-	/** calls @param callback with true if Google Tts is available, false otherwise*/
+	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
-		callback(true);	//TODO!!!!!!!!!!!!!!!!!!!!!!!!
+		var text = Math.round(Math.random() * 1000);
+		var url = buildUrl({text:text, lan:"en-US"});	//TODO lan should be operating system's?
+		UrlAudioTester.test({url:url, callback:callback});
 	}
 
 	console.log("GoogleTts initialized");

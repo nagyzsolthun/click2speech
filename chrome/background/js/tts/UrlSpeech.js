@@ -68,7 +68,7 @@ define(function() {
 			}
 
 			onEvent({type:"loading"});
-			audio.oncanplay = function() {audio.play();onEvent({type:"start"});} //TODO raise this event when not first audio starts playing?
+			audio.oncanplay = function() {audio.play();onEvent({type:"start"});}
 			audio.onerror = function() {onEvent({type:"error",errorType:"URL_ERROR",url:c.urlArr[i],remaining:remainingText(i)});}
 		}
 		
