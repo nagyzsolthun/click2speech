@@ -1,10 +1,7 @@
-/** @return a WebAudioReader with set up buildUrlArr and getCutLength method to use Google TTS */
 define([], function() {
-
 	/** constructs a new OsSpeech isntance
 	* @param c.text the text to be read
-	* @param c.lan the language of reading
-	* @param c.speed the speed of reading (defaults to 1)*/
+	* @param c.lan the language of reading*/
 	function OsSpeech(c) {
 		var voice = null;
 		var onVoiceAvailable = function() {}	//called when voice is found
@@ -34,7 +31,7 @@ define([], function() {
 			chrome.tts.stop();
 		}
 		
-		Object.defineProperty(this, 'tts', {get: function() {return c.tts;}});
+		Object.defineProperty(this, 'tts', {get: function() {return reader.name;}});
 		Object.defineProperty(this, 'onEvent', {set: function(callback){onEvent = callback;}});
 		
 	}
@@ -44,8 +41,7 @@ define([], function() {
 	
 	/** @return a speech object set up to read given text
 	 * @param c.text the text to read
-	 * @param c.lan the language of the text
-	 * @param c.speed the speed of reading */
+	 * @param c.lan the language of the text*/
 	reader.prepare = function(c) {
 		return new OsSpeech(c);
 	}

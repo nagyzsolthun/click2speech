@@ -32,7 +32,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 		];
 		textArr = ["google","iSpeech is set up to read a longer sentence", "something random that causes error.","google again"];*/
 		
-		return new UrlSpeech({tts:"Google", textArr:textArr, urlArr:urlArr, speed: c.speed});
+		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed});
 	}
 	
 	/** @param callback called with true if the tts is available; with false if failed */

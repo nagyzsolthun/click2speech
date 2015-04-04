@@ -54,10 +54,16 @@ define(function() {
 			return result;
 		}
 		
+		/** stops playing + calls onEvent with URL_ERROR, provides its necessary data: url, remaing text */
+		function handleUrlError(i) {
+			stop();
+			onEvent({type:"error",errorType:"URL_ERROR",url:c.urlArr[i],remaining:remainingText(i)});
+		}
+		
 		/** starts audio in @param i index if it can play, or waits until it is able to play */
 		function playWhenPossible(i) {
 			if(audioErrors[i]) {
-				onEvent({type:"error",errorType:"URL_ERROR",url:c.urlArr[i],remaining:remainingText(i)});
+				handleUrlError(i);
 				return;
 			}
 			
@@ -69,7 +75,9 @@ define(function() {
 
 			onEvent({type:"loading"});
 			audio.oncanplay = function() {audio.play();onEvent({type:"start"});}
-			audio.onerror = function() {onEvent({type:"error",errorType:"URL_ERROR",url:c.urlArr[i],remaining:remainingText(i)});}
+			audio.onerror = function() {
+				handleUrlError(i);
+			}
 		}
 		
 		/** stops playing - no "end" event raised*/

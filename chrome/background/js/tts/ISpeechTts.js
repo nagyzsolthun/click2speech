@@ -43,7 +43,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		});
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:c.lan});});
 		
-		return new UrlSpeech({tts:"iSpeech", textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(c.lan)});
+		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(c.lan)});
 	}
 	
 	/** @param callback called with true if the tts is available; with false if failed */
