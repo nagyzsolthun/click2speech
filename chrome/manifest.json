@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "WebReader",
 	"description": "reads selected text on webpages",
-	"version": "0.8",
+	"version": "0.9",
 	"content_scripts": [{
 		"matches": ["<all_urls>"],
 		"js": ["content/content.js"]
