@@ -56,7 +56,15 @@ body {
 	/* the content shouldn't flow under the left panel */
 	/* http://colinaarts.com/articles/the-magic-of-overflow-hidden/#making-room-for-floats */
 	overflow:hidden;
+	-webkit-transition: opacity .1s ease-in-out;
 }
+
+/** TODO why these values work
+ https://docs.angularjs.org/api/ngAnimate*/
+#content.ng-enter {opacity:0;}
+#content.ng-enter.ng-enter-active {opacity:0;}
+#content.ng-leave {opacity:1;}
+#content.ng-leave.ng-leave-active {opacity:0;}
 
 .control {
 	font-size: 30px;

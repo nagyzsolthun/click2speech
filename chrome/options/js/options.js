@@ -1,4 +1,4 @@
-var app = angular.module('optionsApp', ['ngRoute']);
+var app = angular.module('optionsApp', ['ngRoute','ngAnimate']);
 
 /** notifies background.js about a changed setting*/
 function sendSet(setting, value) {
