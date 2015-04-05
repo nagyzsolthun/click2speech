@@ -8,13 +8,19 @@ angular.module('optionsApp')
 .controller('readingOptionsController', function($scope) {
 	$scope.services = [];
 	$scope.speed = {min: 0.5, max: 4, step: 0.1}
+	$scope.genders = [{name:"female"},{name:"male"}];
 	
-	$scope.onClick = function(clickedOption) {
+	$scope.onServiceOptionClick = function(clickedOption) {
 		if(clickedOption.status != "available") return;
 
 		$scope.services.forEach(function(service) {service.selected = false;});
 		clickedOption.selected = true;
-		sendSet("preferredTts", clickedOption.name);
+		sendSet("tts", clickedOption.name);
+	}
+	$scope.onGenderOptionClick = function(clickedOption) {
+		$scope.genders.forEach(function(gender) {gender.selected = false;});
+		clickedOption.selected = true;
+		sendSet("gender", clickedOption.name);
 	}
 	$scope.$watch('speed.value', function() {
 		//range provides updates as strings and not numbers => need to convert
@@ -41,7 +47,10 @@ angular.module('optionsApp')
 	
 	getSettings(function(settings) {
 		$scope.services.forEach(function(service) {
-			service.selected = (service.name == settings.preferredTts);
+			service.selected = (service.name == settings.tts);
+		});
+		$scope.genders.forEach(function(gender) {
+			gender.selected = (gender.name == settings.gender);
 		});
 		$scope.speed.value = Number(settings.speed) || 1;	//string needs to be converted to number - angular otherwise throws numberFormatError
 		$scope.$digest();	//so angular recognizes the change

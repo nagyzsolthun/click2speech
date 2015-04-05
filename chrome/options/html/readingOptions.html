@@ -1,16 +1,26 @@
 <div class="control hoverable">
-	<div>Text to Speech</div>
+	<div>Service</div>
 	<ul class="choiceList singleChoiceList">
 		<li	ng-repeat="service in services"
 			class="{{service.status}}"
 			ng-class="{selected: service.selected}"
-			ng-click="onClick(service)">
+			ng-click="onServiceOptionClick(service)">
 			<span>{{service.name}}</span>
 		</li>
 	</ul>
 </div>
 <div class="control hoverable">
-	<div>Speed of Speech</div>
+	<div>Gender</div>
+	<ul class="choiceList singleChoiceList">
+		<li	ng-repeat="gender in genders"
+			ng-class="{selected: gender.selected}"
+			ng-click="onGenderOptionClick(gender)">
+			<span>{{gender.name}}</span>
+		</li>
+	</ul>
+</div>
+<div class="control hoverable">
+	<div>Speed</div>
 	<input class="numberInput" type="number" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 	<input class="rangeInput" type="range" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 </div>

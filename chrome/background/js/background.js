@@ -84,7 +84,6 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 						case("readOnKeyboard"): setContentJsSetting("readOnKeyboard", request.value); break;	//TODO
 						case("keyboardReadEvent"): break; //TODO
 						case("speed"): tts.speed = request.value; break;
-						case("preferredTts"): tts.preferredTts = request.value; break;
 					}
 					break;
 			}

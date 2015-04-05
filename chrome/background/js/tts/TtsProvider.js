@@ -2,7 +2,7 @@
  * 1. provides the option to choose
  * 2. handles errors in them
  */
-define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSpechTts, OsTts) {
+define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(settingsHandler, googleTts, iSpechTts, OsTts) {
 	var ttsArray = [googleTts, iSpechTts, OsTts];
 	var preferredTts = null;
 	
@@ -44,20 +44,22 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	 * if prefferred tts is not able to read it, uses another one
 	 * @param c.text
 	 * @param c.lan
-	 * @param c.speed*/
+	 * @param c.speed
+	 * @param c.gender
+	 */
 	function read(c) {
 		if(speech) speech.stop();
 
 		var tts = nextTts();	//errors must be prepared
 		if(! tts) return;	//no more usable tts
 
-		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed});
+		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed, gender:c.gender});
 		speech.onEvent = function(event) {
 			switch(event.type) {
 				case("error"):
 					errors.push({ttsName:tts.name,type:event.errorType,url:event.url});
 					onEvent({type:"error"});	//TODO think about this
-					read({text:event.remaining,lan:c.lan,speed:c.speed});
+					read({text:event.remaining,lan:c.lan,speed:c.speed,gender:c.gender});
 					break;
 				case("loading"):
 				case("start"):
@@ -71,34 +73,32 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	
 	// =============================== public ===============================
 	var provider = {
-		get serviceNames() {
-			var result = [];
-			ttsArray.forEach(function(tts) {result.push(tts.name);});
-			return result;
-		}
-		,get errors() {
-			return errors;
-		}
-		,set speed(value) {
-			speed = value;
-			if(speech) speech.speed = speed; //in case rading is going on TODO check if setting is available
-		}
+		get serviceNames() {return ttsArray.map(function(tts){return tts.name;});}
+		,get errors() {return errors;}
+		,set speed(value) {if(speech) speech.speed = value;}	//in case speed changes while reading TODO, check if available
 		,set onEvent(callback) {onEvent = callback;}
-		,set preferredTts(name) {
-			ttsArray.forEach(function(tts) {
-				if(tts.name == name) preferredTts = tts;	//TODO error handling
-			});
-		}
 	};
 	
 	/** reads text
 	 * if prefferred tts is not able to read it, uses another one
 	 * @param c.text
-	 * @param c.lan
-	 * @param c.speed*/
+	 * @param c.lan*/
 	provider.read = function(c) {
-		if(c.text) errors = [];
-		read({text: c.text,lan: c.lan,speed: c.speed});
+		settingsHandler.getAll(function(settings) {
+			//new reading => no error
+			if(c.text) errors = [];
+			
+			//set up preferred tts
+			ttsArray.forEach(function(tts) {if(tts.name == settings.tts) preferredTts = tts;});
+			
+			//read
+			read({
+				text:c.text
+				,lan:c.lan
+				,speed:settings.speed
+				,gender:settings.gender
+			});
+		});
 	}
 	provider.stop = function() {
 		speech.stop(onEnd);

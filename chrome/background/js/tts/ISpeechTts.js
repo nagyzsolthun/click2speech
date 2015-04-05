@@ -80,7 +80,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
-		var voice = getISpeechVoice({lan:c.lan, gender:"female"});	//TODO gender from settings
+		var voice = getISpeechVoice({lan:c.lan, gender:c.gender});
 		
 		var ttsurl = "http://www.ispeech.org/p/generic/getaudio";
 		var result = ttsurl + "?text=" + c.text + "&voice=" + voice + "&speed=-1&action=convert";//TODO
@@ -104,7 +104,8 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	/** @return a speech object set up to read given text
 	 * @param c.text the text to read
 	 * @param c.lan the language of the text
-	 * @param c.speed the speed of reading */
+	 * @param c.speed the speed of reading
+	 * @param c.gender the preferred gender of reading*/
 	reader.prepare = function(c) {
 		var textArr = TextSplitter.splitToWord({
 			text: c.text
@@ -113,7 +114,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		});
 		
 		var lan = c.lan || navigator.language;
-		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan});});
+		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan, gender:c.gender});});
 		
 		//TODO remove this.. is only for testing
 		/*urlArr = [
