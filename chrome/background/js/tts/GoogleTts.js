@@ -25,13 +25,13 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan});});
 		
 		//TODO remove this.. is only for testing
-		/*urlArr = [
+		urlArr = [
 			"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
 			,"http://www.ispeech.org/p/generic/getaudio?text=iSpeech is set up to read a longer sentence&voice=usenglishfemale&speed=0&action=convert"
 			,"https://github.com/nagyzsolthun/WebReader"
 			,"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
 		];
-		textArr = ["google","iSpeech is set up to read a longer sentence", "something random that causes error.","google again"];*/
+		textArr = ["google","iSpeech is set up to read a longer sentence", "something random that causes error. ","google again"];
 		
 		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed});
 	}

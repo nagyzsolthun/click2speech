@@ -102,8 +102,13 @@ define(function() {
 			stop();
 		}
 		
-		Object.defineProperty(this, 'tts', {get: function() {return c.tts;}});
+		/** called when any event arises
+		 * "loading" loading starts OR playing of audio can't be started because of still loading
+		 * "start" when reading starts
+		 * "end" the last audio finished playing
+		 * "error" an error occured. it will always stop playing!*/
 		Object.defineProperty(this, 'onEvent', {set: function(callback){onEvent = callback;}});
+		Object.defineProperty(this, 'tts', {get: function() {return c.tts;}});
 		Object.defineProperty(this, 'speed', {
 			set: function(speed) {
 				audios.forEach(function(audio) {

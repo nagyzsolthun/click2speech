@@ -11,7 +11,7 @@ define([], function() {
 			//tested on Windows7: only English is supported
 			//other voiceNames than "native" use GoogleTts in the background, and just stop playing after 100 characters are reached
 			if(! c.lan.match(/en.*/)) {
-				onEvent({type:"error",errorType:"LANGUAGE"});	//TODO remaning
+				onEvent({type:"error",errorType:"LANGUAGE",remaining:c.text});
 				return;
 			}
 			chrome.tts.speak(c.text,{
@@ -21,7 +21,7 @@ define([], function() {
 						case("start"):		onEvent({type:"start"}); break;
 						case("end"):		onEvent({type:"end"}); break;
 						case("interrupted"):onEvent({type:"end"}); break;
-						case("error"):		onEvent({type:"error",errorType:"UNKOWN"}); break;	//TODO reason+remaning
+						case("error"):		onEvent({type:"error",errorType:"UNKOWN",remaining:c.text}); break;
 					}
 				}
 			});
