@@ -3,7 +3,7 @@
  * 2. handles errors in them
  */
 define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(settingsHandler, googleTts, iSpechTts, OsTts) {
-	var ttsArray = [googleTts, iSpechTts, OsTts];
+	var ttsArray = [iSpechTts,googleTts, OsTts];
 	var preferredTts = null;
 	
 	//when any tts raises an error, it is put to this array
@@ -73,7 +73,11 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	
 	// =============================== public ===============================
 	var provider = {
-		get serviceNames() {return ttsArray.map(function(tts){return tts.name;});}
+		get ttsProperties() {
+			return ttsArray.map(function(tts) {
+				return {name:tts.name,properties:tts.properties};
+			});
+		}
 		,get errors() {return errors;}
 		,set speed(value) {if(speech) speech.speed = value;}	//in case speed changes while reading TODO, check if available
 		,set onEvent(callback) {onEvent = callback;}

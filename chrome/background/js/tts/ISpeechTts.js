@@ -99,7 +99,10 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	}
 
 	// =================================== public ===================================
-	var reader = {get name() {return "iSpeech";}};
+	var reader = {
+		get name() {return "iSpeech";}
+		,get properties() {return ["speed","gender"];}
+	};
 
 	/** @return a speech object set up to read given text
 	 * @param c.text the text to read

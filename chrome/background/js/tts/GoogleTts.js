@@ -9,7 +9,10 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	}
 	
 	// =================================== public ===================================
-	var reader = {get name() {return "Google";}};
+	var reader = {
+		get name() {return "Google";}
+		,get properties() {return ["speed"];}
+	};
 
 	/** @return a speech object set up to read given text
 	 * @param c.text the text to read

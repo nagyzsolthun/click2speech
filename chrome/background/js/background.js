@@ -44,9 +44,9 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 						sendResponse(settings);
 					});
 					break;
-				case("webReader.getTtsServiceNames"):
-					console.log("getTtsServiceNames received");
-					sendResponse(tts.serviceNames);
+				case("webReader.getTtsProperties"):
+					console.log("getTtsProperties received");
+					sendResponse(tts.ttsProperties);
 					break;
 				case("webReader.testTtsService"):
 					console.log("testTtsService received");

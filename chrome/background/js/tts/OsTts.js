@@ -37,7 +37,10 @@ define([], function() {
 	}
 	
 	// =================================== public ===================================
-	var reader = {get name() {return "Operating System";}}
+	var reader = {
+		get name() {return "Operating System";}
+		,get properties() {return [];}
+	}
 	
 	/** @return a speech object set up to read given text
 	 * @param c.text the text to read

@@ -1,26 +1,26 @@
 <div class="control hoverable">
 	<div>Service</div>
 	<ul class="choiceList singleChoiceList">
-		<li	ng-repeat="service in services"
-			class="{{service.status}}"
-			ng-class="{selected: service.selected}"
-			ng-click="onServiceOptionClick(service)">
-			<span>{{service.name}}</span>
+		<li	ng-repeat="tts in ttsArr"
+			class="{{tts.status}}"
+			ng-class="{selected: tts.selected}"
+			ng-click="onServiceOptionClick(tts)">
+			<span>{{tts.name}}</span>
 		</li>
 	</ul>
 </div>
-<div class="control hoverable">
+<div class="control hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('speed')}">
+	<div>Speed</div>
+	<input class="numberInput" type="number" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
+	<input class="rangeInput" type="range" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
+</div>
+<div class="control hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('gender')}">
 	<div>Gender</div>
 	<ul class="choiceList singleChoiceList">
-		<li	ng-repeat="gender in genders"
+		<li	ng-repeat="gender in genderArr"
 			ng-class="{selected: gender.selected}"
 			ng-click="onGenderOptionClick(gender)">
 			<span>{{gender.name}}</span>
 		</li>
 	</ul>
-</div>
-<div class="control hoverable">
-	<div>Speed</div>
-	<input class="numberInput" type="number" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
-	<input class="rangeInput" type="range" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 </div>

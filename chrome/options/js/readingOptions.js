@@ -6,21 +6,28 @@ function testTts(tts, callback) {
 
 angular.module('optionsApp')
 .controller('readingOptionsController', function($scope) {
-	$scope.services = [];
+	$scope.ttsArr = [];
 	$scope.speed = {min: 0.5, max: 4, step: 0.1}
-	$scope.genders = [{name:"female"},{name:"male"}];
+	$scope.genderArr = [{name:"female"},{name:"male"}];
 	
 	$scope.onServiceOptionClick = function(clickedOption) {
 		if(clickedOption.status != "available") return;
 
-		$scope.services.forEach(function(service) {service.selected = false;});
+		$scope.ttsArr.forEach(function(service) {service.selected = false;});
 		clickedOption.selected = true;
 		sendSet("tts", clickedOption.name);
 	}
 	$scope.onGenderOptionClick = function(clickedOption) {
-		$scope.genders.forEach(function(gender) {gender.selected = false;});
+		$scope.genderArr.forEach(function(gender) {gender.selected = false;});
 		clickedOption.selected = true;
 		sendSet("gender", clickedOption.name);
+	}
+	$scope.isPropertyOfSelectedTts = function(property) {
+		var selectedTts = null;
+		$scope.ttsArr.forEach(function(tts) {
+			if(tts.selected) selectedTts = tts;
+		});
+		return selectedTts && selectedTts.properties.indexOf(property) > -1;
 	}
 	$scope.$watch('speed.value', function() {
 		//range provides updates as strings and not numbers => need to convert
@@ -32,11 +39,11 @@ angular.module('optionsApp')
 		if($scope.speed.value) sendSet("speed", $scope.speed.value);
 	});
 
-	chrome.runtime.sendMessage({action: "webReader.getTtsServiceNames"}, function(names) {
-		names.forEach(function(name) {
-			var ttsService = {name: name, selected: false, status: "loading"};
-			$scope.services.push(ttsService);
-			chrome.runtime.sendMessage({action: "webReader.testTtsService", tts:name}, function(success) {
+	chrome.runtime.sendMessage({action: "webReader.getTtsProperties"}, function(ttsProperties) {
+		ttsProperties.forEach(function(tts) {
+			var ttsService = {name: tts.name, properties: tts.properties, selected: false, status: "loading"};
+			$scope.ttsArr.push(ttsService);
+			chrome.runtime.sendMessage({action: "webReader.testTtsService", tts:tts.name}, function(success) {
 				if(success) ttsService.status = "available";
 				else ttsService.status = "unavailable";
 				$scope.$digest();
@@ -46,10 +53,10 @@ angular.module('optionsApp')
 	});
 	
 	getSettings(function(settings) {
-		$scope.services.forEach(function(service) {
+		$scope.ttsArr.forEach(function(service) {
 			service.selected = (service.name == settings.tts);
 		});
-		$scope.genders.forEach(function(gender) {
+		$scope.genderArr.forEach(function(gender) {
 			gender.selected = (gender.name == settings.gender);
 		});
 		$scope.speed.value = Number(settings.speed) || 1;	//string needs to be converted to number - angular otherwise throws numberFormatError
