@@ -6,6 +6,10 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	var ttsArray = [googleTts, iSpechTts, OsTts];
 	var preferredTts = null;
 	
+	//when any tts raises an error, it is put to this array
+	//{ttsName,errorType[,url]} array
+	var errors = [];
+	
 	//when any tts starts reading, it provides a speech object
 	var speech = null;
 	
@@ -15,33 +19,45 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 		* 	@param event.url in case of URL_ERROR, the url that caused the error*/
 	var onEvent = function() {};
 	
-	/** @return a tts that is not in the usedTtsArr*/
-	function nextTts(usedTtsArr) {
-		var result = null;
+	/** @return true if errors contains any error from given tts */
+	function hasRaisedError(tts) {
+		var result = false;
+		errors.forEach(function(error) {
+			if(error.ttsName == tts.name) result = true;
+		});
+		return result;
+	}
+	
+	/** @return a tts that has not yet raised an error*/
+	function nextTts() {
+		if(! hasRaisedError(preferredTts)) return preferredTts;
+		
+	   var result = null;
 		ttsArray.forEach(function(tts) {
 			if(result) return;	//we return the first match
-			if(usedTtsArr.indexOf(tts) < 0) result = tts;
+			if(! hasRaisedError(tts)) result = tts;
 		});
 		return result;
 	}
 	
 	/** reads given text
 	 * if prefferred tts is not able to read it, uses another one
-	 * @param c.usedTtsArr
 	 * @param c.text
 	 * @param c.lan
 	 * @param c.speed*/
 	function read(c) {
 		if(speech) speech.stop();
-		if(!c.text) return;
-		
-		var tts = nextTts(c.usedTtsArr);
+
+		var tts = nextTts();
+		if(! tts) return;	//no more usable tts
+
 		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed});
 		speech.onEvent = function(event) {
 			switch(event.type) {
 				case("error"):
-					onEvent({tts:speech.tts,type:event.type,errorType: event.errorType,url: event.url});
-					read({usedTtsArr: c.usedTtsArr.concat(tts),text:event.remaining,lan:c.lan,speed:c.speed});
+					errors.push({ttsName:tts.name,type:event.errorType,url:event.url});
+					onEvent({type:"error"});	//TODO think about this
+					read({text:event.remaining,lan:c.lan,speed:c.speed});
 					break;
 				case("loading"):
 				case("start"):
@@ -59,6 +75,9 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 			var result = [];
 			ttsArray.forEach(function(tts) {result.push(tts.name);});
 			return result;
+		}
+		,get errors() {
+			return errors;
 		}
 		,set speed(value) {
 			speed = value;
@@ -78,7 +97,8 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	 * @param c.lan
 	 * @param c.speed*/
 	provider.read = function(c) {
-		read({usedTtsArr:[],text: c.text,lan: c.lan,speed: c.speed});
+		if(! c.text) return;
+		read({text: c.text,lan: c.lan,speed: c.speed});
 	}
 	provider.stop = function() {
 		speech.stop(onEnd);

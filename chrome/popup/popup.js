@@ -2,7 +2,7 @@ var app = angular.module('popupApp', []);
 
 app.controller('popupController', function($scope) {
 	$scope.button = {text: "on/off",ttsOn: false}
-	$scope.notification = {active: false}
+	$scope.errors = []
 
 	$scope.onOffButtonClick = function() {
 		if($scope.button.ttsOn) {
@@ -17,10 +17,6 @@ app.controller('popupController', function($scope) {
 	$scope.openReadingOptions = function() {
 		var readingOptionsUrl = chrome.extension.getURL("options/html/options.html#/reading");
 		chrome.tabs.create({url: readingOptionsUrl});
-	}
-	
-	$scope.openUrl = function() {
-		chrome.tabs.create({url: $scope.notification.url});
 	}
 	
 	function turnOn() {
@@ -39,15 +35,11 @@ app.controller('popupController', function($scope) {
 		$scope.$digest();
 	});
 	
-	chrome.runtime.sendMessage({action: "webReader.getError"}, function(error) {
-		if(error) {
-			$scope.notification.active = true;
-			$scope.notification.tts = error.tts;
-			$scope.notification.errorType = error.errorType;
-			if(error.errorType == "URL_ERROR") {
-				$scope.notification.url = error.url;
-			}
-			$scope.$digest();
-		}
+	chrome.runtime.sendMessage({action: "webReader.getErrors"}, function(errors) {
+		$scope.errors = [];
+		errors.forEach(function(error) {
+			$scope.errors.push({ttsName:error.ttsName,type:error.type});
+		});
+		$scope.$digest();
 	});
 });

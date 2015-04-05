@@ -52,9 +52,9 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					console.log("testTtsService received");
 					tts.test(request.tts, sendResponse);
 					return true;	//very important: keeps sendResponse channel open until it is used
-				case("webReader.getError"):
-					console.log("getError received");
-					sendResponse(error);
+				case("webReader.getErrors"):
+					console.log("getErrors received");
+					sendResponse(tts.errors);
 					break;
 				case("webReader.turnOn"):
 					console.log("turnOn received");
@@ -90,20 +90,14 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 			}
 		}
 	);
-	// ===================================== error handling =====================================
-	//error.tts the name of the tts
-	//error.cause the cause of the error
-	//error.url if the cause is URL_ERROR, the url
-	var error = null;
 
 	// ===================================== initial settings =====================================
 	tts.onEvent = function(event) {
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
-			case("start"): error = null; iconDrawer.drawPlaying(); break;
+			case("start"): iconDrawer.drawPlaying(); break;
 			case("end"): iconDrawer.drawTurnedOn(); break;
 			case("error"):
-				error = {tts:event.tts,errorType:event.errorType,url:event.url};	//TODO include url?
 				iconDrawer.drawError();
 				break;
 		}
