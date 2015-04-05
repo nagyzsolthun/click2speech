@@ -5,16 +5,15 @@
 		console.log("onClick default - should not execute");
 	}
 	
-	//this function is set depnding on the settings (browser-select OR pointed paragraph)
+	//this function is set depnding on the settings (browser-select OR hovered paragraph)
 	var getTextToRead = function() {
 		console.log("getTextToRead default - should not execute");
 	};
 	
-	// ============================================= pointed paragraph =============================================
-	//TODO: make code look better
-	var selectedBackGround = "#4f4";
-	var selectedElement;
-	var selectedOriginalBackground;
+	// ============================================= hovered paragraph =============================================
+	var highlight = {backgroundColor: "#4f4",transition: "background-color .2s ease-in-out"}
+	var original = {};
+	var highlightedElement;
 	
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
@@ -24,16 +23,20 @@
 		return false;
 	}
 	
-	/** removes the background from the selected element and nulls it */
-	function unselectSelectedElement() {
-		if(selectedElement) { //selected element should not be selected anymore
-			//in case something already changed the background color of the element, we don't bother with it (should't be usual)
-			//if(selectedElement.style["background-color"] == selectedBackGround) {	//TODO: getter returns in rgb, we provide hex..
-				selectedElement.style["background-color"] = selectedOriginalBackground;
-			//}			
-			selectedElement = null;
-			selectedOriginalBackground = null;
-		}
+	/** reverts the highlighted element */
+	function revertHighlight() {
+		if(!highlightedElement) return;
+
+		highlightedElement.style["background-color"] = original.backgroundColor;
+			
+		//transition should be set back to original - but only after the transition is over
+		//closure should hold thse values
+		var element = highlightedElement;
+		var originalTransition = original.transition;
+		window.setTimeout(function() {
+			element.style["-webkit-transition"] = originalTransition;
+		}, 200);
+		highlightedElement = null;
 	}
 	
 	/** @return the hovered paragraph
@@ -49,31 +52,29 @@
 		return null;
 	}
 	
-	/** set selectedElement as the one the pointer points to IF the element contains text directly
-	 * if it contains NO text directly, selectedElement is set as null*/
-	function selectHoveredElement() {
+	/** sets the background of the highlighted element AND removes the highlight of the old highlighted */
+	function highlightHoveredElement() {
 		var hoveredElement = getHoveredParagraph();
 		
-		//the element is already selected
-		if(hoveredElement && hoveredElement === selectedElement) return;
+		//the element is already highlighted
+		if(hoveredElement && hoveredElement === highlightedElement) return;
 
-		//the selected element is not the one as before - we don't need it to be selected anymore
-		unselectSelectedElement();
+		//the highlighted element is not the one as before - we don't need it to be highlighted anymore
+		revertHighlight();
 
-		//there is nothing under the pointer (prettymuch impossible)
 		if(! hoveredElement) return;
 
-		if(containsTextDirectly(hoveredElement)) {
-			selectedElement = hoveredElement;
-			selectedOriginalBackground = hoveredElement.style["background-color"];
-			selectedElement.style["background-color"] = selectedBackGround;
-		}
+		highlightedElement = hoveredElement;
+		original.transition = hoveredElement.style["-webkit-transition"];
+		original.backgroundColor = hoveredElement.style["background-color"];
+		highlightedElement.style["-webkit-transition"] = highlight.transition;
+		highlightedElement.style["background-color"] = highlight.backgroundColor;
 	}
 	
 	/** @return the text being pointed */
 	function getHoveredParagraphText() {
-		selectHoveredElement();
-		if(selectedElement) return selectedElement.textContent;
+		highlightHoveredElement();
+		if(highlightedElement) return highlightedElement.textContent;
 		else return "";
 	}
 	
@@ -106,12 +107,12 @@
 	function setSelectEvent(selectEvent) {
 		//TODO keyboard + click settings
 
-		window.removeEventListener("mousemove", selectHoveredElement);
-		unselectSelectedElement();
+		window.removeEventListener("mousemove", highlightHoveredElement);
+		revertHighlight();
 
 		switch(selectEvent) {
 			case("hoveredParagraph"):
-				window.addEventListener("mousemove", selectHoveredElement);
+				window.addEventListener("mousemove", highlightHoveredElement);
 				getTextToRead = getHoveredParagraphText;
 				break;
 			case("browserSelect"):

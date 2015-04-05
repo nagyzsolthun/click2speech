@@ -25,6 +25,7 @@ body {
 	text-align: right;
 	border-top: 1px solid gray;
 	border-bottom: 1px solid gray;
+	-webkit-transition: background-color .2s ease-in-out;
 }
 
 .optionsPageSelector.active {
@@ -39,6 +40,9 @@ body {
 }
 
 /* ===================================== hoverable and clickable =====================================*/
+.hoverable {
+	-webkit-transition: background-color .2s ease-in-out;
+}
 
 /* adds a light highlight when pointer hovers over these elements*/
 .hoverable:hover {
@@ -119,9 +123,19 @@ body {
 	height: .7em;
     content: "";
 	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
+	/*-webkit-transition: background-image .2s ease-in-out; TODO ssize changes while transition*/
 }
 
 @-webkit-keyframes rotate { 100% { -webkit-transform: rotate(360deg); } }
+
+/** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
+.choiceList > * > * {
+	border-radius: 0.4em;	/*all types of choices have rounded highlight */
+	-webkit-transition: background-color .2s ease-in-out;
+}
+.choiceList > li:hover > * 				{background-color:#4f4;}
+.choiceList > li.loading:hover > * 		{background-color:#ccc;}
+.choiceList > li.unavailable:hover > *	{background-color:#ccc;}
 
 .singleChoiceList > :before						{background-image: url('img/radio.svg');}
 .singleChoiceList > .selected:before			{background-image: url('img/radioSelected.svg');}
@@ -130,12 +144,6 @@ body {
 
 .multipleChoiceList > :before			{background-image: url('img/check.svg');}
 .multipleChoiceList > .selected:before	{background-image: url('img/checkSelected.svg');}
-
-/** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
-.choiceList > li:hover > * {border-radius: 0.4em;}	/*all types of choices have rounded highlight */
-.choiceList > li:hover > * 				{background-color:#4f4;}
-.choiceList > li.loading:hover > * 		{background-color:#ccc;}
-.choiceList > li.unavailable:hover > *	{background-color:#ccc;}
 
 /** only visible when keyboard readEvent is selected */
 #keySelectorWindow {

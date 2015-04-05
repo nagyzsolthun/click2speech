@@ -92,7 +92,11 @@ define(function() {
 		
 		/** starts playing when possible */
 		this.play = function() {
-			playWhenPossible(0);	//TODO what if no audio is set up?
+			if(!audios.length) {	//in case we received no text
+				onEvent({type:"end"});
+				return;
+			}
+			playWhenPossible(0);
 		}
 		
 		/** stops playing the audio + raises "end" callback */
