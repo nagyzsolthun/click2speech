@@ -48,7 +48,7 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	function read(c) {
 		if(speech) speech.stop();
 
-		var tts = nextTts();
+		var tts = nextTts();	//errors must be prepared
 		if(! tts) return;	//no more usable tts
 
 		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed});
@@ -97,7 +97,7 @@ define(["tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(googleTts, iSp
 	 * @param c.lan
 	 * @param c.speed*/
 	provider.read = function(c) {
-		if(! c.text) return;
+		if(c.text) errors = [];
 		read({text: c.text,lan: c.lan,speed: c.speed});
 	}
 	provider.stop = function() {

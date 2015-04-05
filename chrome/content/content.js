@@ -19,9 +19,7 @@
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
-			if(child.nodeType == Node.TEXT_NODE && /\S/.test(child.nodeValue)) {
-				return true;	//if any child is text we won
-			}
+			if(child.nodeType == Node.TEXT_NODE && /\S/.test(child.nodeValue)) return true;	//text node AND not empty
 		}
 		return false;
 	}
@@ -38,15 +36,23 @@
 		}
 	}
 	
+	/** @return the hovered paragraph
+	 * the top element that contains text directly
+	 * there are elements inside a text in many cases (e.g. <i> in wikipedia articles)
+	 * we want to select the whole paragraph even if this inside element is hovered*/
+	function getHoveredParagraph() {
+		var hoveredNodes = document.querySelectorAll(":hover");
+		for(var i=0; i<hoveredNodes.length; i++) {
+			var element = hoveredNodes[i];
+			if(containsTextDirectly(element)) return element;
+		}
+		return null;
+	}
+	
 	/** set selectedElement as the one the pointer points to IF the element contains text directly
 	 * if it contains NO text directly, selectedElement is set as null*/
 	function selectHoveredElement() {
-		var hoveredElement = null;
-		var hoveredNodes = document.querySelectorAll(":hover");
-		if(hoveredNodes.length) {
-			hoveredElement = hoveredNodes[hoveredNodes.length - 1];	//take the element on the deepest position
-			//TODO not the last one, the first one that contains text directly
-		}
+		var hoveredElement = getHoveredParagraph();
 		
 		//the element is already selected
 		if(hoveredElement && hoveredElement === selectedElement) return;
@@ -65,7 +71,7 @@
 	}
 	
 	/** @return the text being pointed */
-	function getPointedParagraphText() {
+	function getHoveredParagraphText() {
 		selectHoveredElement();
 		if(selectedElement) return selectedElement.textContent;
 		else return "";
@@ -77,7 +83,7 @@
 		return getSelection().toString();
 	}
 	
-	// ============================================= read and missed functions ============================================= 
+	// ============================================= read ============================================= 
 	/** reads the text to be read (painted paragraph / selected text) */
 	function readText() {
 		console.log("read on click");
@@ -88,31 +94,25 @@
 		});
 	}
 	
-	/** sends "missed" message to background */
-	function sendMissed() {
-		chrome.runtime.sendMessage({action: "webReader.missed"});
-	}
-	
 	// ============================================= general =============================================
 	
-	/** sets up onClick function to start reading or send missed message */
-	function setClickReadEventListener(enabled) {
+	/** sets up onClick function to start reading */
+	function setClickReadEvent(enabled) {
 		if(enabled) onClick = readText;
-		else onClick = sendMissed;
 	}
 
-	/** 1. sets up getTextToRead function to either use pointed paragraph or browser-select
-	 2. starts selecting the pointed paragraph when poitnedParagraph given*/
-	function setSelectEventListener(selectEvent) {
+	/** 1. sets up getTextToRead function to either use hovered paragraph or browser-select
+	 * 2. starts selecting the pointed paragraph when getHoveredParagraph given*/
+	function setSelectEvent(selectEvent) {
 		//TODO keyboard + click settings
 
 		window.removeEventListener("mousemove", selectHoveredElement);
 		unselectSelectedElement();
 
 		switch(selectEvent) {
-			case("pointedParagraph"):
+			case("hoveredParagraph"):
 				window.addEventListener("mousemove", selectHoveredElement);
-				getTextToRead = getPointedParagraphText;
+				getTextToRead = getHoveredParagraphText;
 				break;
 			case("browserSelect"):
 				getTextToRead = getBrowserSelectedText;
@@ -126,26 +126,19 @@
 			if(request.action != "webReader.set") return;
 			console.log("received: " + request.setting + " " + request.value);
 			switch(request.setting) {
-				case("selectEvent"):
-					setSelectEventListener(request.value);
-					break;
-				case("readOnClick"):
-					setClickReadEventListener(request.value);
-					break;
-				case("keyboardReadEvent"):
-					//TODO
-					break;
+				case("selectEvent"): setSelectEvent(request.value); break;
+				case("readOnClick"): setClickReadEvent(request.value); break;
+				case("keyboardReadEvent"): break;	//TODO
 			}
 		}
 	);
 
 	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(response) {
-		setSelectEventListener(response.selectEvent);
-		setClickReadEventListener(response.readOnClick);
+		setSelectEvent(response.selectEvent);
+		setClickReadEvent(response.readOnClick);
 		//TODO keyboard
 	});
 	
-	//TODO make settings for this
 	document.addEventListener("mousedown", function(){
 		onClick();
 	})

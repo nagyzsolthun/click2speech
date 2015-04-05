@@ -3,7 +3,7 @@ angular.module('optionsApp')
 
 	//set up the list of options (select event + read event)
 	$scope.selectEventOptions = [
-		{value:"pointedParagraph", text:"pointed paragraph", selected:false}
+		{value:"hoveredParagraph", text:"hovered paragraph", selected:false}
 		,{value:"browserSelect", text:"browser provided selection", selected:false}
 	];
 	$scope.readEventOptions = [
