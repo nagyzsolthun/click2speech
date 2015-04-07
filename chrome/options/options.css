@@ -25,7 +25,7 @@ body {
 	text-align: right;
 	border-top: 1px solid gray;
 	border-bottom: 1px solid gray;
-	-webkit-transition: background-color .2s ease-in-out;
+	-webkit-transition: background-color .2s linear;
 }
 
 .optionsPageSelector.active {
@@ -40,15 +40,9 @@ body {
 }
 
 /* ===================================== hoverable and clickable =====================================*/
-.hoverable {
-	-webkit-transition: background-color .2s ease-in-out;
-}
-
-/* adds a light highlight when pointer hovers over these elements*/
-.hoverable:hover {
-	background: none;
-	background-color:#f0fff0;
-}
+.hoverable {-webkit-transition: background-color .2s linear;}
+.hoverable:hover {background-color:#f0fff0;}
+.hoverable.unavailable {background-color:#f8f8f8;}
 
 /* ===================================== content settings =====================================*/
 
@@ -56,7 +50,7 @@ body {
 	/* the content shouldn't flow under the left panel */
 	/* http://colinaarts.com/articles/the-magic-of-overflow-hidden/#making-room-for-floats */
 	overflow:hidden;
-	-webkit-transition: opacity .1s ease-in-out;
+	-webkit-transition: opacity .2s linear;
 }
 
 /** TODO why these values work
@@ -70,11 +64,7 @@ body {
 	font-size: 30px;
 	padding: 1em;
 	border-bottom: 1px solid gray;
-	-webkit-transition: opacity 0.5s ease;
-}
-
-.control.unavailable {
-	opacity:0;
+	-webkit-transition: all .2s linear;
 }
 
 /* ===================================== speed settings =====================================*/
@@ -82,6 +72,7 @@ body {
 .numberInput {
 	width: 2em;
 	font-size: 30px;
+	-webkit-transition: opacity .2s linear;
 }
 .rangeInput {
 	width: 100%;
@@ -90,30 +81,29 @@ body {
 	background-color: #888;
 	height: 3px;
 	vertical-align: middle;
+	-webkit-transition: background-color .2s linear;
 }
 
 .rangeInput::-webkit-slider-thumb {
 	-webkit-appearance: none;
-	background-color: #fff;	/* so transparents parts of the image are white */
-	background-image: url('img/radio.svg');
+	background-image: url('img/sliderThumb.svg');
 	background-size: contain;
 	height: 32px;
 	width: 32px;
+	-webkit-transition: all .2s linear;
 }
+.rangeInput:hover::-webkit-slider-thumb {background-image: url('img/sliderThumbSelected.svg');}
 
-.rangeInput:hover::-webkit-slider-thumb {
-	/*background-color: #0f0;*/
-	background-image: url('img/radioSelected.svg');
-}
+.control.unavailable > .numberInput {opacity: 0;}
+.control.unavailable > .rangeInput {background-color:#bbb;}
+.control.unavailable > .rangeInput::-webkit-slider-thumb {opacity: 0;}
 
 /* ===================================== start event settings =====================================*/
-.choiceList {
-	list-style: none;
-	margin: 0;
-}
 
-.choiceList > .loading, .unavailable {
+.choiceList {list-style: none;margin: 0;}
+.unavailable {	/* TODO why this works? I want content of .controls.unavailable to be grey */
 	color: grey;
+	pointer-events: none
 }
 
 /* animation for loading: the loading icon rotates behind the option */
@@ -128,6 +118,8 @@ body {
 	-webkit-animation:rotate 2s linear infinite;
 }
 
+@-webkit-keyframes rotate { 100% { -webkit-transform: rotate(360deg); } }
+
 /** placeholder for the image before the option (empty/filled circle/square) */
 .choiceList > :before {
 	margin-right: 0;
@@ -136,24 +128,29 @@ body {
 	height: .7em;
     content: "";
 	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
-	/*-webkit-transition: background-image .2s ease-in-out; TODO ssize changes while transition*/
+	/*-webkit-transition: background-image .2s linear; TODO size changes while transition*/
+	-webkit-transition: opacity .2s linear;
 }
 
-@-webkit-keyframes rotate { 100% { -webkit-transform: rotate(360deg); } }
+/* remove the image from before the options of unavailable controls*/
+.control.unavailable > .choiceList > :before {opacity: 0;}
 
 /** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
-.choiceList > * > * {
-	border-radius: 0.4em;	/*all types of choices have rounded highlight */
-	-webkit-transition: background-color .2s ease-in-out;
-}
-.choiceList > li:hover > * 				{background-color:#4f4;}
-.choiceList > li.loading:hover > * 		{background-color:#ccc;}
-.choiceList > li.unavailable:hover > *	{background-color:#ccc;}
+.choiceList > li > span {border-radius: 0.4em;-webkit-transition: background-color .2s linear;}
+
+.choiceList > li:hover > span 			{background-color:#4f4;}
+.choiceList > li.loading > span			{color:grey;}
+.choiceList > li.error > span			{color:grey;}
+.choiceList > li.loading:hover > span 	{background-color:#ccc;}
+.choiceList > li.error:hover > span		{background-color:#ccc;}
+
+/*unavailable controls options are not highlighted*/
+.control.unavailable > .choiceList > li > span	{background-color:inherit;}
 
 .singleChoiceList > :before						{background-image: url('img/radio.svg');}
 .singleChoiceList > .selected:before			{background-image: url('img/radioSelected.svg');}
 .singleChoiceList > .selected.loading:before	{background-image: url('img/radioSelectedLoading.svg');}
-.singleChoiceList > .selected.unavailable:before	{background-image: url('img/radioSelectedUnavailable.svg');}
+.singleChoiceList > .selected.error:before		{background-image: url('img/radioSelectedUnavailable.svg');}
 
 .multipleChoiceList > :before			{background-image: url('img/check.svg');}
 .multipleChoiceList > .selected:before	{background-image: url('img/checkSelected.svg');}
