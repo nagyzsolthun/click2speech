@@ -1,4 +1,4 @@
-<div class="control hoverable">
+<div class="setting hoverable">
 	<div>Selection</div>
 	<ul class="choiceList singleChoiceList">
 		<li ng-repeat="option in selectEventOptions" ng-class="{selected: option.selected}" ng-click="onSelectEventOptionClick(option)">
@@ -6,7 +6,7 @@
 		</li>
 	</ul>
 </div>
-<div class="control hoverable">
+<div class="setting hoverable">
 	<div>Read Event</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in readEventOptions" ng-class="{selected: option.selected}" ng-click="onReadEventOptionClick(option)">

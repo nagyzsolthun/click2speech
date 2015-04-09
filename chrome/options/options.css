@@ -39,10 +39,11 @@ body {
 	background-color: #4f4;
 }
 
-/* ===================================== hoverable and clickable =====================================*/
+/* ===================================== hoverable =====================================*/
 .hoverable {-webkit-transition: background-color .2s linear;}
 .hoverable:hover {background-color:#f0fff0;}
 .hoverable.unavailable {background-color:#f8f8f8;}
+.hoverable.unavailable:hover {background-color:#f2f2f2;}
 
 /* ===================================== content settings =====================================*/
 
@@ -60,7 +61,7 @@ body {
 #content.ng-leave {opacity:1;}
 #content.ng-leave.ng-leave-active {opacity:0;}
 
-.control {
+.setting {
 	font-size: 30px;
 	padding: 1em;
 	border-bottom: 1px solid gray;
@@ -94,17 +95,19 @@ body {
 }
 .rangeInput:hover::-webkit-slider-thumb {background-image: url('img/sliderThumbSelected.svg');}
 
-.control.unavailable > .numberInput {opacity: 0;}
-.control.unavailable > .rangeInput {background-color:#bbb;}
-.control.unavailable > .rangeInput::-webkit-slider-thumb {opacity: 0;}
-
-/* ===================================== start event settings =====================================*/
-
-.choiceList {list-style: none;margin: 0;}
-.unavailable {	/* TODO why this works? I want content of .controls.unavailable to be grey */
-	color: grey;
-	pointer-events: none
+.setting.unavailable > .numberInput {
+	opacity: 0;
+	pointer-events: none;
 }
+.setting.unavailable > .rangeInput {
+	background-color:#bbb;
+	pointer-events: none;
+}
+.setting.unavailable > .rangeInput::-webkit-slider-thumb {opacity: 0;}
+
+/* ===================================== choiceList =====================================*/
+.choiceList {list-style: none;margin: 0;}
+.unavailable {color: grey;}/* TODO why this works? I want content of .settings.unavailable to be grey */
 
 /* animation for loading: the loading icon rotates behind the option */
 .choiceList > .loading:after {
@@ -120,7 +123,7 @@ body {
 
 @-webkit-keyframes rotate { 100% { -webkit-transform: rotate(360deg); } }
 
-/** placeholder for the image before the option (empty/filled circle/square) */
+/** placeholder for the image before options (empty/filled circle/square) */
 .choiceList > :before {
 	margin-right: 0;
     background-size: .7em;
@@ -132,8 +135,9 @@ body {
 	-webkit-transition: opacity .2s linear;
 }
 
-/* remove the image from before the options of unavailable controls*/
-.control.unavailable > .choiceList > :before {opacity: 0;}
+/* change color of-, and remove the image from before the options of unavailable settings*/
+.setting.unavailable > .choiceList > * {pointer-events:none;}
+.setting.unavailable > .choiceList > :before {opacity: 0;}
 
 /** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
 .choiceList > li > span {border-radius: 0.4em;-webkit-transition: background-color .2s linear;}
@@ -144,8 +148,8 @@ body {
 .choiceList > li.loading:hover > span 	{background-color:#ccc;}
 .choiceList > li.error:hover > span		{background-color:#ccc;}
 
-/*unavailable controls options are not highlighted*/
-.control.unavailable > .choiceList > li > span	{background-color:inherit;}
+/*unavailable settings options are not highlighted*/
+.setting.unavailable > .choiceList > li > span	{background-color:inherit;}
 
 .singleChoiceList > :before						{background-image: url('img/radio.svg');}
 .singleChoiceList > .selected:before			{background-image: url('img/radioSelected.svg');}
