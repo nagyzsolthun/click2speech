@@ -96,7 +96,7 @@
 	 * reads text provided by getText(), and stops page scroll if the active element is an input*/
 	function readTextAndPreventScroll(event) {
 		var activeTagName = document.activeElement?document.activeElement.tagName:null;
-		if(activeTagName != "INPUT") {
+		if(["INPUT","TEXTAREA"].indexOf(activeTagName) < 0) {
 			readText();
 			event.preventDefault();	//stop scrolling
 		}
