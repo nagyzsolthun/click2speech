@@ -8,7 +8,7 @@ angular.module('optionsApp')
 	];
 	$scope.readEventOptions = [
 		{value:"readOnClick", text:"click", selected:false}
-		//,{value:"readOnKeyboard", text:"keyboard", selected:false}	/TODO
+		,{value:"readOnSpace", text:"spacebar", selected:false}
 	];
 
 	//user interaction with the lists

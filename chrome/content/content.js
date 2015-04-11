@@ -1,14 +1,11 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
-	//this function is set depnding on the settings (non or readOnClick)
-	function onClick() {
-		console.log("onClick default - should not execute");
-	}
+	//either null or readText
+	var onClick;	//either null or readText
+	var onSpace;	//either null or readTextAndPreventScroll
 	
-	//this function is set depnding on the settings (browser-select OR hovered paragraph)
-	var getTextToRead = function() {
-		console.log("getTextToRead default - should not execute");
-	};
+	//eitget borwser-select or hovered paragraph
+	var getTextToRead = function() {console.log("getTextToRead default - should not execute");};
 	
 	// ============================================= hovered paragraph =============================================
 	var highlight = {backgroundColor: "#4f4",transition: "background-color .2s ease-in-out"}
@@ -95,18 +92,21 @@
 		});
 	}
 	
-	// ============================================= general =============================================
-	
-	/** sets up onClick function to start reading */
-	function setClickReadEvent(enabled) {
-		if(enabled) onClick = readText;
+	/** should be called with the "keydown" event when space is pressed
+	 * reads text provided by getText(), and stops page scroll if the active element is an input*/
+	function readTextAndPreventScroll(event) {
+		var activeTagName = document.activeElement?document.activeElement.tagName:null;
+		if(activeTagName != "INPUT") {
+			readText();
+			event.preventDefault();	//stop scrolling
+		}
 	}
+	
+	// ============================================= general =============================================
 
 	/** 1. sets up getTextToRead function to either use hovered paragraph or browser-select
 	 * 2. starts selecting the pointed paragraph when getHoveredParagraph given*/
 	function setSelectEvent(selectEvent) {
-		//TODO keyboard + click settings
-
 		window.removeEventListener("mousemove", highlightHoveredElement);
 		revertHighlight();
 
@@ -128,19 +128,22 @@
 			console.log("received: " + request.setting + " " + request.value);
 			switch(request.setting) {
 				case("selectEvent"): setSelectEvent(request.value); break;
-				case("readOnClick"): setClickReadEvent(request.value); break;
-				case("keyboardReadEvent"): break;	//TODO
+				case("readOnClick"): onClick = request.value?readText:null; break;
+				case("readOnSpace"): onSpace = request.value?readTextAndPreventScroll:null; break;
 			}
 		}
 	);
 
 	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(response) {
 		setSelectEvent(response.selectEvent);
-		setClickReadEvent(response.readOnClick);
-		//TODO keyboard
+		onClick = response.readOnClick?readText:null;
+		onSpace = response.readOnSpace?readTextAndPreventScroll:null;
 	});
 	
 	document.addEventListener("mousedown", function(){
-		onClick();
-	})
+		if(onClick) onClick();
+	});
+	document.addEventListener("keydown",function(event) {
+		if(event.keyCode == 32 && onSpace) onSpace(event);
+	});
 })();

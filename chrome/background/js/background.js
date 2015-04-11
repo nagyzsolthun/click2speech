@@ -81,8 +81,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					switch(request.setting) {
 						case("selectEvent"): setContentJsSetting("selectEvent", request.value); break;
 						case("readOnClick"): setContentJsSetting("readOnClick", request.value); break;
-						case("readOnKeyboard"): setContentJsSetting("readOnKeyboard", request.value); break;	//TODO
-						case("keyboardReadEvent"): break; //TODO
+						case("readOnSpace"): setContentJsSetting("readOnSpace", request.value); break;
 						case("speed"): tts.speed = request.value; break;
 					}
 					break;

@@ -158,20 +158,3 @@ body {
 
 .multipleChoiceList > :before			{background-image: url('img/check.svg');}
 .multipleChoiceList > .selected:before	{background-image: url('img/checkSelected.svg');}
-
-/** only visible when keyboard readEvent is selected */
-#keySelectorWindow {
-	position:fixed;
-	background-color:white;
-	border: 1px solid black;
-	text-align: center;
-	
-	width: 40em;
-	
-	/** lets center the div: http://stackoverflow.com/questions/17069435/center-fixed-div-with-dynamic-width-css*/
-	top: 0;
-	right: 0;
-    left: 0;
-	margin-right: auto;
-    margin-left: auto;
-}
