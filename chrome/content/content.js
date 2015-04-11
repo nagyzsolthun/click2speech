@@ -86,7 +86,7 @@
 	function readText() {
 		console.log("read on click");
 		chrome.runtime.sendMessage({
-			action: "webReader.read",
+			action: "clicknspeech.read",
 			text: getTextToRead(),
 			lan: document.documentElement.lang
 		});
@@ -124,7 +124,7 @@
 	/** to react when setting is changed in options*/
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {
-			if(request.action != "webReader.set") return;
+			if(request.action != "clicknspeech.set") return;
 			console.log("received: " + request.setting + " " + request.value);
 			switch(request.setting) {
 				case("selectEvent"): setSelectEvent(request.value); break;
@@ -134,7 +134,7 @@
 		}
 	);
 
-	chrome.runtime.sendMessage({action: "webReader.getSettings"}, function(response) {
+	chrome.runtime.sendMessage({action: "clicknspeech.getSettings"}, function(response) {
 		setSelectEvent(response.selectEvent);
 		onClick = response.readOnClick?readText:null;
 		onSpace = response.readOnSpace?readTextAndPreventScroll:null;

@@ -25,7 +25,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		console.log("notife content: set " + setting + ": " + value);
 		chrome.tabs.query({}, function(tabs) {
 			settingsHandler.getAll(function(settings) {
-				var message = {action:"webReader.set",setting:setting,value:value};
+				var message = {action:"clicknspeech.set",setting:setting,value:value};
 				for (var i=0; i<tabs.length; i++) {
 					chrome.tabs.sendMessage(tabs[i].id, message);
 				}
@@ -38,44 +38,44 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {
 			switch(request.action) {
-				case("webReader.getSettings"):
+				case("clicknspeech.getSettings"):
 					console.log("getSettings received");
 					settingsHandler.getAll(function(settings){
 						sendResponse(settings);
 					});
 					break;
-				case("webReader.getTtsProperties"):
+				case("clicknspeech.getTtsProperties"):
 					console.log("getTtsProperties received");
 					sendResponse(tts.ttsProperties);
 					break;
-				case("webReader.testTtsService"):
+				case("clicknspeech.testTtsService"):
 					console.log("testTtsService received");
 					tts.test(request.tts, sendResponse);
 					return true;	//very important: keeps sendResponse channel open until it is used
-				case("webReader.getErrors"):
+				case("clicknspeech.getErrors"):
 					console.log("getErrors received");
 					sendResponse(tts.errors);
 					break;
-				case("webReader.turnOn"):
+				case("clicknspeech.turnOn"):
 					console.log("turnOn received");
 					settingsHandler.set("turnedOn",true);
 					iconDrawer.drawTurnedOn();
 					break;
-				case("webReader.turnOff"):
+				case("clicknspeech.turnOff"):
 					console.log("turnOff received");
 					settingsHandler.set("turnedOn",false);
 					tts.stop();	//in case it is reading, we stop it
 					iconDrawer.drawTurnedOff();
 					break;
-				case("webReader.read"):
+				case("clicknspeech.read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
 					break;
-				case("webReader.missed"):	//TODO get rid of this
+				case("clicknspeech.missed"):	//TODO get rid of this
 					console.log("missed received");
 					iconDrawer.drawError();
 					break;
-				case("webReader.set"):
+				case("clicknspeech.set"):
 					console.log("set " + request.setting + ": " + request.value + " received");
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {

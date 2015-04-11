@@ -1,4 +1,4 @@
-/**draws the icon of WebReader - the look depends on the volume of playing and the status (on/off) */
+/**draws the icon - the look depends on the volume of playing and the status (on/off) */
 define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDrawer']
 ,function(mainLayerDrawer, loadingLayerDrawer, pointerLayerDrawer) {
 	var canvas;
