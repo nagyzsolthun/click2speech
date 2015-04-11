@@ -1,5 +1,6 @@
 /**draws the icon of WebReader - the look depends on the volume of playing and the status (on/off) */
-define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDrawer, loadingLayerDrawer) {
+define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDrawer']
+,function(mainLayerDrawer, loadingLayerDrawer, pointerLayerDrawer) {
 	var canvas;
 	var animating = false;
 
@@ -10,6 +11,7 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDr
 		var finished = true;
 		finished &= mainLayerDrawer.render(Date.now());
 		finished &= loadingLayerDrawer.render(Date.now());
+		finished &= pointerLayerDrawer.render(Date.now());
 		onRenderFinished();
 		if(! finished) window.setTimeout(function() {render()}, 10)
 		else animating = false;
@@ -27,6 +29,7 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDr
 			canvas = cnv;
 			mainLayerDrawer.canvas = canvas;
 			loadingLayerDrawer.canvas = canvas;
+			pointerLayerDrawer.canvas = canvas;
 		}
 		,set onRenderFinished(callback) {onRenderFinished = callback;}
 	}
@@ -34,6 +37,7 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDr
 	drawer.drawTurnedOn = function() {
 		mainLayerDrawer.setOn();
 		loadingLayerDrawer.setOff();
+		pointerLayerDrawer.setOn();
 		animate();
 	}
 	
@@ -52,6 +56,7 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer'], function(mainLayerDr
 	drawer.drawLoading = function() {
 		mainLayerDrawer.setLoading();
 		loadingLayerDrawer.setOn();
+		pointerLayerDrawer.setOff();
 		animate();
 	}
 	
