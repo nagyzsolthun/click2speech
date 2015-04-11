@@ -25,7 +25,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		console.log("notife content: set " + setting + ": " + value);
 		chrome.tabs.query({}, function(tabs) {
 			settingsHandler.getAll(function(settings) {
-				var message = {action:"clicknspeech.set",setting:setting,value:value};
+				var message = {action:"ClickAndSpeech.set",setting:setting,value:value};
 				for (var i=0; i<tabs.length; i++) {
 					chrome.tabs.sendMessage(tabs[i].id, message);
 				}
@@ -38,44 +38,44 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {
 			switch(request.action) {
-				case("clicknspeech.getSettings"):
+				case("ClickAndSpeech.getSettings"):
 					console.log("getSettings received");
 					settingsHandler.getAll(function(settings){
 						sendResponse(settings);
 					});
 					break;
-				case("clicknspeech.getTtsProperties"):
+				case("ClickAndSpeech.getTtsProperties"):
 					console.log("getTtsProperties received");
 					sendResponse(tts.ttsProperties);
 					break;
-				case("clicknspeech.testTtsService"):
+				case("ClickAndSpeech.testTtsService"):
 					console.log("testTtsService received");
 					tts.test(request.tts, sendResponse);
 					return true;	//very important: keeps sendResponse channel open until it is used
-				case("clicknspeech.getErrors"):
+				case("ClickAndSpeech.getErrors"):
 					console.log("getErrors received");
 					sendResponse(tts.errors);
 					break;
-				case("clicknspeech.turnOn"):
+				case("ClickAndSpeech.turnOn"):
 					console.log("turnOn received");
 					settingsHandler.set("turnedOn",true);
 					iconDrawer.drawTurnedOn();
 					break;
-				case("clicknspeech.turnOff"):
+				case("ClickAndSpeech.turnOff"):
 					console.log("turnOff received");
 					settingsHandler.set("turnedOn",false);
 					tts.stop();	//in case it is reading, we stop it
 					iconDrawer.drawTurnedOff();
 					break;
-				case("clicknspeech.read"):
+				case("ClickAndSpeech.read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
 					break;
-				case("clicknspeech.missed"):	//TODO get rid of this
+				case("ClickAndSpeech.missed"):	//TODO get rid of this
 					console.log("missed received");
 					iconDrawer.drawError();
 					break;
-				case("clicknspeech.set"):
+				case("ClickAndSpeech.set"):
 					console.log("set " + request.setting + ": " + request.value + " received");
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
