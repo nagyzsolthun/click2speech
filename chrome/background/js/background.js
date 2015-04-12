@@ -20,16 +20,12 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		});
 	}
 	
-	/** notifies all contentJs' about a changed setting */
-	function setContentJsSetting(setting, value) {
-		console.log("notife content: set " + setting + ": " + value);
+	/** notifies all content scripts */
+	function notifyContentJs(message) {
 		chrome.tabs.query({}, function(tabs) {
-			settingsHandler.getAll(function(settings) {
-				var message = {action:"ClickAndSpeech.set",setting:setting,value:value};
-				for (var i=0; i<tabs.length; i++) {
-					chrome.tabs.sendMessage(tabs[i].id, message);
-				}
-			});
+			for (var i=0; i<tabs.length; i++) {
+				chrome.tabs.sendMessage(tabs[i].id, message);
+			}
 		});
 	}
 	
@@ -79,10 +75,10 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					console.log("set " + request.setting + ": " + request.value + " received");
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
-						case("selectEvent"): setContentJsSetting("selectEvent", request.value); break;
-						case("readOnClick"): setContentJsSetting("readOnClick", request.value); break;
-						case("readOnSpace"): setContentJsSetting("readOnSpace", request.value); break;
 						case("speed"): tts.speed = request.value; break;
+						case("selectEvent"):
+						case("readOnClick"):
+						case("readOnSpace"): notifyContentJs({action:"ClickAndSpeech.set", setting:request.setting, value:request.value});break;
 					}
 					break;
 			}
@@ -91,13 +87,12 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 
 	// ===================================== initial settings =====================================
 	tts.onEvent = function(event) {
+		notifyContentJs({action:"ClickAndSpeech.event", value:event.type});
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
 			case("end"): iconDrawer.drawTurnedOn(); break;
-			case("error"):
-				iconDrawer.drawError();
-				break;
+			case("error"): iconDrawer.drawError(); break;
 		}
 	}
 	

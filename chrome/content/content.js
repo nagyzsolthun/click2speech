@@ -4,8 +4,8 @@
 	var onClick;	//either null or readText
 	var onSpace;	//either null or readTextAndPreventScroll
 	
-	//eitget borwser-select or hovered paragraph
-	var getTextToRead = function() {console.log("getTextToRead default - should not execute");};
+	//either borwser-select or hovered paragraph
+	var getTextToRead;
 	
 	// ============================================= hovered paragraph =============================================
 	var highlight = {backgroundColor: "#4f4",transition: "background-color .2s ease-in-out"}
@@ -84,7 +84,6 @@
 	// ============================================= read ============================================= 
 	/** reads the text to be read (painted paragraph / selected text) */
 	function readText() {
-		console.log("read on click");
 		chrome.runtime.sendMessage({
 			action: "ClickAndSpeech.read",
 			text: getTextToRead(),
