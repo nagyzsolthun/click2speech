@@ -4,13 +4,104 @@
 	var onClick;	//either null or readText
 	var onSpace;	//either null or readTextAndPreventScroll
 	
-	//either borwser-select or hovered paragraph
-	var getTextToRead;
+	var getTextToRead;	//either borwser-select or hovered paragraph
+	var onReadingEvent;	//either animateClicked(readingEvent) or null
 	
-	// ============================================= hovered paragraph =============================================
-	var highlight = {backgroundColor: "#4f4",transition: "background-color .2s ease-in-out"}
-	var original = {};
-	var highlightedElement;
+	// ============================================= hovered/clicked paragraph =============================================
+	var clickedElement = null;	//TODO maybe some nicer logic
+	
+	//elements can be highlighted based on their status: hovered|loading|playing|error
+	//this map holds the data regarding this highlight (the actual element, and original styles)
+	var statusMap = {
+		hovered:	{element:null,original:{backgroundColor:null,transition:null}}
+		,loading:	{element:null,original:{backgroundColor:null,transition:null}}
+		,playing:	{element:null,original:{backgroundColor:null,transition:null}}
+		,error:		{element:null,original:{backgroundColor:null,transition:null}}
+	}
+	
+	/** @return concatenates statuses of given element with "-" in order hovered-loading-playing-error */
+	function concatenatedStatus(element) {
+		return ["hovered","loading","playing","error"].filter(function(status) {
+			return statusMap[status].element === element;	//only inerested in statuses where element is given element
+		}).join("-");
+	}
+
+	/** animates given element based on the statusMap */
+	function animate(element) {
+		var status = concatenatedStatus(element);
+		element.style["-webkit-transition"] = "background-color .2s ease-in-out";
+		switch(status) {
+			case("loading"): element.style["background-color"] = "#44f"; break;
+			case("hovered"): element.style["background-color"] = "#4f4"; break;
+			case("hovered-loading"): element.style["background-color"] = "#4ff"; break;
+			case("playing"): element.style["background-color"] = "#88f"; break;
+			case("hovered-playing"): element.style["background-color"] = "#48f"; break;
+			//TODO others
+			//TODO actual animation when loading
+		}
+	}
+	
+	/** @return the copy of stored original, if a status is already given to @param element
+	 * otherwise returns the current styles of the element */
+	function getOriginal(element) {
+		//the first status the element has - if any
+		var status = ["hovered","loading","playing","error"].filter(function(status) {
+			return statusMap[status].element === element;
+		})[0];
+
+		//if any found we return its original
+		if(status) return {backgroundColor:statusMap[status].original.backgroundColor,transition:statusMap[status].original.transition};
+
+		//otherwise return the current styles
+		return {backgroundColor:element.style["background-color"], transition:element.style["-webkit-transition"]};
+	}
+	
+	/** adds @param status on @param element
+	 * removes same status from other elements
+	 * loading|playing|error are exclusive */
+	function addStatus(element,status) {
+		if(["loading","playing","error"].indexOf(status) > -1) {
+			revert("loading");
+			revert("playing");
+			revert("error");
+		} else revert(status);
+		
+		if(!element) return;
+		if(element && statusMap[status].element === element) return;	//all done
+ 
+		statusMap[status].original = getOriginal(element);	//we should first set original, since getOriginal() searches by element
+		statusMap[status].element = element;
+		
+		animate(element);
+	}
+	
+	/** reverts the highlighted element */
+	function revert(status) {
+		var element = statusMap[status].element;
+		if(!element) return;
+		
+		var originalBackgroundColor = statusMap[status].original.backgroundColor
+		var originalTransition = statusMap[status].original.transition
+
+		statusMap[status].element = null;
+		statusMap[status].original = null;
+		
+		if(concatenatedStatus(element)) {
+			//element still has some status, lets not revert its style, but aniamte again
+			animate(element);
+			return;
+		}
+		
+		element.style["background-color"] = originalBackgroundColor;
+		window.setTimeout(function() {
+			element.style["-webkit-transition"] = originalTransition;
+		}, 200);
+	}
+	
+	/** sets the background of the hovered element AND removes the highlight of the previous hovered */
+	function highlightHoveredElement() {
+		addStatus(getHoveredParagraph(), "hovered");
+	}
 	
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
@@ -18,22 +109,6 @@
 			if(child.nodeType == Node.TEXT_NODE && /\S/.test(child.nodeValue)) return true;	//text node AND not empty
 		}
 		return false;
-	}
-	
-	/** reverts the highlighted element */
-	function revertHighlight() {
-		if(!highlightedElement) return;
-
-		highlightedElement.style["background-color"] = original.backgroundColor;
-			
-		//transition should be set back to original - but only after the transition is over
-		//closure should hold thse values
-		var element = highlightedElement;
-		var originalTransition = original.transition;
-		window.setTimeout(function() {
-			element.style["-webkit-transition"] = originalTransition;
-		}, 200);
-		highlightedElement = null;
 	}
 	
 	/** @return the hovered paragraph
@@ -49,32 +124,29 @@
 		return null;
 	}
 	
-	/** sets the background of the highlighted element AND removes the highlight of the old highlighted */
-	function highlightHoveredElement() {
-		var hoveredElement = getHoveredParagraph();
-		
-		//the element is already highlighted
-		if(hoveredElement && hoveredElement === highlightedElement) return;
-
-		//the highlighted element is not the one as before - we don't need it to be highlighted anymore
-		revertHighlight();
-
-		if(! hoveredElement) return;
-
-		highlightedElement = hoveredElement;
-		original.transition = hoveredElement.style["-webkit-transition"];
-		original.backgroundColor = hoveredElement.style["background-color"];
-		highlightedElement.style["-webkit-transition"] = highlight.transition;
-		highlightedElement.style["background-color"] = highlight.backgroundColor;
-	}
-	
-	/** @return the text being pointed */
+	/** @return the text in hovered element */
 	function getHoveredParagraphText() {
+		clickedElement = statusMap.hovered.element;
+		revert("loading");
+		revert("playing");
+		revert("error");
+		
 		highlightHoveredElement();
-		if(highlightedElement) return highlightedElement.textContent;
+		if(statusMap.hovered.element) return statusMap.hovered.element.textContent;
 		else return "";
 	}
 	
+	// ============================================= animate clicked =============================================
+	
+	function animateClicked(readingEvent) {
+		switch(readingEvent) {
+			case("loading"): addStatus(clickedElement,"loading"); break;
+			case("start"): addStatus(clickedElement,"playing"); break;
+			case("end"): revert("playing"); break;
+			case("error"): addStatus(clickedElement,"error"); break;
+		}
+	}
+
 	// ============================================= browser select =============================================
 	/** reads the selected area*/
 	function getBrowserSelectedText() {
@@ -107,15 +179,17 @@
 	 * 2. starts selecting the pointed paragraph when getHoveredParagraph given*/
 	function setSelectEvent(selectEvent) {
 		window.removeEventListener("mousemove", highlightHoveredElement);
-		revertHighlight();
+		revert("hovered");
 
 		switch(selectEvent) {
 			case("hoveredParagraph"):
 				window.addEventListener("mousemove", highlightHoveredElement);
 				getTextToRead = getHoveredParagraphText;
+				onReadingEvent = animateClicked;
 				break;
 			case("browserSelect"):
 				getTextToRead = getBrowserSelectedText;
+				onReadingEvent = null;
 				break;
 		}
 	}
@@ -123,6 +197,8 @@
 	/** to react when setting is changed in options*/
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {
+			if(request.action == "ClickAndSpeech.event" && onReadingEvent) onReadingEvent(request.value);
+
 			if(request.action != "ClickAndSpeech.set") return;
 			console.log("received: " + request.setting + " " + request.value);
 			switch(request.setting) {
