@@ -18,10 +18,10 @@ define([], function() {
 	}
 	
 	var playingIcon = {
-		innerFill: rgba({g:1})
+		innerFill: rgba({b:1})
 		,innerRing: rgba({})	//black
-		,outerFill: rgba({g:1,a:1})	//green
-		,outerRing: rgba({g:0.5})
+		,outerFill: rgba({b:1,a:1})	//blue
+		,outerRing: rgba({b:0.5})
 	}
 	
 	var errorIcon = {

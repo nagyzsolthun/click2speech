@@ -11,7 +11,7 @@
 	var clickedElement = null;	//TODO maybe some nicer logic
 	
 	//elements can be highlighted based on their status: hovered|loading|playing|error
-	//this map holds the data regarding this highlight (the actual element, and original styles)
+	//one status is set on max one element
 	var statusMap = {
 		hovered:	{element:null,original:{backgroundColor:null,transition:null}}
 		,loading:	{element:null,original:{backgroundColor:null,transition:null}}
@@ -31,11 +31,11 @@
 		var status = concatenatedStatus(element);
 		element.style["-webkit-transition"] = "background-color .2s ease-in-out";
 		switch(status) {
-			case("loading"): element.style["background-color"] = "#44f"; break;
-			case("hovered"): element.style["background-color"] = "#4f4"; break;
-			case("hovered-loading"): element.style["background-color"] = "#4ff"; break;
-			case("playing"): element.style["background-color"] = "#88f"; break;
-			case("hovered-playing"): element.style["background-color"] = "#48f"; break;
+			case("hovered"): 		element.style["background-color"] = "#4f4"; break;
+			case("hovered-loading"):element.style["background-color"] = "#55f"; break;
+			case("hovered-playing"):element.style["background-color"] = "#55f"; break;
+			case("loading"): 		element.style["background-color"] = "#bbf"; break;
+			case("playing"):		element.style["background-color"] = "#bbf"; break;
 			//TODO others
 			//TODO actual animation when loading
 		}
