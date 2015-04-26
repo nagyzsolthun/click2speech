@@ -45,13 +45,13 @@
 	 * otherwise returns the current styles of the element */
 	function getOriginal(element) {
 		//the first status the element has - if any
-		var status = ["hovered","loading","playing","error"].filter(function(status) {
-			return statusMap[status].element === element;
+		var status = ["hovered","loading","playing","error"].filter(function(s) {
+			return statusMap[s].element === element;
 		})[0];
 
 		//if any found we return its original
 		if(status) return {backgroundColor:statusMap[status].original.backgroundColor,transition:statusMap[status].original.transition};
-
+ 
 		//otherwise return the current styles
 		return {backgroundColor:element.style["background-color"], transition:element.style["-webkit-transition"]};
 	}
@@ -60,14 +60,17 @@
 	 * removes same status from other elements
 	 * loading|playing|error are exclusive */
 	function addStatus(element,status) {
+		if(element && statusMap[status].element === element) return;	//all done
+ 
+		//status is set on another element => revert first
 		if(["loading","playing","error"].indexOf(status) > -1) {
 			revert("loading");
 			revert("playing");
 			revert("error");
 		} else revert(status);
-		
+ 
+		//if we removed status (added status to null) revert already set the original styles
 		if(!element) return;
-		if(element && statusMap[status].element === element) return;	//all done
  
 		statusMap[status].original = getOriginal(element);	//we should first set original, since getOriginal() searches by element
 		statusMap[status].element = element;
