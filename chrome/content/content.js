@@ -7,26 +7,32 @@
 	var getTextToRead;	//either borwser-select or hovered paragraph
 	var onReadingEvent;	//either animateClicked(readingEvent) or null
 	
-	// ============================================= hovered/clicked paragraph =============================================
+	// ============================================= hovered/clicked paragraph =============================================	
 	var clickedElement = null;	//TODO maybe some nicer logic
 	
 	//elements can be highlighted based on their status: hovered|loading|playing|error
-	//one status is set on max one element
-	var statusMap = {
-		hovered:	{element:null,original:{backgroundColor:null,transition:null}}
-		,loading:	{element:null,original:{backgroundColor:null,transition:null}}
-		,playing:	{element:null,original:{backgroundColor:null,transition:null}}
-		,error:		{element:null,original:{backgroundColor:null,transition:null}}
+	var status2element = {};
+	
+	//element => {cakgroundColor,transition}
+	var element2original = new Map();
+	
+	/** stores the current backgroundColor and tansition styles of given element */
+	function saveOriginal(element) {
+		if(element2original.get(element)) return;	//already saved
+		element2original.set(element,{
+			backgroundColor:element.style["background-color"]
+			,transition:element.style["-webkit-transition"]
+		});
 	}
 	
 	/** @return concatenates statuses of given element with "-" in order hovered-loading-playing-error */
 	function concatenatedStatus(element) {
 		return ["hovered","loading","playing","error"].filter(function(status) {
-			return statusMap[status].element === element;	//only inerested in statuses where element is given element
+			return status2element[status] === element;	//only inerested in statuses where element is given element
 		}).join("-");
 	}
 
-	/** animates given element based on the statusMap */
+	/** animates given element based on the status2element */
 	function animate(element) {
 		var status = concatenatedStatus(element);
 		element.style["-webkit-transition"] = "background-color .2s ease-in-out";
@@ -41,26 +47,11 @@
 		}
 	}
 	
-	/** @return the copy of stored original, if a status is already given to @param element
-	 * otherwise returns the current styles of the element */
-	function getOriginal(element) {
-		//the first status the element has - if any
-		var status = ["hovered","loading","playing","error"].filter(function(s) {
-			return statusMap[s].element === element;
-		})[0];
-
-		//if any found we return its original
-		if(status) return {backgroundColor:statusMap[status].original.backgroundColor,transition:statusMap[status].original.transition};
- 
-		//otherwise return the current styles
-		return {backgroundColor:element.style["background-color"], transition:element.style["-webkit-transition"]};
-	}
-	
 	/** adds @param status on @param element
 	 * removes same status from other elements
 	 * loading|playing|error are exclusive */
 	function addStatus(element,status) {
-		if(element && statusMap[status].element === element) return;	//all done
+		if(element && status2element[status] === element) return;	//all done
  
 		//status is set on another element => revert first
 		if(["loading","playing","error"].indexOf(status) > -1) {
@@ -72,32 +63,32 @@
 		//if we removed status (added status to null) revert already set the original styles
 		if(!element) return;
  
-		statusMap[status].original = getOriginal(element);	//we should first set original, since getOriginal() searches by element
-		statusMap[status].element = element;
-		
+		status2element[status] = element;
+		saveOriginal(element);
 		animate(element);
 	}
 	
 	/** reverts the highlighted element */
 	function revert(status) {
-		var element = statusMap[status].element;
+		var element = status2element[status];
 		if(!element) return;
-		
-		var originalBackgroundColor = statusMap[status].original.backgroundColor
-		var originalTransition = statusMap[status].original.transition
 
-		statusMap[status].element = null;
-		statusMap[status].original = null;
-		
+		status2element[status] = null;	
 		if(concatenatedStatus(element)) {
-			//element still has some status, lets not revert its style, but aniamte again
+			//element still has some status, animate based on the new concatenated style
 			animate(element);
 			return;
 		}
 		
-		element.style["background-color"] = originalBackgroundColor;
+		var original = element2original.get(element);
+		element.style["background-color"] = original.backgroundColor;
 		window.setTimeout(function() {
-			element.style["-webkit-transition"] = originalTransition;
+			//if any style is set, we don't revert the the transition
+			if(concatenatedStatus(element)) return;
+			
+			//otherwise we do, and also remove the original for given element
+			element.style["-webkit-transition"] = original.transition;
+			element2original.delete(element);
 		}, 200);
 	}
 	
@@ -129,13 +120,13 @@
 	
 	/** @return the text in hovered element */
 	function getHoveredParagraphText() {
-		clickedElement = statusMap.hovered.element;
+		clickedElement = status2element.hovered;
 		revert("loading");
 		revert("playing");
 		revert("error");
 		
 		highlightHoveredElement();
-		if(statusMap.hovered.element) return statusMap.hovered.element.textContent;
+		if(status2element.hovered) return status2element.hovered.textContent;
 		else return "";
 	}
 	
