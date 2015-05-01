@@ -76,7 +76,9 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
 						case("speed"): tts.speed = request.value; break;
-						case("selectEvent"):
+						case("selectType"):
+						case("highlightOnHover"):
+						case("highlightOnArrows"):
 						case("readOnClick"):
 						case("readOnSpace"): notifyContentJs({action:"ClickAndSpeech.set", setting:request.setting, value:request.value});break;
 					}
@@ -87,7 +89,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 
 	// ===================================== initial settings =====================================
 	tts.onEvent = function(event) {
-		notifyContentJs({action:"ClickAndSpeech.event", value:event.type});
+		notifyContentJs({action:"ClickAndSpeech.event", event:event.type});
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
