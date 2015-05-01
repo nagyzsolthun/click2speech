@@ -93,9 +93,9 @@
 		}, 200);
 	}
 	
-	/** checks settings and reverts highlight in case its neede */
+	/** reverts highlight if no functuon is set to manipualte it */
 	function revertHighlightIfNeeded() {
-		if(settings.highlightOnHover || settings.highlightOnArrows) return;
+		if(onMouseMove || onSpace) return;
 		revert("highlighted");
 	}
 	
@@ -337,15 +337,15 @@
 					getTextToRead = getBrowserSelectedText;
 					onMouseMove = null;
 					onArrow = null;
-					revert("highlighted");
+					revertHighlightIfNeeded();
 				}
 				break;
 			case("highlightOnHover"):
-				onMouseMove = request.value?highlightHoveredElement:null;
+				if(settings.selectType == "highlightSelect") onMouseMove = request.value?highlightHoveredElement:null;
 				revertHighlightIfNeeded();
 				break;
 			case("highlightOnArrows"):
-				onArrow = request.value?stepHighlight:null;
+				if(settings.selectType == "highlightSelect") onArrow = request.value?stepHighlight:null;
 				revertHighlightIfNeeded();
 				break;
 			case("readOnClick"): onClick = request.value?readText:null; break;
