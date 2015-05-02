@@ -381,6 +381,7 @@
 			case(38): if(onArrow) onArrow(event, "up");		break;
 			case(39): if(onArrow) onArrow(event, "right");	break;
 			case(40): if(onArrow) onArrow(event, "down");	break;
+			case(27): chrome.runtime.sendMessage({action: "PressAndSpeech.read",text:""}); break;	//esc stops reading
 		}
 	});
 	
