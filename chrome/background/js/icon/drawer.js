@@ -1,6 +1,6 @@
 /**draws the icon - the look depends on the volume of playing and the status (on/off) */
-define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDrawer']
-,function(mainLayerDrawer, loadingLayerDrawer, pointerLayerDrawer) {
+define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer']
+,function(mainLayerDrawer, loadingLayerDrawer) {
 	var canvas;
 	var animating = false;
 
@@ -11,7 +11,6 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDra
 		var finished = true;
 		finished &= mainLayerDrawer.render(Date.now());
 		finished &= loadingLayerDrawer.render(Date.now());
-		finished &= pointerLayerDrawer.render(Date.now());
 		onRenderFinished();
 		if(! finished) window.setTimeout(function() {render()}, 10)
 		else animating = false;
@@ -29,7 +28,6 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDra
 			canvas = cnv;
 			mainLayerDrawer.canvas = canvas;
 			loadingLayerDrawer.canvas = canvas;
-			pointerLayerDrawer.canvas = canvas;
 		}
 		,set onRenderFinished(callback) {onRenderFinished = callback;}
 	}
@@ -37,7 +35,6 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDra
 	drawer.drawTurnedOn = function() {
 		mainLayerDrawer.setOn();
 		loadingLayerDrawer.setOff();
-		pointerLayerDrawer.setOn();
 		animate();
 	}
 	
@@ -56,7 +53,6 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDra
 	drawer.drawLoading = function() {
 		mainLayerDrawer.setLoading();
 		loadingLayerDrawer.setOn();
-		pointerLayerDrawer.setOff();
 		animate();
 	}
 	

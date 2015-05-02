@@ -14,7 +14,7 @@ define([], function() {
 		innerFill: rgba({g:1})
 		,innerRing: rgba({})	//black
 		,outerFill: null
-		,outerRing: rgba({g:0.5})
+		,outerRing: rgba({r:0.4,g:0.4,b:0.4})
 	}
 	
 	var playingIcon = {
@@ -107,10 +107,10 @@ define([], function() {
 		var transparent = "rgba(0,0,0,0)";
 		
 		drawBall({color:htmlColor(icon.outerFill) || transparent,r:quarter*2*0.9});
-		drawRing({color:htmlColor(icon.outerRing) || transparent, r:quarter*2*0.9, width:size/16});
+		drawRing({color:htmlColor(icon.outerRing) || transparent, r:quarter*2*0.9, width:size/12});
 		
 		drawBall({color:htmlColor(icon.innerFill) || transparent,r:quarter*0.9});
-		drawRing({color:htmlColor(icon.innerRing) || transparent, r:quarter*0.9, width:size/16});
+		drawRing({color:htmlColor(icon.innerRing) || transparent, r:quarter*0.9, width:size/12});
 		
 		renderedIcon = icon;
 	}
