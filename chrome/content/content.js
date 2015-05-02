@@ -41,10 +41,10 @@
 			case("highlighted"): 		element.style["background-color"] = "#4f4"; break;
 			case("highlighted-loading"):element.style["background-color"] = "#55f"; break;
 			case("highlighted-playing"):element.style["background-color"] = "#55f"; break;
+			case("highlighted-error"):element.style["background-color"] = "#f55"; break;
 			case("loading"): 		element.style["background-color"] = "#bbf"; break;
 			case("playing"):		element.style["background-color"] = "#bbf"; break;
-			//TODO others
-			//TODO actual animation when loading
+			case("error"):			element.style["background-color"] = "#fbb"; break;
 		}
 	}
 	
