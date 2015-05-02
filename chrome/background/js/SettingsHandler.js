@@ -26,7 +26,9 @@ define([], function() {
 			//settings are not persisted (first ever execution)
 			cache = {
 				turnedOn:true
-				,selectEvent:"hoveredParagraph"
+				,selectType:"highlightSelect"
+				,highlightOnHover:true
+				,highlightOnArrows:true
 				,readOnClick:true
 				,readOnSpace:true
 				,tts:"iSpeech"
