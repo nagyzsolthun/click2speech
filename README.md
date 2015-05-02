@@ -1,4 +1,6 @@
-WebReader
+Press & Speech
 ===============
 
-a tool for reading content of webpages to help people with vision disability browsing the web
+Chrome plugin that helps people with vision disabilities browsing the web.
+
+Navigate between paragraphs using the arrow keys or the mouse pointer, and press spacebar or click to read the highlighted element. You can also use the selection mechenism built in Chrome.
