@@ -142,13 +142,17 @@
 	
 	// ============================================= keyboard navigation =============================================
 	
-	//cursor defines the path from which we can select elements when moving in one direction
-	//direction is either horizontal or vertical
-	//cursor is reset (both rect and direction) when direction changes
+	/** when stepping between elements, the cursor defines the path we can take. It has a rect and a direction (horizontal|vertical)
+	 * when moving up/down, all elements we step on are between the left and right side of cursor.rect (vertical path)
+	 * when moving left/right, the current element will be the cursor, and the path will be between rect.top and rect.bottom (horizontal path)
+	 * 
+	 * this strategy showed the best results when comparying different concepts*/
 	var cursor = {rect:null, direction:null}
-	
-	var lastScroll = 0;	//time of last scrolling (automatic scrolling happens in case highlighted text is out of view)
-	
+
+	/** sets the cursor
+	 * @param rect the rect of the currently highlighted element
+	 * @param direction up|down|left|right
+	 * if the direction of the cursor (horizontal|vertical) is different than the one defined by @param direction, cursor is reset*/
 	function setCursor(rect, direction) {
 		switch(direction) {
 			case("up"):
@@ -171,7 +175,8 @@
 		}
 	}
 	
-	/** @return true if redable.rect is on the path selected by the cursor. assuming the cursor is set */
+	/** @return true if redable is on the path selected by the cursor. assuming the cursor is set
+	 * @param reasdable.rect the rect to check*/
 	function isOnPath(readable) {
 		//filter based on cursor
 		switch(cursor.direction) {
@@ -189,7 +194,7 @@
 	}
 	
 	/** @return distance between rect1 and rect2 in given direction
-	 * elements are filtered based on the cursor */
+	 * result my be negative in case rect2 is "behind" rect1 based on direction */
 	function dist(rect1,rect2,direction) {
 		var m1 = {x:(rect1.left + rect1.right)/2, y:(rect1.top + rect1.bottom)/2};
 		var m2 = {x:(rect2.left + rect2.right)/2, y:(rect2.top + rect2.bottom)/2};
@@ -204,7 +209,7 @@
 	}
 	
 	/** @return array of {element,rect} pairs under @param parent
-	 * where each element contains text reictly and rect is the elements boundingClientRect*/
+	 * where each element directly contains text and rect is the boundingClientRect of the element*/
 	function getReadableElementRectArr(parent) {
 		if(!parent.getBoundingClientRect) return [];	//no getBoundingClientRect, no content
 		
@@ -213,7 +218,7 @@
 		//if(rect.right-rect.left == 0 || rect.top-rect.bottom == 0) return [];	//no size, no content
 		if(containsTextDirectly(parent)) return [{element:parent, rect:rect}];
 		
-		var result = []; //array of element,rect pairs
+		var result = [];
 		for(var i=0; i<parent.childNodes.length; i++) {
 			var child = parent.childNodes[i];
 			result = result.concat(getReadableElementRectArr(child));
@@ -221,9 +226,10 @@
 		return result;
 	}
 	
+	var lastScroll = 0;	//time of last scrolling caused by stepping (to prevent unnecessary onMouseMove event)
+	
 	/** highlights element in @param direction from currently highlighted element */
 	function stepHighlight(keyEvent, direction) {
-		console.log("step to " + direction);
 		keyEvent.preventDefault();	//stop scrolling
 
 		var rect;
@@ -243,24 +249,22 @@
 			closest.dist = d;
 			closest.rect = readable.rect;
 		});
-		
-		if(!closest.element) {
-			console.log("no closest found");
-			return;
-		}
+		if(!closest.element) return;
+		addStatus(closest.element,"highlighted");
 		
 		//scroll into view
 		var doc = document.documentElement;
+		var scroll = {x:0,y:0};
 		switch(direction) {
-			case("up"): if(closest.rect.top < 0) window.scrollBy(0,closest.rect.top); break;
-			case("down"): if(closest.rect.bottom > window.innerHeight) window.scrollBy(0,closest.rect.bottom - window.innerHeight); break;
-			case("left"): if(closest.rect.left < 0) window.scrollBy(closest.rect.left,0); break;
-			case("right"): if(closest.rect.right > window.innerWidth) window.scrollBy(closest.rect.right - window.innerRight,0); break;
+			case("up"): if(closest.rect.top < 0) scroll.y = closest.rect.top; break;
+			case("down"): if(closest.rect.bottom > window.innerHeight) scroll.y = closest.rect.bottom-window.innerHeight; break;
+			case("left"): if(closest.rect.left < 0) scroll.x = closest.rect.left; break;
+			case("right"): if(closest.rect.right > window.innerWidth) scroll.x = closest.rect.right-window.innerRight; break;
 		}
-		lastScroll = Date.now();	//TODO only if scrolled
-		
-		addStatus(closest.element,"highlighted");
-
+		if(scroll.x || scroll.y) {
+			window.scrollBy(scroll.x, scroll.y);
+			lastScroll = Date.now();
+		}
 		//createDivOnBoundingClientRect(closest.rect);
 	}
 	
