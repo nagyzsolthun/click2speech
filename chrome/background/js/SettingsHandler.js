@@ -16,8 +16,8 @@ define([], function() {
 		}
 		
 		//we have not cached => lets cache
-		chrome.storage.local.get('ClickAndSpeechSettings', function(items) {
-			cache = items.ClickAndSpeechSettings;
+		chrome.storage.local.get('PressAndSpeechSettings', function(items) {
+			cache = items.PressAndSpeechSettings;
 			if(cache) {	//=> there are settings persisted
 				response(cache);
 				return;
@@ -34,7 +34,7 @@ define([], function() {
 				,speed:1
 			}
 			response(cache);
-			chrome.storage.local.set({ClickAndSpeechSettings:cache}, function() {
+			chrome.storage.local.set({PressAndSpeechSettings:cache}, function() {
 				console.log("first ever execution: default settings persisted");
 			});
 		});
@@ -44,7 +44,7 @@ define([], function() {
 	settingsHandler.set = function(setting, value) {
 		settingsHandler.getAll(function(cache) {
 			cache[setting] = value;
-			chrome.storage.local.set({ClickAndSpeechSettings:cache}, function() {});
+			chrome.storage.local.set({PressAndSpeechSettings:cache}, function() {});
 		});
 	}
 

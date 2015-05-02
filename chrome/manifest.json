@@ -1,6 +1,6 @@
 {
 	"manifest_version": 2,
-	"name": "Click 'n' Speech",
+	"name": "Press & Speech",
 	"description": "reads selected text on webpages",
 	"version": "0.9",
 	"content_scripts": [{

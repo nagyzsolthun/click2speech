@@ -6,10 +6,10 @@ app.controller('popupController', function($scope) {
 
 	$scope.onOffButtonClick = function() {
 		if($scope.button.ttsOn) {
-			chrome.runtime.sendMessage({action: "ClickAndSpeech.turnOff"});
+			chrome.runtime.sendMessage({action: "PressAndSpeech.turnOff"});
 			turnOff();
 		} else {
-			chrome.runtime.sendMessage({action: "ClickAndSpeech.turnOn"});
+			chrome.runtime.sendMessage({action: "PressAndSpeech.turnOn"});
 			turnOn();
 		}
 	}
@@ -29,13 +29,13 @@ app.controller('popupController', function($scope) {
 		$scope.button.text = "turn on";
 	}
 	
-	chrome.runtime.sendMessage({action: "ClickAndSpeech.getSettings"}, function(settings) {
+	chrome.runtime.sendMessage({action: "PressAndSpeech.getSettings"}, function(settings) {
 		if(settings.turnedOn) turnOn();
 		else turnOff();
 		$scope.$digest();
 	});
 	
-	chrome.runtime.sendMessage({action: "ClickAndSpeech.getErrors"}, function(errors) {
+	chrome.runtime.sendMessage({action: "PressAndSpeech.getErrors"}, function(errors) {
 		$scope.errors = [];
 		errors.forEach(function(error) {
 			$scope.errors.push({ttsName:error.ttsName,type:error.type});

@@ -308,7 +308,7 @@
 	/** reads the text to be read (highlighted paragraph / selected text) */
 	function readText() {
 		chrome.runtime.sendMessage({
-			action: "ClickAndSpeech.read",
+			action: "PressAndSpeech.read",
 			text: getTextToRead(),
 			lan: document.documentElement.lang
 		});
@@ -356,8 +356,8 @@
 	function onMessage(request, sender, sendResponse) {
 		console.log("received: " + request.action);
 		switch(request.action) {
-			case("ClickAndSpeech.event"): animateClicked(request.event); break;
-			case("ClickAndSpeech.set"): updateSetting(request); break;
+			case("PressAndSpeech.event"): animateClicked(request.event); break;
+			case("PressAndSpeech.set"): updateSetting(request); break;
 		}
 	}
 	/** to react when setting is changed in options*/
@@ -381,7 +381,7 @@
 	});
 	
 	//initial setup
-	chrome.runtime.sendMessage({action: "ClickAndSpeech.getSettings"}, function(settings) {
+	chrome.runtime.sendMessage({action: "PressAndSpeech.getSettings"}, function(settings) {
 		updateSetting({setting:"selectType", value:settings.selectType});
 		updateSetting({setting:"highlightOnHover", value:settings.highlightOnHover});
 		updateSetting({setting:"highlightOnArrows", value:settings.highlightOnArrows});

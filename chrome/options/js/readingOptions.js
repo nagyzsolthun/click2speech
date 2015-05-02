@@ -1,5 +1,5 @@
 function testTts(tts, callback) {
-	chrome.runtime.sendMessage({action: "ClickAndSpeech.testTtsServices", tts:tts}, function(success) {
+	chrome.runtime.sendMessage({action: "PressAndSpeech.testTtsServices", tts:tts}, function(success) {
 		console.log(tts + " " + success);
 	});
 }
@@ -39,11 +39,11 @@ angular.module('optionsApp')
 		if($scope.speed.value) sendSet("speed", $scope.speed.value);
 	});
 
-	chrome.runtime.sendMessage({action: "ClickAndSpeech.getTtsProperties"}, function(ttsProperties) {
+	chrome.runtime.sendMessage({action: "PressAndSpeech.getTtsProperties"}, function(ttsProperties) {
 		ttsProperties.forEach(function(tts) {
 			var ttsService = {name: tts.name, properties: tts.properties, selected: false, status: "loading"};
 			$scope.ttsArr.push(ttsService);
-			chrome.runtime.sendMessage({action: "ClickAndSpeech.testTtsService", tts:tts.name}, function(success) {
+			chrome.runtime.sendMessage({action: "PressAndSpeech.testTtsService", tts:tts.name}, function(success) {
 				if(success) ttsService.status = "available";
 				else ttsService.status = "error";
 				$scope.$digest();
