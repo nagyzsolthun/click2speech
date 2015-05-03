@@ -93,12 +93,6 @@
 		}, 200);
 	}
 	
-	/** reverts highlight if no functuon is set to manipualte it */
-	function revertHighlightIfNeeded() {
-		if(onMouseMove || onSpace) return;
-		revert("highlighted");
-	}
-	
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
@@ -344,7 +338,7 @@
 			onSpace = null;
 			onMouseMove = null;
 			onArrow = null;
-			revertHighlightIfNeeded();
+			revert("highlighted");
 		}
 	}
 	
@@ -364,7 +358,7 @@
 			getTextToRead = getBrowserSelectedText;
 			onMouseMove = null;
 			onArrow = null;
-			revertHighlightIfNeeded();
+			revert("highlighted");
 			return;
 		}
 		
@@ -372,21 +366,28 @@
 		getTextToRead = null;
 		onMouseMove = null;
 		onArrow = null;
-		revertHighlightIfNeeded();
+		revert("highlighted");
+		//stop event => other states are reverted
 	}
 	
 	/** sets the onMouseMove callback if criterias match: value, turnedOn, selectType
 	 * nulls it othwerwise */
 	function setHighlightOnHover(value) {
 		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onMouseMove = highlightHoveredElement;
-		else onMouseMove = null;
+		else {
+			onMouseMove = null;
+			if(!settings.highlightOnArrows) revert("highlighted");
+		}
 	}
 	
 	/** onArrow callback if criterias match: value, turnedOn, selectType
 	 * nulls it othwerwise */
 	function setHighlightOnArrows(value) {
-		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onArrow = highlightHoveredElement;
-		else onArrow = null;
+		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onArrow = stepHighlight;
+		else {
+			onArrow = null;
+			if(!settings.highlightOnHover) revert("highlighted");
+		}
 	}
 	
 	/** sets onClick based on criterias: value, turnedOn */
