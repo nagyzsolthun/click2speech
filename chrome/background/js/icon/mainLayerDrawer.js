@@ -107,10 +107,10 @@ define([], function() {
 		var transparent = "rgba(0,0,0,0)";
 		
 		drawBall({color:htmlColor(icon.outerFill) || transparent,r:quarter*2*0.9});
-		drawRing({color:htmlColor(icon.outerRing) || transparent, r:quarter*2*0.9, width:size/12});
+		drawRing({color:htmlColor(icon.outerRing) || transparent, r:quarter*2*0.9, width:size/16});
 		
 		drawBall({color:htmlColor(icon.innerFill) || transparent,r:quarter*0.9});
-		drawRing({color:htmlColor(icon.innerRing) || transparent, r:quarter*0.9, width:size/12});
+		drawRing({color:htmlColor(icon.innerRing) || transparent, r:quarter*0.9, width:size/16});
 		
 		renderedIcon = icon;
 	}

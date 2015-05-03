@@ -1,11 +1,13 @@
 body {
 	margin: 0;
 	font-family: sans-serif;
+	overflow: hidden;	/**hides scrollbar when switching between views */
 }
 
 /* ===================================== left panel settings =====================================*/
 
 #panel {
+	width: 20%;
 	height: 100%;
 	background: -webkit-linear-gradient(left, #f8f8f8, #f8f8f8 98%, #aaa);
 	float: left;
@@ -37,6 +39,11 @@ body {
 
 .optionsPageSelector:hover {
 	background-color: #4f4;
+}
+
+#logo {
+	width: 100%;	/**so it fitts right in the panel */
+	height: auto;
 }
 
 /* ===================================== hoverable =====================================*/
