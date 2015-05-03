@@ -52,29 +52,22 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					console.log("getErrors received");
 					sendResponse(tts.errors);
 					break;
-				case("PressAndSpeech.turnOn"):
-					console.log("turnOn received");
-					settingsHandler.set("turnedOn",true);
-					iconDrawer.drawTurnedOn();
-					break;
-				case("PressAndSpeech.turnOff"):
-					console.log("turnOff received");
-					settingsHandler.set("turnedOn",false);
-					tts.stop();	//in case it is reading, we stop it
-					iconDrawer.drawTurnedOff();
-					break;
 				case("PressAndSpeech.read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
-					break;
-				case("PressAndSpeech.missed"):	//TODO get rid of this
-					console.log("missed received");
-					iconDrawer.drawError();
 					break;
 				case("PressAndSpeech.set"):
 					console.log("set " + request.setting + ": " + request.value + " received");
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
+						case("turnedOn"):
+							if(request.value) iconDrawer.drawTurnedOn();
+							else {
+								tts.read({text:""});	//in case it is reading, we stop it
+								iconDrawer.drawTurnedOff();
+							}
+							notifyContentJs({action:"PressAndSpeech.set", setting:request.setting, value:request.value});break;
+							break;
 						case("speed"): tts.speed = request.value; break;
 						case("selectType"):
 						case("highlightOnHover"):

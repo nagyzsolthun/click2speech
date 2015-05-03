@@ -6,10 +6,10 @@ app.controller('popupController', function($scope) {
 
 	$scope.onOffButtonClick = function() {
 		if($scope.button.ttsOn) {
-			chrome.runtime.sendMessage({action: "PressAndSpeech.turnOff"});
+			chrome.runtime.sendMessage({action: "PressAndSpeech.set", setting:"turnedOn", value: false});
 			turnOff();
 		} else {
-			chrome.runtime.sendMessage({action: "PressAndSpeech.turnOn"});
+			chrome.runtime.sendMessage({action: "PressAndSpeech.set", setting:"turnedOn", value: true});
 			turnOn();
 		}
 	}

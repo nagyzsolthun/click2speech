@@ -312,9 +312,9 @@
 	/** reads the text to be read (highlighted paragraph / selected text) */
 	function readText() {
 		chrome.runtime.sendMessage({
-			action: "PressAndSpeech.read",
-			text: getTextToRead(),
-			lan: document.documentElement.lang
+			action: "PressAndSpeech.read"
+			,text: getTextToRead()	//should never reach this point if getTextToRead is null
+			,lan: document.documentElement.lang
 		});
 	}
 	
@@ -329,36 +329,91 @@
 	}
 	
 	// ============================================= general =============================================
+	
+	/** if value is true, sets callbacks based on the settings
+	 * if false, sets callbacks to null */
+	function setTurnedOn(value) {
+		if(value) {
+			updateSetting({setting:"selectType", value:settings.selectType});
+			updateSetting({setting:"highlightOnHover", value:settings.highlightOnHover});
+			updateSetting({setting:"highlightOnArrows", value:settings.highlightOnArrows});
+			updateSetting({setting:"readOnClick", value:settings.readOnClick});
+			updateSetting({setting:"readOnSpace", value:settings.readOnSpace});
+		} else {
+			onClick = null;
+			onSpace = null;
+			onMouseMove = null;
+			onArrow = null;
+			revertHighlightIfNeeded();
+		}
+	}
+	
+	/** selecttype is highlightSelect => sets the callbacks regarding highlight
+	 * otherwise => turns off highlight related callbacks, and sets getTextToRead to read browser selected text*/
+	function setSelectType(value) {
+		//highlightSelect
+		if(settings.turnedOn && value == "highlightSelect") {
+			getTextToRead = getHoveredParagraphText;
+			onMouseMove = settings.highlightOnHover?highlightHoveredElement:null;
+			onArrow = settings.highlightOnArrows?stepHighlight:null;
+			return;
+		}
+		
+		//builtInSelect
+		if(settings.turnedOn && value == "builtInSelect") {
+			getTextToRead = getBrowserSelectedText;
+			onMouseMove = null;
+			onArrow = null;
+			revertHighlightIfNeeded();
+			return;
+		}
+		
+		//off
+		getTextToRead = null;
+		onMouseMove = null;
+		onArrow = null;
+		revertHighlightIfNeeded();
+	}
+	
+	/** sets the onMouseMove callback if criterias match: value, turnedOn, selectType
+	 * nulls it othwerwise */
+	function setHighlightOnHover(value) {
+		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onMouseMove = highlightHoveredElement;
+		else onMouseMove = null;
+	}
+	
+	/** onArrow callback if criterias match: value, turnedOn, selectType
+	 * nulls it othwerwise */
+	function setHighlightOnArrows(value) {
+		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onArrow = highlightHoveredElement;
+		else onArrow = null;
+	}
+	
+	/** sets onClick based on criterias: value, turnedOn */
+	function setOnClick(value) {
+		if(value && settings.turnedOn) onClick = readText;
+		else onClick = null;
+	}
+	
+	/** sets onSpace based on criterias: value, turnedOn */
+	function setSpace(value) {
+		if(value && settings.turnedOn) onSpace = readTextAndPreventScroll;
+		else onSpace = null;
+	}
+	
 	function updateSetting(request) {
 		settings[request.setting] = request.value;
 		switch(request.setting) {
-			case("selectType"):
-				if(request.value == "highlightSelect") {
-					getTextToRead = getHoveredParagraphText;
-					onMouseMove = settings.highlightOnHover?highlightHoveredElement:null;
-					onArrow = settings.highlightOnArrows?stepHighlight:null;
-				} else {
-					getTextToRead = getBrowserSelectedText;
-					onMouseMove = null;
-					onArrow = null;
-					revertHighlightIfNeeded();
-				}
-				break;
-			case("highlightOnHover"):
-				if(settings.selectType == "highlightSelect") onMouseMove = request.value?highlightHoveredElement:null;
-				revertHighlightIfNeeded();
-				break;
-			case("highlightOnArrows"):
-				if(settings.selectType == "highlightSelect") onArrow = request.value?stepHighlight:null;
-				revertHighlightIfNeeded();
-				break;
-			case("readOnClick"): onClick = request.value?readText:null; break;
-			case("readOnSpace"): onSpace = request.value?readTextAndPreventScroll:null; break;
+			case("turnedOn"):			setTurnedOn(request.value);			break;
+			case("selectType"):			setSelectType(request.value);		break;
+			case("highlightOnHover"):	setHighlightOnHover(request.value);	break;
+			case("highlightOnArrows"):	setHighlightOnArrows(request.value);break;
+			case("readOnClick"):		setOnClick(request.value);			break;
+			case("readOnSpace"):		setSpace(request.value);			break;
 		}
 	}
 	
 	function onMessage(request, sender, sendResponse) {
-		console.log("received: " + request.action);
 		switch(request.action) {
 			case("PressAndSpeech.event"): animateClicked(request.event); break;
 			case("PressAndSpeech.set"): updateSetting(request); break;
@@ -387,6 +442,7 @@
 	
 	//initial setup
 	chrome.runtime.sendMessage({action: "PressAndSpeech.getSettings"}, function(settings) {
+		updateSetting({setting:"turnedOn", value:settings.selectType});
 		updateSetting({setting:"selectType", value:settings.selectType});
 		updateSetting({setting:"highlightOnHover", value:settings.highlightOnHover});
 		updateSetting({setting:"highlightOnArrows", value:settings.highlightOnArrows});

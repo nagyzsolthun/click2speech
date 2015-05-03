@@ -104,9 +104,6 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 			});
 		});
 	}
-	provider.stop = function() {
-		speech.stop(onEnd);
-	}
 	
 	/** @param callback is called when a tts is tested
 	 * 		@param available true if test passed, false if failed */
