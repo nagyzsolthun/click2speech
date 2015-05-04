@@ -31,7 +31,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 		/*urlArr = [
 			"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
 			,"http://www.ispeech.org/p/generic/getaudio?text=iSpeech is set up to read a longer sentence&voice=usenglishfemale&speed=0&action=convert"
-			,"https://github.com/nagyzsolthun/PressAndSpeech"
+			,"https://github.com/nagyzsolthun/PressToSpeech"
 			,"https://translate.google.co.uk/translate_tts?q=google&tl=en-US"
 		];
 		textArr = ["google","iSpeech is set up to read a longer sentence", "something random that causes error. ","google again"];*/

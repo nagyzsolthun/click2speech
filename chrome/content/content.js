@@ -306,7 +306,7 @@
 	/** reads the text to be read (highlighted paragraph / selected text) */
 	function readText() {
 		chrome.runtime.sendMessage({
-			action: "PressAndSpeech.read"
+			action: "PressToSpeech.read"
 			,text: getTextToRead()	//should never reach this point if getTextToRead is null
 			,lan: document.documentElement.lang
 		});
@@ -416,8 +416,8 @@
 	
 	function onMessage(request, sender, sendResponse) {
 		switch(request.action) {
-			case("PressAndSpeech.event"): animateClicked(request.event); break;
-			case("PressAndSpeech.set"): updateSetting(request); break;
+			case("PressToSpeech.event"): animateClicked(request.event); break;
+			case("PressToSpeech.set"): updateSetting(request); break;
 		}
 	}
 	/** to react when setting is changed in options*/
@@ -437,12 +437,12 @@
 			case(38): if(onArrow) onArrow(event, "up");		break;
 			case(39): if(onArrow) onArrow(event, "right");	break;
 			case(40): if(onArrow) onArrow(event, "down");	break;
-			case(27): chrome.runtime.sendMessage({action: "PressAndSpeech.read",text:""}); break;	//esc stops reading
+			case(27): chrome.runtime.sendMessage({action: "PressToSpeech.read",text:""}); break;	//esc stops reading
 		}
 	});
 	
 	//initial setup
-	chrome.runtime.sendMessage({action: "PressAndSpeech.getSettings"}, function(settings) {
+	chrome.runtime.sendMessage({action: "PressToSpeech.getSettings"}, function(settings) {
 		updateSetting({setting:"turnedOn", value:settings.selectType});
 		updateSetting({setting:"selectType", value:settings.selectType});
 		updateSetting({setting:"highlightOnHover", value:settings.highlightOnHover});

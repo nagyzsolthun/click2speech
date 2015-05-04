@@ -34,29 +34,29 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {
 			switch(request.action) {
-				case("PressAndSpeech.getSettings"):
+				case("PressToSpeech.getSettings"):
 					console.log("getSettings received");
 					settingsHandler.getAll(function(settings){
 						sendResponse(settings);
 					});
 					break;
-				case("PressAndSpeech.getTtsProperties"):
+				case("PressToSpeech.getTtsProperties"):
 					console.log("getTtsProperties received");
 					sendResponse(tts.ttsProperties);
 					break;
-				case("PressAndSpeech.testTtsService"):
+				case("PressToSpeech.testTtsService"):
 					console.log("testTtsService received");
 					tts.test(request.tts, sendResponse);
 					return true;	//very important: keeps sendResponse channel open until it is used
-				case("PressAndSpeech.getErrors"):
+				case("PressToSpeech.getErrors"):
 					console.log("getErrors received");
 					sendResponse(tts.errors);
 					break;
-				case("PressAndSpeech.read"):
+				case("PressToSpeech.read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
 					break;
-				case("PressAndSpeech.set"):
+				case("PressToSpeech.set"):
 					console.log("set " + request.setting + ": " + request.value + " received");
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
@@ -66,14 +66,14 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 								tts.read({text:""});	//in case it is reading, we stop it
 								iconDrawer.drawTurnedOff();
 							}
-							notifyContentJs({action:"PressAndSpeech.set", setting:request.setting, value:request.value});break;
+							notifyContentJs({action:"PressToSpeech.set", setting:request.setting, value:request.value});break;
 							break;
 						case("speed"): tts.speed = request.value; break;
 						case("selectType"):
 						case("highlightOnHover"):
 						case("highlightOnArrows"):
 						case("readOnClick"):
-						case("readOnSpace"): notifyContentJs({action:"PressAndSpeech.set", setting:request.setting, value:request.value});break;
+						case("readOnSpace"): notifyContentJs({action:"PressToSpeech.set", setting:request.setting, value:request.value});break;
 					}
 					break;
 			}
@@ -82,7 +82,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 
 	// ===================================== initial settings =====================================
 	tts.onEvent = function(event) {
-		notifyContentJs({action:"PressAndSpeech.event", event:event.type});
+		notifyContentJs({action:"PressToSpeech.event", event:event.type});
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
