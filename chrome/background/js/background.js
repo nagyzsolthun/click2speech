@@ -1,6 +1,7 @@
 require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsHandler, tts, iconDrawer) {
 	var iconCanvas = document.createElement("canvas");
-	iconCanvas.width = iconCanvas.height = 18;	//this is the size of the chrome icon TODO reference
+	//19px is the size of the icons https://developer.chrome.com/extensions/browserAction#icon
+	iconCanvas.width = iconCanvas.height = 18;
 	iconDrawer.canvas = iconCanvas;
 	iconDrawer.onRenderFinished = loadIconToToolbar;
 	
