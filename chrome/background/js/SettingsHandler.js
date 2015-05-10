@@ -16,8 +16,8 @@ define([], function() {
 		}
 		
 		//we have not cached => lets cache
-		chrome.storage.local.get('PressToSpeechSettings', function(items) {
-			cache = items.PressToSpeechSettings;
+		chrome.storage.local.get('settings', function(items) {
+			cache = items.settings;
 			if(cache) {	//=> there are settings persisted
 				response(cache);
 				return;
@@ -36,7 +36,7 @@ define([], function() {
 				,speed:1
 			}
 			response(cache);
-			chrome.storage.local.set({PressToSpeechSettings:cache}, function() {
+			chrome.storage.local.set({settings:cache}, function() {
 				console.log("first ever execution: default settings persisted");
 			});
 		});
@@ -46,7 +46,7 @@ define([], function() {
 	settingsHandler.set = function(setting, value) {
 		settingsHandler.getAll(function(cache) {
 			cache[setting] = value;
-			chrome.storage.local.set({PressToSpeechSettings:cache}, function() {});
+			chrome.storage.local.set({settings:cache}, function() {});
 		});
 	}
 

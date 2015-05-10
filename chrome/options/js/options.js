@@ -2,12 +2,12 @@ var app = angular.module('optionsApp', ['ngRoute','ngAnimate']);
 
 /** notifies background.js about a changed setting*/
 function sendSet(setting, value) {
-	chrome.runtime.sendMessage({action:"PressToSpeech.set",setting: setting,value: value});
-	console.log("PressToSpeech.set: " + setting + " " + value);
+	chrome.runtime.sendMessage({action:"set",setting: setting,value: value});
+	console.log("set: " + setting + " " + value);
 }
 
 function getSettings(callback) {
-	chrome.runtime.sendMessage({action: "PressToSpeech.getSettings"}, callback);
+	chrome.runtime.sendMessage({action: "getSettings"}, callback);
 }
 
 app.config(function($routeProvider) {
