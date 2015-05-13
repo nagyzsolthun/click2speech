@@ -1,4 +1,4 @@
-Press to Speech
+Touch to Speech
 ===============
 
 Chrome plugin that helps people with vision disabilities browsing the web.
