@@ -226,6 +226,7 @@
 	function stepHighlight(keyEvent, direction) {
 		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
 		
+		keyEvent.stopPropagation();	//other event listeners won't execute
 		keyEvent.preventDefault();	//stop scrolling
 
 		var rect;
@@ -441,7 +442,9 @@
 			case(40): if(onArrow) onArrow(event, "down");	break;
 			case(27): chrome.runtime.sendMessage({action: "read",text:""}); break;	//esc stops reading
 		}
-	});
+	}, true);
+	//last parameter: useCapture. True to have better changes that this listener executes first - so it can stop event propagation
+	//http://stackoverflow.com/questions/7398290/unable-to-understand-usecapture-attribute-in-addeventlistener
 	
 	//initial setup
 	chrome.runtime.sendMessage({action: "getSettings"}, function(settings) {
