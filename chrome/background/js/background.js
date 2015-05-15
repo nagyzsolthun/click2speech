@@ -5,6 +5,9 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	iconDrawer.canvas = iconCanvas;
 	iconDrawer.onRenderFinished = loadIconToToolbar;
 	
+	var userInteractionAudio = new Audio();
+	userInteractionAudio.src = "pop.wav";
+	
 	/** iconDrawer draws the icon on a canvas, this function shows the canvas on the toolbar */
 	function loadIconToToolbar() {
 		chrome.browserAction.setIcon({
@@ -56,6 +59,14 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				case("read"):
 					console.log("read received");
 					read({text: request.text,lan: request.lan || navigator.language});
+					break;
+				case("stepHighlight"):
+					settingsHandler.getAll(function(settings) {
+						if(! settings.audioFeedbackOnArrows) return;
+						userInteractionAudio.currentTime = 0;
+						userInteractionAudio.play();
+					});
+					iconDrawer.drawInteraction();
 					break;
 				case("set"):
 					console.log("set " + request.setting + ": " + request.value + " received");

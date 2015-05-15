@@ -6,7 +6,7 @@
 		</li>
 	</ul>
 </div>
-<div class="setting hoverable" ng-class="{unavailable: !highlightSettingsAvailable()}">
+<div class="setting hoverable" ng-class="{unavailable: !highlightEventOptionsAvailable()}">
 	<div>Highlight</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in highlightEventOptions" ng-class="{selected: option.selected}" ng-click="onSelectEventOptionClick(option)">
@@ -18,6 +18,14 @@
 	<div>Read Event</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in readEventOptions" ng-class="{selected: option.selected}" ng-click="onReadEventOptionClick(option)">
+			<span>{{option.text}}</span>
+		</li>
+	</ul>
+</div>
+<div class="setting hoverable" ng-class="{unavailable: !audioFeedbackOptionsAvailable()}">
+	<div>Audio Feedback</div>
+	<ul class="choiceList multipleChoiceList">
+		<li ng-repeat="option in audioFeedbackOptions" ng-class="{selected: option.selected}" ng-click="onAudioFeedbackOptionClick(option)">
 			<span>{{option.text}}</span>
 		</li>
 	</ul>

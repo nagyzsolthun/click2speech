@@ -45,6 +45,13 @@ define([], function() {
 		,outerRing: null
 	}
 	
+	var interactionAnimationIcon = {
+		innerFill: rgba({g:1})
+		,innerRing: rgba({})	//black
+		,outerFill: rgba({g:1})
+		,outerRing: rgba({r:0.4,g:0.4,b:0.4})
+	}
+	
 	var renderedIcon = turnedOffIcon;	//stores the last drawn state
 	var targetIcon = turnedOffIcon;	//in case an animation request comes in while animating, this icon is will be the end
 	var animation;	//current/last-finished animation
@@ -199,6 +206,13 @@ define([], function() {
 			,{from:errorAnimationIcon,to:errorIcon,length:200}
 			,{from:errorIcon,to:errorAnimationIcon,length:200}
 			,{from:errorAnimationIcon,to:targetIcon,length:200}
+		]};
+	}
+	
+	drawer.animateInteraction = function() {
+		animation = {start: Date.now(),transitions: [
+			{from:renderedIcon,to:interactionAnimationIcon,length:200}
+			,{from:interactionAnimationIcon,to:targetIcon,length:200}
 		]};
 	}
 

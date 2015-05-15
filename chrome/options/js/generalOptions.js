@@ -14,6 +14,9 @@ angular.module('optionsApp')
 		{value:"readOnClick", text:"click", selected:false}
 		,{value:"readOnSpace", text:"spacebar", selected:false}
 	];
+	$scope.audioFeedbackOptions = [
+		{value:"audioFeedbackOnArrows", text:"arrow keys", selected:false}
+	];
 
 	//user interaction with the lists
 	$scope.onSelectTypeOptionClick = function(clickedOption) {
@@ -31,12 +34,20 @@ angular.module('optionsApp')
 		//a boolean is stored for each option.value
 		sendSet(clickedOption.value, clickedOption.selected);
 	}
-	$scope.highlightSettingsAvailable = function() {
-		var result = true;
-		$scope.selectTypeOptions.forEach(function(option) {
-			if(option.value == "builtInSelect" && option.selected) result = false;
+	$scope.onAudioFeedbackOptionClick = function(clickedOption) {
+		clickedOption.selected = clickedOption.selected?false:true;
+		sendSet(clickedOption.value, clickedOption.selected);
+	}
+
+	$scope.highlightEventOptionsAvailable = function() {
+		return $scope.selectTypeOptions.some(function(option) {
+			return option.value == "highlightSelect" && option.selected
 		});
-		return result;
+	}
+	$scope.audioFeedbackOptionsAvailable = function() {
+		return $scope.highlightEventOptionsAvailable() && $scope.highlightEventOptions.some(function(option) {
+			return option.value == "highlightOnArrows" && option.selected;
+		});
 	}
 	
 	//initial setup
@@ -44,6 +55,7 @@ angular.module('optionsApp')
 		$scope.selectTypeOptions.forEach(function(option) {option.selected = (settings.selectType == option.value);});
 		$scope.highlightEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.readEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
+		$scope.audioFeedbackOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.$digest();	//so angular recognizes the change
 	});
 });

@@ -62,6 +62,11 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer']
 		mainLayerDrawer.animateError();
 		animate();
 	}
+	
+	drawer.drawInteraction = function() {
+		mainLayerDrawer.animateInteraction();
+		animate();
+	}
 
 	return drawer;
 });

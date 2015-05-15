@@ -224,6 +224,8 @@
 	
 	/** highlights element in @param direction from currently highlighted element */
 	function stepHighlight(keyEvent, direction) {
+		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
+		
 		keyEvent.preventDefault();	//stop scrolling
 
 		var rect;
