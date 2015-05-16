@@ -169,19 +169,18 @@
 		}
 	}
 	
-	/** @return true if redable is on the path selected by the cursor. assuming the cursor is set
-	 * @param reasdable.rect the rect to check*/
-	function isOnPath(readable) {
+	/** @return true if rect is on the path selected by the cursor. assuming the cursor is set*/
+	function isOnPath(rect) {
 		//filter based on cursor
 		switch(cursor.direction) {
 			case("vertical"):
 				//equality: in case of tables, the top of underlying row is the same as bottom
-				if(readable.rect.right <= cursor.rect.left) return false;
-				if(cursor.rect.right <= readable.rect.left) return false;
+				if(rect.right <= cursor.rect.left) return false;
+				if(cursor.rect.right <= rect.left) return false;
 				break;
 			case("horizontal"):
-				if(cursor.rect.bottom <= readable.rect.top) return false;
-				if(readable.rect.bottom <= cursor.rect.top) return false;
+				if(cursor.rect.bottom <= rect.top) return false;
+				if(rect.bottom <= cursor.rect.top) return false;
 				break;
 		}
 		return true;
@@ -202,55 +201,58 @@
 		}
 	}
 	
-	/** @return array of {element,rect} pairs under @param parent
-	 * where each element directly contains text and rect is the boundingClientRect of the element*/
-	function getReadableElementRectArr(parent) {
-		if(!parent.getBoundingClientRect) return [];	//no getBoundingClientRect, no content
+	var closest = {element:null,dist:-1,rect:null};
+	
+	/** sets closest
+	 * @param fromRect the rect to which the closest is searched
+	 * @param element the element we currently check
+	 * @param direction up|down|left|right the direction of search
+	 * @parant */
+	function setClosest(fromRect, element, direction) {
+		if(!element) return;
+		if(!element.getBoundingClientRect) return; //no getBoundingClientRect: no content
 		
-		var rect = parent.getBoundingClientRect();
-		//checking the rect seems to be a smart, but in some cases (e.g. wikipedia left panel) readable elements are inside 0 size elements
-		//if(rect.right-rect.left == 0 || rect.top-rect.bottom == 0) return [];	//no size, no content
-		if(containsTextDirectly(parent)) return [{element:parent, rect:rect}];
-		
-		var result = [];
-		for(var i=0; i<parent.childNodes.length; i++) {
-			var child = parent.childNodes[i];
-			result = result.concat(getReadableElementRectArr(child));
+		//contains text directly => check if position is fine
+		if(containsTextDirectly(element)) {
+			var rect = element.getBoundingClientRect();
+			if(!isOnPath(rect)) return;
+			if(element === status2element.highlighted) return;
+			var d = dist(fromRect,rect,direction);
+			if(d <= 0) return;
+			if((closest.dist > -1) && (closest.dist < d)) return;
+			closest.element = element;
+			closest.dist = d;
+			closest.rect = rect;
+			return;
 		}
-		return result;
+		
+		//doesn't contain text directly => explore its children
+		for(var i=0; i<element.childNodes.length; i++) {
+			var child = element.childNodes[i];
+			setClosest(fromRect, child, direction);
+		}
 	}
 	
 	var lastScroll = 0;	//time of last scrolling caused by stepping (to prevent unnecessary onMouseMove event)
 	
 	/** highlights element in @param direction from currently highlighted element */
 	function stepHighlight(keyEvent, direction) {
-		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
-		
 		keyEvent.stopPropagation();	//other event listeners won't execute
 		keyEvent.preventDefault();	//stop scrolling
 
-		var rect;
-		if(status2element.highlighted) rect = status2element.highlighted.getBoundingClientRect();
-		else rect = {top:0,bottom:0,left:0,right:0}
+		var fromRect;
+		if(status2element.highlighted) fromRect = status2element.highlighted.getBoundingClientRect();
+		else fromRect = document.documentElement.getBoundingClientRect();
+		setCursor(fromRect,direction);
 		
-		var closest = {element:null,dist:-1,rect:null};
-		setCursor(rect,direction);
-		
-		var readables = getReadableElementRectArr(document.documentElement).filter(isOnPath);
-		readables.forEach(function(readable) {
-			if(readable.element === status2element.highlighted) return;
-			var d = dist(rect,readable.rect,direction);
-			if(d <= 0) return;
-			if((closest.dist > -1) && (closest.dist < d)) return;
-			closest.element = readable.element;
-			closest.dist = d;
-			closest.rect = readable.rect;
-		});
+		closest = {element:null,dist:-1,rect:null};
+		setClosest(fromRect, document.documentElement, direction);
+
 		if(!closest.element) return;
 		addStatus(closest.element,"highlighted");
+		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
 		
 		//scroll into view
-		var doc = document.documentElement;
 		var scroll = {x:0,y:0};
 		switch(direction) {
 			case("up"): if(closest.rect.top < 0) scroll.y = closest.rect.top; break;
@@ -266,7 +268,7 @@
 	}
 	
 	function isMouseMoveEventFromScrolling() {
-		return (Date.now() - lastScroll) < 200;	//the usual value is around 100ms, TODO check on slower machines
+		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
 	}
 	
 	//TODO remove this, only here for debugging
