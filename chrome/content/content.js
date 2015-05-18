@@ -320,11 +320,8 @@
 	/** should be called with the "keydown" event when space is pressed
 	 * reads text provided by getText(), and stops page scroll if the active element is an input*/
 	function readTextAndPreventScroll(event) {
-		var activeTagName = document.activeElement?document.activeElement.tagName:null;
-		if(["INPUT","TEXTAREA"].indexOf(activeTagName) < 0) {
-			readText();
-			event.preventDefault();	//stop scrolling
-		}
+		readText();
+		event.preventDefault();	//stop scrolling
 	}
 	
 	// ============================================= general =============================================
@@ -436,6 +433,12 @@
 	});
 	window.addEventListener("keydown", function(event) {
 		//TODO turnOn
+		
+		var activeTagName = document.activeElement?document.activeElement.tagName:null;
+		if(["INPUT","TEXTAREA"].indexOf(activeTagName) > -1) {
+			return;	//if an input field has focus, we ignore PressToSpeech controls TODO feedback
+		}
+		
 		switch(event.keyCode) {
 			case(32): if(onSpace) onSpace(event);			break;
 			case(37): if(onArrow) onArrow(event, "left");	break;
