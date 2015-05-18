@@ -1,12 +1,14 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
 	var settings = {};	//last cahnge of all settings
+	var readingStatus = null;
 	
 	var getTextToRead;	//either returns content of highlighted or browser-selected text
 	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
 	var onClick;	//called when mouse is clicked
 	var onSpace;	//called when space is pressed with parameter: keyEvent
 	var onMouseMove;	//called when the mouse pinter moves
+	var onEsc;	//called when esc key is pressed
 	
 	// ============================================= highlight =============================================	
 	var clickedElement = null;	//TODO maybe some nicer logic
@@ -103,11 +105,6 @@
 	
 	/** @return the text in highlighted element */
 	function getHoveredParagraphText() {
-		clickedElement = status2element.highlighted;
-		revert("loading");
-		revert("playing");
-		revert("error");
-
 		if(status2element.highlighted) return status2element.highlighted.textContent;
 		else return "";
 	}
@@ -293,10 +290,22 @@
 	
 	function animateClicked(readingEvent) {
 		switch(readingEvent) {
-			case("loading"): addStatus(clickedElement,"loading"); break;
-			case("start"): addStatus(clickedElement,"playing"); break;
-			case("end"): revert("playing"); break;
-			case("error"): addStatus(clickedElement,"error"); break;
+			case("loading"):
+				readingStatus = "loading";
+				addStatus(clickedElement,"loading");
+				break;
+			case("start"):
+				readingStatus = "playing";
+				addStatus(clickedElement,"playing");
+				break;
+			case("end"):
+				readingStatus = null;
+				addStatus(null,"playing");	//reverts loading, playing, error
+				break;
+			case("error"):
+				readingStatus = "error";
+				addStatus(clickedElement,"error");
+				break;
 		}
 	}
 
@@ -425,6 +434,14 @@
 	/** to react when setting is changed in options*/
 	chrome.runtime.onMessage.addListener(onMessage);
 	
+	onEsc = function(keyEvent) {
+		if(!readingStatus == "playing") return;
+		
+		//if reading => stop + stop event propagation
+		chrome.runtime.sendMessage({action: "read",text:""});
+		keyEvent.stopPropagation();	//other event listeners won't execute
+	}
+	
 	window.addEventListener("mousemove", function(event) {
 		if(onMouseMove) onMouseMove();
 	});
@@ -432,8 +449,6 @@
 		if(onClick) onClick();
 	});
 	window.addEventListener("keydown", function(event) {
-		//TODO turnOn
-		
 		var activeTagName = document.activeElement?document.activeElement.tagName:null;
 		if(["INPUT","TEXTAREA"].indexOf(activeTagName) > -1) {
 			return;	//if an input field has focus, we ignore PressToSpeech controls TODO feedback
@@ -445,7 +460,7 @@
 			case(38): if(onArrow) onArrow(event, "up");		break;
 			case(39): if(onArrow) onArrow(event, "right");	break;
 			case(40): if(onArrow) onArrow(event, "down");	break;
-			case(27): chrome.runtime.sendMessage({action: "read",text:""}); break;	//esc stops reading
+			case(27): if(onEsc) onEsc(event); break;
 		}
 	}, true);
 	//last parameter: useCapture. True to have better changes that this listener executes first - so it can stop event propagation
