@@ -105,7 +105,8 @@
 	
 	/** @return the text in highlighted element */
 	function getHoveredParagraphText() {
-		if(status2element.highlighted) return status2element.highlighted.textContent;
+		clickedElement = status2element.highlighted;
+		if(clickedElement) return clickedElement.textContent;
 		else return "";
 	}
 	
