@@ -17,7 +17,6 @@
 	},
 	"icons": {
 		"16": "icon/iconOn32.png",
-		"64": "icon/icon64.png",
-		"128": "icon/icon128.png"
+		"64": "icon/icon64.png"
 	}
 }
