@@ -1,50 +1,50 @@
 body {
 	margin: 0;
 	font-family: sans-serif;
-	overflow: hidden;	/**hides scrollbar when switching between views */
+	background-color:#aaa;
+	overflow-y: scroll;
 }
 
-/* ===================================== left panel settings =====================================*/
-
-#panel {
-	width: 20%;
+/* ===================================== container =====================================*/
+.container {
+	max-width: 80em;
 	height: 100%;
-	background: -webkit-linear-gradient(left, #f8f8f8, #f8f8f8 98%, #aaa);
-	float: left;
-	margin: 0 10px 0 0;
-	border-right: 1px solid gray;
+	margin: 0 auto;
+	background-color:white;
 }
 
-#panel h1 {
-	font-size: 25px;
-	margin: 0.5em;
+/* ===================================== header =====================================*/
+.header {
+	padding: 0.5em 3em;
+	background-color: #f8f8f8;
 }
 
-.optionsPageSelector {
-	background-color: #fbfbfb;
-	padding: 0.5em 1em;
-	margin: 2px 0;
-	text-align: right;
-	border-top: 1px solid gray;
-	border-bottom: 1px solid gray;
-	-webkit-transition: background-color .2s linear;
+.header-logo {
+	height: 6em;
 }
 
-.optionsPageSelector.active {
-	background-color: #dfd;
-	/*background: -webkit-linear-gradient(left, #afa, #fff);*/
-	border-top: 1px solid gray;
-	border-bottom: 1px solid gray;
+/* ===================================== nav-bar =====================================*/
+.nav-bar {
+	margin: 0;
+    padding: 0;
+	background-color:#333;
 }
 
-.optionsPageSelector:hover {
-	background-color: #4f4;
+.nav-bar li {
+	display: inline-block;
+	list-style: none;
+	padding: 1.5em;
+	margin:0;
+	-webkit-transition: background-color .1s linear;
+}
+.nav-bar span {
+	font-size: 2em;
+	text-decoration: none;
+	color: white;
 }
 
-#logo {
-	width: 100%;	/**so it fitts right in the panel */
-	height: auto;
-}
+.nav-bar li.active {background-color:#292;}
+.nav-bar li:hover {background-color:#4f4;}
 
 /* ===================================== hoverable =====================================*/
 .hoverable {-webkit-transition: background-color .2s linear;}
@@ -54,12 +54,7 @@ body {
 
 /* ===================================== content settings =====================================*/
 
-#content {
-	/* the content shouldn't flow under the left panel */
-	/* http://colinaarts.com/articles/the-magic-of-overflow-hidden/#making-room-for-floats */
-	overflow:hidden;
-	-webkit-transition: opacity .2s linear;
-}
+#content {-webkit-transition: opacity .2s linear;}
 
 /** TODO why these values work
  https://docs.angularjs.org/api/ngAnimate*/
