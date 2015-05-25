@@ -1,5 +1,5 @@
 <div class="setting hoverable">
-	<div>Selection</div>
+	<div>{{selectionOptionsName}}</div>
 	<ul class="choiceList singleChoiceList">
 		<li ng-repeat="option in selectTypeOptions" ng-class="{selected: option.selected}" ng-click="onSelectTypeOptionClick(option)">
 			<span>{{option.text}}</span>
@@ -7,7 +7,7 @@
 	</ul>
 </div>
 <div class="setting hoverable" ng-class="{unavailable: !highlightEventOptionsAvailable()}">
-	<div>Highlight</div>
+	<div>{{highlightOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in highlightEventOptions" ng-class="{selected: option.selected}" ng-click="onSelectEventOptionClick(option)">
 			<span>{{option.text}}</span>
@@ -15,7 +15,7 @@
 	</ul>
 </div>
 <div class="setting hoverable">
-	<div>Read Event</div>
+	<div>{{readEventOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in readEventOptions" ng-class="{selected: option.selected}" ng-click="onReadEventOptionClick(option)">
 			<span>{{option.text}}</span>
@@ -23,7 +23,7 @@
 	</ul>
 </div>
 <div class="setting hoverable" ng-class="{unavailable: !audioFeedbackOptionsAvailable()}">
-	<div>Audio Feedback</div>
+	<div>{{audioFeedbackOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in audioFeedbackOptions" ng-class="{selected: option.selected}" ng-click="onAudioFeedbackOptionClick(option)">
 			<span>{{option.text}}</span>

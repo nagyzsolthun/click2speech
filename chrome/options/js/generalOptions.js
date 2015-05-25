@@ -1,21 +1,26 @@
 angular.module('optionsApp')
 .controller('generalOptionsController', function($scope) {
-
+	function toMessage(text) {return chrome.i18n.getMessage(text) || "*"+text+"*";}
+	$scope.selectionOptionsName = toMessage("selectionOptions");
+	$scope.highlightOptionsName = toMessage("highlightOptions");
+	$scope.readEventOptionsName = toMessage("readEventOptions");
+	$scope.audioFeedbackOptionsName = toMessage("audioFeedbackOptions");
+	
 	//set up the list of options (select event + read event)
 	$scope.selectTypeOptions = [
-		{value:"highlightSelect", text:"highlighted paragraph", selected:false}
-		,{value:"builtInSelect", text:"browser built-in selection", selected:false}
+		{value:"highlightSelect", text:toMessage("highlightSelect"), selected:false}
+		,{value:"builtInSelect", text:toMessage("builtInSelect"), selected:false}
 	];
 	$scope.highlightEventOptions = [
-		{value:"highlightOnHover", text:"mouse", selected:false}
-		,{value:"highlightOnArrows", text:"arrows", selected:false}
+		{value:"highlightOnHover", text:toMessage("highlightOnHover"), selected:false}
+		,{value:"highlightOnArrows", text:toMessage("highlightOnArrows"), selected:false}
 	];
 	$scope.readEventOptions = [
-		{value:"readOnClick", text:"click", selected:false}
-		,{value:"readOnSpace", text:"spacebar", selected:false}
+		{value:"readOnClick", text:toMessage("readOnClick"), selected:false}
+		,{value:"readOnSpace", text:toMessage("readOnSpace"), selected:false}
 	];
 	$scope.audioFeedbackOptions = [
-		{value:"audioFeedbackOnArrows", text:"arrow keys", selected:false}
+		{value:"audioFeedbackOnArrows", text:toMessage("audioFeedbackOnArrows"), selected:false}
 	];
 
 	//user interaction with the lists

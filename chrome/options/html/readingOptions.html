@@ -1,5 +1,5 @@
 <div class="setting hoverable">
-	<div>Service</div>
+	<div>{{ttsOptionsName}}</div>
 	<ul class="choiceList singleChoiceList">
 		<li	ng-repeat="tts in ttsArr"
 			class="{{tts.status}}"
@@ -10,12 +10,12 @@
 	</ul>
 </div>
 <div class="setting hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('speed')}">
-	<div>Speed</div>
+	<div>{{speedOptionsName}}</div>
 	<input class="numberInput" type="number" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 	<input class="rangeInput" type="range" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 </div>
 <div class="setting hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('gender')}">
-	<div>Gender</div>
+	<div>{{genderOptionsName}}</div>
 	<ul class="choiceList singleChoiceList">
 		<li	ng-repeat="gender in genderArr"
 			ng-class="{selected: gender.selected}"

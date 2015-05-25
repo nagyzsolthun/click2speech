@@ -1,8 +1,8 @@
 <ul class="nav-bar" ng-controller="navigationBarController">
 	<li ng-class="{active:isActive('/general')}" ng-click="redirect('general')">
-		<span>General</span>
+		<span>{{generalOptionsPageName}}</span>
 	</li>
 	<li ng-class="{active:isActive('/reading')}" ng-click="redirect('reading')">
-		<span>Reading</span>
+		<span>{{readingOptionsPageName}}</span>
 	</li>
 </ul>
