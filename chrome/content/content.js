@@ -231,6 +231,23 @@
 		}
 	}
 	
+	/** @return the boundingClientRect of the currently higlighted element
+	 * otherwise return a rect representing the edge of the page:
+	 * up: bottom edge | down: top edge | left: right edge | right: left edge*/
+	function getFromRect(direction) {
+		if(status2element.highlighted) return status2element.highlighted.getBoundingClientRect();
+
+		result = {top: 0, bottom: document.body.scrollHeight, left: 0, right: document.body.scrollWidth};
+		switch(direction) {
+			case("up"): result.top = document.body.scrollHeight; break;
+			case("down"): result.bottom = 0; break;
+			case("left"): result.left = document.body.scrollWidth; break;
+			case("right"): result.right = 0; break;
+			default: result = document.documentElement.getBoundingClientRect();
+		}
+		return result;
+	}
+	
 	var lastScroll = 0;	//time of last scrolling caused by stepping (to prevent unnecessary onMouseMove event)
 	
 	/** highlights element in @param direction from currently highlighted element */
@@ -238,9 +255,7 @@
 		keyEvent.stopPropagation();	//other event listeners won't execute
 		keyEvent.preventDefault();	//stop scrolling
 
-		var fromRect;
-		if(status2element.highlighted) fromRect = status2element.highlighted.getBoundingClientRect();
-		else fromRect = document.documentElement.getBoundingClientRect();
+		var fromRect = getFromRect(direction);
 		setCursor(fromRect,direction);
 		
 		closest = {element:null,dist:-1,rect:null};
@@ -252,12 +267,10 @@
 		
 		//scroll into view
 		var scroll = {x:0,y:0};
-		switch(direction) {
-			case("up"): if(closest.rect.top < 0) scroll.y = closest.rect.top; break;
-			case("down"): if(closest.rect.bottom > window.innerHeight) scroll.y = closest.rect.bottom-window.innerHeight; break;
-			case("left"): if(closest.rect.left < 0) scroll.x = closest.rect.left; break;
-			case("right"): if(closest.rect.right > window.innerWidth) scroll.x = closest.rect.right-window.innerRight; break;
-		}
+		if(closest.rect.top < 0) scroll.y += closest.rect.top;
+		if(closest.rect.bottom > window.innerHeight) scroll.y += closest.rect.bottom-window.innerHeight;
+		if(closest.rect.left < 0) scroll.x += closest.rect.left;
+		if(closest.rect.right > window.innerWidth) scroll.x += closest.rect.right-window.innerRight;
 		if(scroll.x || scroll.y) {
 			window.scrollBy(scroll.x, scroll.y);
 			lastScroll = Date.now();
