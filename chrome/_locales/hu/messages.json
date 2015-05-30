@@ -1,5 +1,5 @@
 {
-	"extensionDescription": {"message": "Egyszerűen használható szöveg-hang átalakító látássérülteknek (és lustáknak :)). Érintsd meg a bekezdést és a Touch to Speech felolvassa azt."}
+	"extensionDescription": {"message": "Szöveg felolvasó látássérülteknek."}
 	,"generalOptionsPage": {"message": "Általános"}
 	,"readingOptionsPage": {"message": "Olvasás"}
 	,"selectionOptions": {"message": "Kijelölés"}

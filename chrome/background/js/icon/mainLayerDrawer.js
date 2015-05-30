@@ -14,7 +14,7 @@ define([], function() {
 		innerFill: rgba({g:1})
 		,innerRing: rgba({})	//black
 		,outerFill: null
-		,outerRing: rgba({r:0.4,g:0.4,b:0.4})
+		,outerRing: rgba({r:0.2,g:0.2,b:0.2})
 	}
 	
 	var playingIcon = {
@@ -49,7 +49,7 @@ define([], function() {
 		innerFill: rgba({g:1})
 		,innerRing: rgba({})	//black
 		,outerFill: rgba({g:1})
-		,outerRing: rgba({r:0.4,g:0.4,b:0.4})
+		,outerRing: rgba({r:0.2,g:0.2,b:0.2})
 	}
 	
 	var renderedIcon = turnedOffIcon;	//stores the last drawn state

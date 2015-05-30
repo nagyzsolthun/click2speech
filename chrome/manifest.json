@@ -12,11 +12,11 @@
 	"background" : {"page": "background/background.html"},
 	"options_page": "options/html/options.html",
 	"browser_action": {
-		"default_icon": "icon/iconOff32.png",
+		"default_icon": "img/iconOff32.png",
 		"default_popup": "popup/popup.html"
 	},
 	"icons": {
-		"16": "icon/iconOn32.png",
-		"64": "icon/icon64.png"
+		"16": "img/iconOn32.png",
+		"64": "img/icon64.png"
 	}
 }

@@ -1,5 +1,5 @@
 {
-	"extensionDescription": {"message": "Easy to use text-speech converter for people with vision or reading disabilities (or laziness :)). Touch the paragraph and Touch to Speech reads it."}
+	"extensionDescription": {"message": "Text reader for people with vision- and reading disabilities."}
 	,"generalOptionsPage": {"message": "General"}
 	,"readingOptionsPage": {"message": "Reading"}
 	,"selectionOptions": {"message": "Selection"}

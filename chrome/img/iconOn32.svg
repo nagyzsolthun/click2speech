@@ -13,11 +13,11 @@
    height="32"
    id="svg2993"
    version="1.1"
-   inkscape:version="0.48.5 r10040"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="iconOn32.svg"
-   inkscape:export-filename="/home/zsolt/prog/PressToSpeech/chrome/icon/iconOn32.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-filename="/home/zsolt/prog/TouchToSpeech/chrome/img/iconOn32.png"
+   inkscape:export-xdpi="180"
+   inkscape:export-ydpi="180">
   <defs
      id="defs2995" />
   <sodipodi:namedview
@@ -28,16 +28,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6568542"
-     inkscape:cx="-10.107866"
-     inkscape:cy="24.447543"
+     inkscape:cx="-29.161319"
+     inkscape:cy="23.386884"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
      inkscape:window-width="1280"
-     inkscape:window-height="745"
-     inkscape:window-x="-2"
-     inkscape:window-y="-3"
+     inkscape:window-height="743"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata2998">
@@ -64,17 +64,17 @@
        sodipodi:cy="8.181818"
        sodipodi:rx="11.272727"
        sodipodi:ry="11.272727"
-       d="m -39.090909,8.181818 c 0,6.225755 -5.046972,11.272727 -11.272727,11.272727 -6.225755,0 -11.272727,-5.046972 -11.272727,-11.272727 0,-6.2257552 5.046972,-11.272727 11.272727,-11.272727 6.225755,0 11.272727,5.0469718 11.272727,11.272727 z"
+       d="M -39.090909,8.181818 A 11.272727,11.272727 0 0 1 -50.363636,19.454545 11.272727,11.272727 0 0 1 -61.636363,8.181818 11.272727,11.272727 0 0 1 -50.363636,-3.090909 11.272727,11.272727 0 0 1 -39.090909,8.181818 Z"
        transform="matrix(0.70967745,0,0,0.70967745,51.741936,42.193548)" />
     <path
        sodipodi:type="arc"
-       style="fill:none;stroke:#7a7a7a;stroke-width:2.19179535000000003;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       style="fill:none;stroke:#3c3c3c;stroke-width:2.19179535;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        id="path3755"
        sodipodi:cx="-29.363636"
        sodipodi:cy="21.363636"
        sodipodi:rx="17.181818"
        sodipodi:ry="15.727273"
-       d="m -12.181818,21.363636 c 0,8.685933 -7.692562,15.727273 -17.181818,15.727273 -9.489256,0 -17.181818,-7.04134 -17.181818,-15.727273 0,-8.685933 7.692562,-15.727273 17.181818,-15.727273 9.489256,0 17.181818,7.04134 17.181818,15.727273 z"
+       d="M -12.181818,21.363636 A 17.181818,15.727273 0 0 1 -29.363636,37.090909 17.181818,15.727273 0 0 1 -46.545454,21.363636 17.181818,15.727273 0 0 1 -29.363636,5.636363 17.181818,15.727273 0 0 1 -12.181818,21.363636 Z"
        transform="matrix(0.87301588,0,0,0.95375721,41.634921,27.624278)" />
   </g>
 </svg>
