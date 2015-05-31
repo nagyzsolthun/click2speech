@@ -53,7 +53,7 @@ body {
 
 /* ===================================== content settings =====================================*/
 
-#content {-webkit-transition: opacity .2s linear;}
+#content {-webkit-transition: opacity .2s linear;}	/* transition of switch between pages */
 #content.ng-enter {
     opacity: 0;
 }
@@ -79,8 +79,9 @@ body {
 	font-size: 30px;
 	padding: 1em;
 	border-bottom: 1px solid gray;
-	-webkit-transition: all .2s linear;
 }
+
+.setting > div {-webkit-transition: color .2s linear;}	/* the transition of the setting titles (when they become unavailable) */
 
 /* ===================================== speed settings =====================================*/
 
@@ -121,7 +122,6 @@ body {
 
 /* ===================================== choiceList =====================================*/
 .choiceList {list-style: none;margin: 0;}
-.unavailable {color: grey;}/* TODO why this works? I want content of .settings.unavailable to be grey */
 
 /* animation for loading: the loading icon rotates behind the option */
 .choiceList > .loading:after {
@@ -150,26 +150,28 @@ body {
 }
 
 /* change color of-, and remove the image from before the options of unavailable settings*/
+.setting.unavailable {color: grey;}	/* all text in unavailable setting is grey */
 .setting.unavailable > .choiceList > * {pointer-events:none;}
 .setting.unavailable > .choiceList > :before {opacity: 0;}
 
-/** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted*/
-.choiceList > li > span {border-radius: 0.4em;-webkit-transition: background-color .2s linear;}
+/** option elements are in spans in lis: li takes the whole width of the page, but we only want to have the text highlighted
+ * we also set animation on text color and background color (by using all)*/
+.choiceList > li > span {border-radius: 0.4em;-webkit-transition: all .2s linear;}
 
-.choiceList > li:hover > span 			{background-color:#4f4;}
-.choiceList > li.loading > span			{color:grey;}
-.choiceList > li.error > span			{color:grey;}
-.choiceList > li.loading:hover > span 	{background-color:#ccc;}
-.choiceList > li.error:hover > span		{background-color:#ccc;}
+.choiceList > li:hover > span 				{background-color:#4f4;}
+.choiceList > li.loading > span				{color:grey;}
+.choiceList > li.unavailable > span			{color:grey;}
+.choiceList > li.loading:hover > span 		{background-color:#ccc;}
+.choiceList > li.unavailable:hover > span	{background-color:#ccc;}
+.choiceList > li.unavailable:before			{opacity: 0;}	/* set opacity for the animation */
 
 /*unavailable settings options are not highlighted*/
 .setting.unavailable > .choiceList > li > span	{background-color:inherit;}
 
-.singleChoiceList > :before						{background-image: url('img/radio.svg');}
-.singleChoiceList > .selected:before			{background-image: url('img/radioSelected.svg');}
-.singleChoiceList > .error:before				{background-image: none;}
-.singleChoiceList > .selected.loading:before	{background-image: url('img/radioSelectedLoading.svg');}
-.singleChoiceList > .selected.error:before		{background-image: url('img/radioSelectedUnavailable.svg');}
+.singleChoiceList > li:before						{background-image: url('img/radio.svg');}
+.singleChoiceList > li.selected:before				{background-image: url('img/radioSelected.svg');}
+.singleChoiceList > li.selected.loading:before		{background-image: url('img/radioSelectedLoading.svg');}
+.singleChoiceList > li.selected.unavailable:before	{background-image: url('img/radioSelectedUnavailable.svg');}
 
 .multipleChoiceList > :before			{background-image: url('img/check.svg');}
 .multipleChoiceList > .selected:before	{background-image: url('img/checkSelected.svg');}

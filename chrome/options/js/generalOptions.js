@@ -55,6 +55,20 @@ angular.module('optionsApp')
 		});
 	}
 	
+	$scope.optionAvailable = function(option) {
+		//readOnClick is available only if ghighlightOnHover is true
+		if(option.value == "readOnClick") {
+			var selectTypeOption = $scope.selectTypeOptions.filter(function(option) {return option.value == "highlightSelect"})[0];
+			if(selectTypeOption && !selectTypeOption.selected) return true;	//builtInSelect => click can go
+		
+			var highlightOnHoverOption = $scope.highlightEventOptions.filter(function(option) {return option.value == "highlightOnHover"})[0];
+			if(highlightOnHoverOption && !highlightOnHoverOption.selected) return false; //highlightSelect + no hover => baad
+		}
+
+		//no other exception
+		return true;
+	}
+	
 	//initial setup
 	getSettings(function(settings) {
 		$scope.selectTypeOptions.forEach(function(option) {option.selected = (settings.selectType == option.value);});

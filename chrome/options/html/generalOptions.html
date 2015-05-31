@@ -17,7 +17,10 @@
 <div class="setting hoverable">
 	<div>{{readEventOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">
-		<li ng-repeat="option in readEventOptions" ng-class="{selected: option.selected}" ng-click="onReadEventOptionClick(option)">
+		<li
+			ng-repeat="option in readEventOptions"
+			ng-class="{selected: option.selected, unavailable: !optionAvailable(option)}"
+			ng-click="onReadEventOptionClick(option)">
 			<span>{{option.text}}</span>
 		</li>
 	</ul>

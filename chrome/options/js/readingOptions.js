@@ -50,7 +50,7 @@ angular.module('optionsApp')
 			$scope.ttsArr.push(ttsService);
 			chrome.runtime.sendMessage({action: "testTtsService", tts:tts.name}, function(success) {
 				if(success) ttsService.status = "available";
-				else ttsService.status = "error";
+				else ttsService.status = "unavailable";
 				$scope.$digest();
 			});
 		});

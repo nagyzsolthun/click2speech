@@ -349,100 +349,61 @@
 	
 	// ============================================= general =============================================
 	
-	/** if value is true, sets callbacks based on the settings
-	 * if false, sets callbacks to null */
-	function setTurnedOn(value) {
-		if(value) {
-			updateSetting({setting:"selectType", value:settings.selectType});
-			updateSetting({setting:"highlightOnHover", value:settings.highlightOnHover});
-			updateSetting({setting:"highlightOnArrows", value:settings.highlightOnArrows});
-			updateSetting({setting:"readOnClick", value:settings.readOnClick});
-			updateSetting({setting:"readOnSpace", value:settings.readOnSpace});
-		} else {
+	//sets behavior of the content script based on the settings cache
+	function digestSettings() {
+		//turned off
+		if(! settings.turnedOn) {	
 			onClick = null;
 			onSpace = null;
 			onMouseMove = null;
 			onArrow = null;
 			revert("highlighted");
-		}
-	}
-	
-	/** selecttype is highlightSelect => sets the callbacks regarding highlight
-	 * otherwise => turns off highlight related callbacks, and sets getTextToRead to read browser selected text*/
-	function setSelectType(value) {
-		//highlightSelect
-		if(settings.turnedOn && value == "highlightSelect") {
-			getTextToRead = getHoveredParagraphText;
-			onMouseMove = settings.highlightOnHover?highlightHoveredElement:null;
-			onArrow = settings.highlightOnArrows?stepHighlight:null;
 			return;
 		}
 		
-		//builtInSelect
-		if(settings.turnedOn && value == "builtInSelect") {
+		//selectType: highlightSelect
+		if(settings.selectType == "highlightSelect") {
+			getTextToRead = getHoveredParagraphText;
+			onMouseMove = settings.highlightOnHover?highlightHoveredElement:null;
+			onArrow = settings.highlightOnArrows?stepHighlight:null;
+		}
+		
+		//selectType: builtInSelect
+		if(settings.selectType == "builtInSelect") {
 			getTextToRead = getBrowserSelectedText;
 			onMouseMove = null;
 			onArrow = null;
 			revert("highlighted");
-			return;
+			clickedElement = null;	//otherwise loading + reading event would color it
 		}
 		
-		//off
-		getTextToRead = null;
-		onMouseMove = null;
-		onArrow = null;
-		revert("highlighted");
-		//stop event => other states are reverted
-	}
-	
-	/** sets the onMouseMove callback if criterias match: value, turnedOn, selectType
-	 * nulls it othwerwise */
-	function setHighlightOnHover(value) {
-		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onMouseMove = highlightHoveredElement;
-		else {
-			onMouseMove = null;
-			if(!settings.highlightOnArrows) revert("highlighted");
-		}
-	}
-	
-	/** onArrow callback if criterias match: value, turnedOn, selectType
-	 * nulls it othwerwise */
-	function setHighlightOnArrows(value) {
-		if(value && settings.turnedOn && settings.selectType == "highlightSelect") onArrow = stepHighlight;
-		else {
-			onArrow = null;
-			if(!settings.highlightOnHover) revert("highlighted");
-		}
-	}
-	
-	/** sets onClick based on criterias: value, turnedOn */
-	function setOnClick(value) {
-		if(value && settings.turnedOn) onClick = readText;
+		//highlightOnHover
+		if(settings.highlightOnHover && settings.selectType == "highlightSelect") onMouseMove = highlightHoveredElement;
+		else onMouseMove = null;
+		
+		//highlightOnArrows
+		if(settings.highlightOnArrows && settings.selectType == "highlightSelect") onArrow = stepHighlight;
+		else onArrow = null;
+		
+		//revert highlight if no setting matches
+		if(!settings.highlightOnArrows && !settings.highlightOnHover) revert("highlighted");
+		
+		//readOnClick
+		if(settings.readOnClick && (settings.selectType == "builtInSelect" || settings.highlightOnHover)) onClick = readText;
 		else onClick = null;
-	}
-	
-	/** sets onSpace based on criterias: value, turnedOn */
-	function setSpace(value) {
-		if(value && settings.turnedOn) onSpace = readTextAndPreventScroll;
+		
+		//readOnSpace
+		if(settings.readOnSpace) onSpace = readTextAndPreventScroll;
 		else onSpace = null;
-	}
-	
-	function updateSetting(request) {
-		settings[request.setting] = request.value;
-		switch(request.setting) {
-			case("turnedOn"):			setTurnedOn(request.value);			break;
-			case("selectType"):			setSelectType(request.value);		break;
-			case("highlightOnHover"):	setHighlightOnHover(request.value);	break;
-			case("highlightOnArrows"):	setHighlightOnArrows(request.value);break;
-			case("readOnClick"):		setOnClick(request.value);			break;
-			case("readOnSpace"):		setSpace(request.value);			break;
-		}
 	}
 	
 	function onMessage(request, sender, sendResponse) {
 		switch(request.action) {
 			case("event"): animateClicked(request.event); break;
-			case("set"): updateSetting(request); break;
+			case("set"):
+				settings[request.setting] = request.value;
+				digestSettings();
+				break;
 		}
 	}
 	/** to react when setting is changed in options*/
@@ -471,13 +432,14 @@
 		if(onClick) onClick();
 	});
 	window.addEventListener("keydown", function(event) {
+		//TODO this executes even if turned off
 		switch(event.keyCode) {
 			case(32):
 			case(37):
 			case(38):
 			case(39):
 			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
-			case(27): if(readingStatus != "playing") return;	//esc
+			case(27): if(readingStatus != "playing" && readingStatus != "loading") return;	//esc
 		}
 	
 		switch(event.keyCode) {
@@ -493,12 +455,14 @@
 	//http://stackoverflow.com/questions/7398290/unable-to-understand-usecapture-attribute-in-addeventlistener
 	
 	//initial setup
-	chrome.runtime.sendMessage({action: "getSettings"}, function(settings) {
-		updateSetting({setting:"turnedOn", value:settings.selectType});
-		updateSetting({setting:"selectType", value:settings.selectType});
-		updateSetting({setting:"highlightOnHover", value:settings.highlightOnHover});
-		updateSetting({setting:"highlightOnArrows", value:settings.highlightOnArrows});
-		updateSetting({setting:"readOnClick", value:settings.readOnClick});
-		updateSetting({setting:"readOnSpace", value:settings.readOnSpace});
+	chrome.runtime.sendMessage({action: "getSettings"}, function(storedSettings) {
+		settings.turnedOn = storedSettings.turnedOn;
+		settings.selectType = storedSettings.selectType;
+		settings.highlightOnHover = storedSettings.highlightOnHover;
+		settings.highlightOnArrows = storedSettings.highlightOnArrows;
+		settings.readOnClick = storedSettings.readOnClick;
+		settings.readOnSpace = storedSettings.readOnSpace;
+
+		digestSettings();
 	});
 })();
