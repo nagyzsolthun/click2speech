@@ -448,10 +448,18 @@
 	/** to react when setting is changed in options*/
 	chrome.runtime.onMessage.addListener(onMessage);
 	
-	onEsc = function(keyEvent) {
-		if(!readingStatus == "playing") return;
-		
-		//if reading => stop + stop event propagation
+	/** @return true if the active element is an input area */
+	function isUserTyping() {
+		var activeElement = document.activeElement;
+		if(activeElement) {
+			if(activeElement.tagName.toLowerCase() == "input") return true;
+			if(activeElement.tagName.toLowerCase() == "textarea") return true;
+			if(activeElement.isContentEditable) return true;	//gmail new email
+		}
+		return false;
+	}
+	
+	stopReading = function(keyEvent) {
 		chrome.runtime.sendMessage({action: "read",text:""});
 		keyEvent.stopPropagation();	//other event listeners won't execute
 	}
@@ -463,18 +471,22 @@
 		if(onClick) onClick();
 	});
 	window.addEventListener("keydown", function(event) {
-		var activeTagName = document.activeElement?document.activeElement.tagName:null;
-		if(["INPUT","TEXTAREA"].indexOf(activeTagName) > -1) {
-			return;	//if an input field has focus, we ignore PressToSpeech controls TODO feedback
+		switch(event.keyCode) {
+			case(32):
+			case(37):
+			case(38):
+			case(39):
+			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
+			case(27): if(readingStatus != "playing") return;	//esc
 		}
-		
+	
 		switch(event.keyCode) {
 			case(32): if(onSpace) onSpace(event);			break;
 			case(37): if(onArrow) onArrow(event, "left");	break;
 			case(38): if(onArrow) onArrow(event, "up");		break;
 			case(39): if(onArrow) onArrow(event, "right");	break;
 			case(40): if(onArrow) onArrow(event, "down");	break;
-			case(27): if(onEsc) onEsc(event); break;
+			case(27): stopReading(event);					break;
 		}
 	}, true);
 	//last parameter: useCapture. True to have better changes that this listener executes first - so it can stop event propagation
