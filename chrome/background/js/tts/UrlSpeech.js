@@ -20,7 +20,7 @@ define(function() {
 			audios.push(audio);
 			
 			audio.defaultPlaybackRate = c.speed || 1;
-			audio.src = encodeURI(url);
+			audio.src = url;
 			audio.onerror = function() {audioErrors[i] = true;}
 			
 			setCutEnd({audio:audio, cutEnd: c.cutEnd});

@@ -4,7 +4,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
 		var ttsurl = "https://translate.google.co.uk/translate_tts";
-		var result = ttsurl + "?q=" + c.text + "&tl="+c.lan;
+		var result = ttsurl + "?q=" + encodeURIComponent(c.text) + "&tl="+c.lan;
 		return result;
 	}
 	

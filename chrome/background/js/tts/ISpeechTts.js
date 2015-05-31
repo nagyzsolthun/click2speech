@@ -83,7 +83,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		var voice = getISpeechVoice({lan:c.lan, gender:c.gender});
 		
 		var ttsurl = "http://www.ispeech.org/p/generic/getaudio";
-		var result = ttsurl + "?text=" + c.text + "&voice=" + voice + "&speed=-1&action=convert";//TODO
+		var result = ttsurl + "?text=" + encodeURIComponent(c.text) + "&voice=" + voice + "&speed=-1&action=convert";
 		return result;
 	}
 	
