@@ -167,6 +167,7 @@ body {
 
 .singleChoiceList > :before						{background-image: url('img/radio.svg');}
 .singleChoiceList > .selected:before			{background-image: url('img/radioSelected.svg');}
+.singleChoiceList > .error:before				{background-image: none;}
 .singleChoiceList > .selected.loading:before	{background-image: url('img/radioSelectedLoading.svg');}
 .singleChoiceList > .selected.error:before		{background-image: url('img/radioSelectedUnavailable.svg');}
 
