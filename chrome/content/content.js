@@ -237,13 +237,14 @@
 	function getFromRect(direction) {
 		if(status2element.highlighted) return status2element.highlighted.getBoundingClientRect();
 
-		result = {top: 0, bottom: document.body.scrollHeight, left: 0, right: document.body.scrollWidth};
+		//dimensions of the page relative to view
+		result = {top: -window.pageYOffset, bottom: document.body.scrollHeight-window.pageYOffset, left:-window.pageXOffset, right: document.body.scrollWidth-window.pageXOffset};
 		switch(direction) {
-			case("up"): result.top = document.body.scrollHeight; break;
-			case("down"): result.bottom = 0; break;
-			case("left"): result.left = document.body.scrollWidth; break;
-			case("right"): result.right = 0; break;
-			default: result = document.documentElement.getBoundingClientRect();
+			case("up"): result.top = result.bottom; break;
+			case("down"): result.bottom = result.top; break;
+			case("left"): result.left = result.right; break;
+			case("right"): result.right = result.left; break;
+			default: result = document.documentElement.getBoundingClientRect();	//wont reach
 		}
 		return result;
 	}
@@ -270,7 +271,7 @@
 		if(closest.rect.top < 0) scroll.y += closest.rect.top;
 		if(closest.rect.bottom > window.innerHeight) scroll.y += closest.rect.bottom-window.innerHeight;
 		if(closest.rect.left < 0) scroll.x += closest.rect.left;
-		if(closest.rect.right > window.innerWidth) scroll.x += closest.rect.right-window.innerRight;
+		if(closest.rect.right > window.innerWidth) scroll.x += closest.rect.right-window.innerWidth;
 		if(scroll.x || scroll.y) {
 			window.scrollBy(scroll.x, scroll.y);
 			lastScroll = Date.now();
@@ -282,7 +283,7 @@
 		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
 	}
 	
-	//TODO remove this, only here for debugging
+	//created for debugging
 	var div = null;
 	function createDivOnBoundingClientRect(rect) {
 		if(div) {

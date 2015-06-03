@@ -12,8 +12,8 @@
 	,"highlightSelect": {"message": "highlighted paragraph"}
 	,"builtInSelect": {"message": "browser built-in selection"}
 	,"highlightOnHover": {"message": "mouse"}
-	,"highlightOnArrows": {"message": "arrows"}
-	,"readOnClick": {"message": "click"}
+	,"highlightOnArrows": {"message": "arrow keys"}
+	,"readOnClick": {"message": "tap or click"}
 	,"readOnSpace": {"message": "space"}
 	,"audioFeedbackOnArrows": {"message": "arrow keys"}
 	,"femaleReadingGender": {"message": "female"}

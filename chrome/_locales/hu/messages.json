@@ -13,7 +13,7 @@
 	,"builtInSelect": {"message": "böngészőbe épített kijelölés"}
 	,"highlightOnHover": {"message": "egér"}
 	,"highlightOnArrows": {"message": "nyíl billentyűk"}
-	,"readOnClick": {"message": "katt"}
+	,"readOnClick": {"message": "érintés vagy kattintás"}
 	,"readOnSpace": {"message": "space billentyű"}
 	,"audioFeedbackOnArrows": {"message": "nyíl billentyűk"}
 	,"femaleReadingGender": {"message": "női"}

@@ -3,7 +3,7 @@
 	"name": "Touch to Speech",
 	"default_locale": "en",
 	"description": "__MSG_extensionDescription__",
-	"version": "0.9.3",
+	"version": "0.9.4",
 	"content_scripts": [{
 		"matches": ["<all_urls>"],
 		"js": ["content/content.js"]
