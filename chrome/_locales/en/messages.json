@@ -18,4 +18,5 @@
 	,"audioFeedbackOnArrows": {"message": "arrow keys"}
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
+	,"OsTts": {"message": "Operating System"}
 }

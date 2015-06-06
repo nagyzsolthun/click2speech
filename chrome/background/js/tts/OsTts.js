@@ -38,7 +38,7 @@ define([], function() {
 	
 	// =================================== public ===================================
 	var reader = {
-		get name() {return "Operating System";}
+		get name() {return chrome.i18n.getMessage("OsTts") || "*OsTts*";}
 		,get properties() {return [];}
 	}
 	
@@ -51,9 +51,12 @@ define([], function() {
 	
 	/** @param callback called with a boolean flag indicating if the test passed */
 	reader.test = function(callback) {
+		var result;
 		chrome.tts.getVoices(function(voices) {
-			if(voices.indexOf("native") < 0) callback(false)
-			else callback(true);
+			var nativeVoices = voices.filter(function(voice) {
+				return voice.voiceName == "native";	//these (this) seem to be the TTS built in the OS
+			});
+			callback(nativeVoices.length > 0);
 		});
 	}
 

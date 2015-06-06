@@ -18,4 +18,5 @@
 	,"audioFeedbackOnArrows": {"message": "nyíl billentyűk"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
+	,"OsTts": {"message": "Operációs Rendszer"}
 }
