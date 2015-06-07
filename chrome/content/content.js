@@ -24,6 +24,7 @@
 		if(element2original.get(element)) return;	//already saved
 		element2original.set(element,{
 			backgroundColor:element.style["background-color"]
+			,color: element.style["color"]
 			,transition:element.style["-webkit-transition"]
 		});
 	}
@@ -38,15 +39,36 @@
 	/** animates given element based on the status2element */
 	function animate(element) {
 		var status = concatenatedStatus(element);
-		element.style["-webkit-transition"] = "background-color .2s ease-in-out";
+		element.style["-webkit-transition"] = "background-color .2s linear, color .2s linear";
 		switch(status) {
-			case("highlighted"): 		element.style["background-color"] = "#4f4"; break;
-			case("highlighted-loading"):element.style["background-color"] = "#55f"; break;
-			case("highlighted-playing"):element.style["background-color"] = "#55f"; break;
-			case("highlighted-error"):element.style["background-color"] = "#f55"; break;
-			case("loading"): 		element.style["background-color"] = "#bbf"; break;
-			case("playing"):		element.style["background-color"] = "#bbf"; break;
-			case("error"):			element.style["background-color"] = "#fbb"; break;
+			case("highlighted"):
+				element.style["background-color"] = "#4f4";
+				element.style["color"] = "black";
+				break;
+			case("highlighted-loading"):
+				element.style["background-color"] = "#55f";
+				element.style["color"] = "black";
+				break;
+			case("highlighted-playing"):
+				element.style["background-color"] = "#55f";
+				element.style["color"] = "black";
+				break;
+			case("highlighted-error"):
+				element.style["background-color"] = "#f55";
+				element.style["color"] = "black";
+				break;
+			case("loading"): 
+				element.style["background-color"] = "#bbf";
+				element.style["color"] = "black";
+				break;
+			case("playing"):
+				element.style["background-color"] = "#bbf";
+				element.style["color"] = "black";
+				break;
+			case("error"):
+				element.style["background-color"] = "#fbb";
+				element.style["color"] = "black";
+				break;
 		}
 	}
 	
@@ -85,6 +107,7 @@
 		
 		var original = element2original.get(element);
 		element.style["background-color"] = original.backgroundColor;
+		element.style["color"] = original.color;
 		window.setTimeout(function() {
 			//if any style is set, we don't revert the the transition
 			if(concatenatedStatus(element)) return;
