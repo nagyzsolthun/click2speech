@@ -28,9 +28,9 @@ define([], function() {
 				turnedOn:true
 				,selectType:"highlightSelect"
 				,highlightOnHover:true
-				,highlightOnArrows:true
+				,highlightOnArrows:false
 				,readOnClick:true
-				,readOnSpace:true
+				,readOnSpace:false
 				,audioFeedbackOnArrows:true
 				,tts:"iSpeech"
 				,gender:"female"
