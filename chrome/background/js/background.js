@@ -33,6 +33,16 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		});
 	}
 	
+	function onTtsEvent(event) {
+		notifyContentJs({action:"event", event:event.type});
+		switch(event.type) {
+			case("loading"): iconDrawer.drawLoading(); break;
+			case("start"): iconDrawer.drawPlaying(); break;
+			case("end"): iconDrawer.drawTurnedOn(); break;
+			case("error"): iconDrawer.drawError(); break;
+		}
+	}
+	
 	// ========================================= handling messages =========================================
 	//receiving messages from cotnent script (to read) and popup (turnon/turnoff/getstatus)
 	chrome.runtime.onMessage.addListener(
@@ -43,7 +53,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					settingsHandler.getAll(function(settings){
 						sendResponse(settings);
 					});
-					break;
+					return true;	//keeps sendResponse channel open until it is used
 				case("getTtsProperties"):
 					console.log("getTtsProperties received");
 					sendResponse(tts.ttsProperties);
@@ -51,7 +61,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				case("testTtsService"):
 					console.log("testTtsService received");
 					tts.test(request.tts, sendResponse);
-					return true;	//very important: keeps sendResponse channel open until it is used
+					return true;	//keeps sendResponse channel open until it is used
 				case("getErrors"):
 					console.log("getErrors received");
 					sendResponse(tts.errors);
@@ -73,8 +83,12 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					settingsHandler.set(request.setting,request.value);
 					switch(request.setting) {
 						case("turnedOn"):
-							if(request.value) iconDrawer.drawTurnedOn();
+							if(request.value) {
+								tts.onEvent = onTtsEvent;
+								iconDrawer.drawTurnedOn();
+							}
 							else {
+								tts.onEvent = null;	//so the 'end' event wont redraw the icon
 								tts.read({text:""});	//in case it is reading, we stop it
 								iconDrawer.drawTurnedOff();
 							}
@@ -93,19 +107,10 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	);
 
 	// ===================================== initial settings =====================================
-	tts.onEvent = function(event) {
-		notifyContentJs({action:"event", event:event.type});
-		switch(event.type) {
-			case("loading"): iconDrawer.drawLoading(); break;
-			case("start"): iconDrawer.drawPlaying(); break;
-			case("end"): iconDrawer.drawTurnedOn(); break;
-			case("error"): iconDrawer.drawError(); break;
-		}
-	}
-	
 	settingsHandler.getAll(function(settings) {
 		tts.preferredTts = settings.preferredTts;
 		tts.speed = settings.speed;
+		tts.onEvent = settings.turnedOn?onTtsEvent:null;
 		if(settings.turnedOn) iconDrawer.drawTurnedOn();
 		else iconDrawer.drawTurnedOff();
 	});

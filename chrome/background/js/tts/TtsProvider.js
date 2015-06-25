@@ -80,7 +80,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 		}
 		,get errors() {return errors;}
 		,set speed(value) {if(speech) speech.speed = value;}	//in case speed changes while reading TODO, check if available
-		,set onEvent(callback) {onEvent = callback;}
+		,set onEvent(callback) {onEvent = callback || function(){};}
 	};
 	
 	/** reads text
