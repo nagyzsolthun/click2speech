@@ -13,7 +13,7 @@ angular.module('optionsApp')
 	
 	$scope.ttsArr = [];
 	$scope.speed = {min: 0.5, max: 4, step: 0.1}
-	$scope.genderArr = [{name:toMessage("femaleReadingGender")},{name:toMessage("maleReadingGender")}];
+	$scope.genderArr = [{value:"female",text:toMessage("femaleReadingGender")},{value:"male",text:toMessage("maleReadingGender")}];
 	
 	$scope.onServiceOptionClick = function(clickedOption) {
 		if(clickedOption.status != "available") return;
@@ -62,7 +62,7 @@ angular.module('optionsApp')
 			service.selected = (service.name == settings.tts);
 		});
 		$scope.genderArr.forEach(function(gender) {
-			gender.selected = (gender.name == settings.gender);
+			gender.selected = (gender.value == settings.gender);
 		});
 		$scope.speed.value = Number(settings.speed) || 1;	//string needs to be converted to number - angular otherwise throws numberFormatError
 		$scope.$digest();	//so angular recognizes the change
