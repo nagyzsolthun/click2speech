@@ -6,6 +6,8 @@
 	,"readEventOptions": {"message": "Olvasás Elkezdése"}
 	,"highlightOptions": {"message": "Kiemelés"}
 	,"audioFeedbackOptions": {"message": "Hangos Értesítés"}
+	,"clickEventDelegationOptions": {"message": "Gombok és URL-ek"}
+	,"noDelegateFirstClick": {"message": "érintés/kattintás kezelése csak olvasáskor"}
 	,"ttsOptions": {"message": "Beszédszintézis"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}

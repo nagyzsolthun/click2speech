@@ -21,6 +21,7 @@ define([], function() {
 				,readOnClick:true
 				,readOnSpace:false
 				,audioFeedbackOnArrows:true
+				,noDelegateFirstClick:true
 				,tts:"iSpeech"
 				,gender:"female"
 				,speed:1

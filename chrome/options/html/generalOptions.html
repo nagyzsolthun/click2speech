@@ -25,6 +25,15 @@
 		</li>
 	</ul>
 </div>
+<div class="setting hoverable" ng-class="{unavailable: !clickEventDelegationOptionsAvailable()}">
+	<div>{{clickEventDelegationOptionsName}}</div>
+	<ul class="choiceList multipleChoiceList">
+		<li ng-repeat="option in clickEventDelegationOptions" ng-class="{selected: option.selected}" ng-click="onAudioFeedbackOptionClick(option)">
+			<span>{{option.text}}</span>
+		</li>
+	</ul>
+</div>
+
 <div class="setting hoverable" ng-class="{unavailable: !audioFeedbackOptionsAvailable()}">
 	<div>{{audioFeedbackOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">

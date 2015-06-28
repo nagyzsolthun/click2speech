@@ -6,6 +6,8 @@
 	,"readEventOptions": {"message": "Speech Start"}
 	,"highlightOptions": {"message": "Highlight"}
 	,"audioFeedbackOptions": {"message": "Audio Feedback"}
+	,"clickEventDelegationOptions": {"message": "Buttons and URLs"}
+	,"noDelegateFirstClick": {"message": "handle tap/click only when reading"}
 	,"ttsOptions": {"message": "Speech Synthesizer"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}

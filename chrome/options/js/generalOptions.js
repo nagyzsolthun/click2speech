@@ -5,6 +5,7 @@ angular.module('optionsApp')
 	$scope.highlightOptionsName = toMessage("highlightOptions");
 	$scope.readEventOptionsName = toMessage("readEventOptions");
 	$scope.audioFeedbackOptionsName = toMessage("audioFeedbackOptions");
+	$scope.clickEventDelegationOptionsName = toMessage("clickEventDelegationOptions");
 	
 	//set up the list of options (select event + read event)
 	$scope.selectTypeOptions = [
@@ -21,6 +22,9 @@ angular.module('optionsApp')
 	];
 	$scope.audioFeedbackOptions = [
 		{value:"audioFeedbackOnArrows", text:toMessage("audioFeedbackOnArrows"), selected:false}
+	];
+	$scope.clickEventDelegationOptions = [
+		{value:"noDelegateFirstClick", text:toMessage("noDelegateFirstClick"), selected:false}
 	];
 
 	//user interaction with the lists
@@ -55,6 +59,12 @@ angular.module('optionsApp')
 		});
 	}
 	
+	$scope.clickEventDelegationOptionsAvailable = function() {
+		return $scope.highlightEventOptionsAvailable() && $scope.highlightEventOptions.some(function(option) {
+			return option.value == "highlightOnHover" && option.selected;
+		});
+	}
+	
 	$scope.optionAvailable = function(option) {
 		//readOnClick is available only if ghighlightOnHover is true
 		if(option.value == "readOnClick") {
@@ -75,6 +85,7 @@ angular.module('optionsApp')
 		$scope.highlightEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.readEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.audioFeedbackOptions.forEach(function(option) {option.selected = (settings[option.value]);});
+		$scope.clickEventDelegationOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.$digest();	//so angular recognizes the change
 	});
 });
