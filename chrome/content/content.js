@@ -368,12 +368,6 @@
 	/** should be called with the click event
 	 * reads text provided by getText() and stops delegating the click event if the highlighted element is NOT being read */
 	function readTextAndPreventClickDelegation(event) {
-		//browserBuiltInSelect
-		if(settings.selectType == "builtInSelect") {	//TODO refactor: this function should not execute in builtInSelect case
-			readText();
-			return;
-		}
-		
 		//highlightSelect - in case the click element is NOT being read, we read it + stop click propagation
 		var activeElements = [status2element.loading,status2element.playing,status2element.error];
 		if(activeElements.indexOf(status2element.highlighted) < 0 || status2element.highlighted == null) {
