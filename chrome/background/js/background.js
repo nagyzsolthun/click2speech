@@ -44,6 +44,32 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	}
 	
 	// ========================================= handling messages =========================================
+	function set(setting, value) {
+		console.log("set " + setting + ": " + value + " received");
+		settingsHandler.set(setting,value);
+		switch(setting) {
+			case("turnedOn"):
+				if(value) {
+					tts.onEvent = onTtsEvent;
+					iconDrawer.drawTurnedOn();
+				}
+				else {
+					tts.onEvent = null;	//so the 'end' event wont redraw the icon
+					tts.read({text:""});	//in case it is reading, we stop it
+					iconDrawer.drawTurnedOff();
+				}
+				notifyContentJs({action:"set", setting:setting, value:value});
+				break;
+			case("speed"): tts.speed = value; break;
+			case("selectType"):
+			case("highlightOnHover"):
+			case("highlightOnArrows"):
+			case("readOnClick"):
+			case("readOnSpace"):
+			case("noDelegateFirstClick"): notifyContentJs({action:"set", setting:setting, value:value});break;
+		}
+	}
+	
 	//receiving messages from cotnent script (to read) and popup (turnon/turnoff/getstatus)
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse) {

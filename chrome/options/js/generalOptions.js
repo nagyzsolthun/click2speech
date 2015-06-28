@@ -33,17 +33,8 @@ angular.module('optionsApp')
 		clickedOption.selected = true;
 		sendSet("selectType", clickedOption.value);
 	}
-	$scope.onSelectEventOptionClick = function(clickedOption) {
-		clickedOption.selected = clickedOption.selected?false:true;
-		//a boolean is stored for each option.value
-		sendSet(clickedOption.value, clickedOption.selected);
-	}
-	$scope.onReadEventOptionClick = function(clickedOption) {
-		clickedOption.selected = clickedOption.selected?false:true;
-		//a boolean is stored for each option.value
-		sendSet(clickedOption.value, clickedOption.selected);
-	}
-	$scope.onAudioFeedbackOptionClick = function(clickedOption) {
+	
+	$scope.onMultiSelectOptionClick = function(clickedOption) {
 		clickedOption.selected = clickedOption.selected?false:true;
 		sendSet(clickedOption.value, clickedOption.selected);
 	}
@@ -58,7 +49,6 @@ angular.module('optionsApp')
 			return option.value == "highlightOnArrows" && option.selected;
 		});
 	}
-	
 	$scope.clickEventDelegationOptionsAvailable = function() {
 		return $scope.highlightEventOptionsAvailable() && $scope.highlightEventOptions.some(function(option) {
 			return option.value == "highlightOnHover" && option.selected;
@@ -66,7 +56,7 @@ angular.module('optionsApp')
 	}
 	
 	$scope.optionAvailable = function(option) {
-		//readOnClick is available only if ghighlightOnHover is true
+		//if only arrows are available, it returns false. True otherwise.
 		if(option.value == "readOnClick") {
 			var selectTypeOption = $scope.selectTypeOptions.filter(function(option) {return option.value == "highlightSelect"})[0];
 			if(selectTypeOption && !selectTypeOption.selected) return true;	//builtInSelect => click can go

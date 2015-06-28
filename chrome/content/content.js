@@ -5,7 +5,8 @@
 	
 	var getTextToRead;	//either returns content of highlighted or browser-selected text
 	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
-	var onClick;	//called when mouse is clicked
+	var onClick;	//called when mouse button is clicked
+	var onMouseDown;	//called when mouse button is down - used fot built-in select, so reading wont start only when 2nd click
 	var onSpace;	//called when space is pressed with parameter: keyEvent
 	var onMouseMove;	//called when the mouse pinter moves
 	var onEsc;	//called when esc key is pressed
@@ -128,7 +129,7 @@
 	
 	/** @return the text in highlighted element */
 	function getHoveredParagraphText() {
-		clickedElement = status2element.highlighted;
+		clickedElement = status2element.highlighted;	//TODO this should not come here
 		if(clickedElement) return clickedElement.textContent;
 		else return "";
 	}
@@ -364,6 +365,24 @@
 		});
 	}
 	
+	/** should be called with the click event
+	 * reads text provided by getText() and stops delegating the click event if the highlighted element is NOT being read */
+	function readTextAndPreventClickDelegation(event) {
+		//browserBuiltInSelect
+		if(settings.selectType == "builtInSelect") {	//TODO refactor: this function should not execute in builtInSelect case
+			readText();
+			return;
+		}
+		
+		//highlightSelect - in case the click element is NOT being read, we read it + stop click propagation
+		var activeElements = [status2element.loading,status2element.playing,status2element.error];
+		if(activeElements.indexOf(status2element.highlighted) < 0 || status2element.highlighted == null) {
+			readText();
+			event.stopPropagation();
+			event.preventDefault();
+		}
+	}
+	
 	/** should be called with the "keydown" event when space is pressed
 	 * reads text provided by getText(), and stops page scroll if the active element is an input*/
 	function readTextAndPreventScroll(event) {
@@ -378,6 +397,7 @@
 		//turned off
 		if(! settings.turnedOn) {	
 			onClick = null;
+			onMouseDown = null;
 			onSpace = null;
 			onMouseMove = null;
 			onArrow = null;
@@ -412,8 +432,12 @@
 		//revert highlight if no setting matches
 		if(!settings.highlightOnArrows && !settings.highlightOnHover) revert("highlighted");
 		
-		//readOnClick
-		if(settings.readOnClick && (settings.selectType == "builtInSelect" || settings.highlightOnHover)) onClick = readText;
+		//readOnClick - builtInSelect
+		if(settings.readOnClick && settings.selectType == "builtInSelect") onMouseDown = readText;
+		else onMouseDown = null;
+ 
+		//readOnClick - highlightSelect
+		if(settings.readOnClick && settings.selectType == "highlightSelect") onClick = readTextAndPreventClickDelegation;
 		else onClick = null;
 		
 		//readOnSpace
@@ -450,11 +474,15 @@
 	}
 	
 	window.addEventListener("mousemove", function(event) {
-		if(onMouseMove) onMouseMove();
+		if(onMouseMove) onMouseMove(event);
 	});
+	window.addEventListener("click", function(event) {
+		if(onClick) onClick(event);
+	}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
 	window.addEventListener("mousedown", function(event) {
-		if(onClick) onClick();
-	});
+		if(onMouseDown) onMouseDown(event);
+	}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
+
 	window.addEventListener("keydown", function(event) {
 		//TODO this executes even if turned off
 		switch(event.keyCode) {
@@ -474,9 +502,7 @@
 			case(40): if(onArrow) onArrow(event, "down");	break;
 			case(27): stopReading(event);					break;
 		}
-	}, true);
-	//last parameter: useCapture. True to have better changes that this listener executes first - so it can stop event propagation
-	//http://stackoverflow.com/questions/7398290/unable-to-understand-usecapture-attribute-in-addeventlistener
+	}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
 	
 	//initial setup
 	chrome.runtime.sendMessage({action: "getSettings"}, function(storedSettings) {
@@ -486,6 +512,7 @@
 		settings.highlightOnArrows = storedSettings.highlightOnArrows;
 		settings.readOnClick = storedSettings.readOnClick;
 		settings.readOnSpace = storedSettings.readOnSpace;
+		settings.noDelegateFirstClick = storedSettings.noDelegateFirstClick;
 
 		digestSettings();
 	});
