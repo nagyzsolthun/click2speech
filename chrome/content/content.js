@@ -3,7 +3,6 @@
 	var settings = {};	//last cahnge of all settings
 	var readingStatus = null;
 	
-	var getTextToRead;	//either returns content of highlighted or browser-selected text
 	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
 	var onClick;	//called when mouse button is clicked
 	var onMouseDown;	//called when mouse button is down - used fot built-in select, so reading wont start only when 2nd click
@@ -12,7 +11,7 @@
 	var onEsc;	//called when esc key is pressed
 	
 	// ============================================= highlight =============================================	
-	var clickedElement = null;	//TODO maybe some nicer logic
+	var requestedElement = null;	//the clicked|space-pressed element
 	
 	//elements can be highlighted based on their status: highlighted|loading|playing|error
 	var status2element = {};
@@ -128,9 +127,8 @@
 	}
 	
 	/** @return the text in highlighted element */
-	function getHoveredParagraphText() {
-		clickedElement = status2element.highlighted;	//TODO this should not come here
-		if(clickedElement) return clickedElement.textContent;
+	function getHighlightedParagraphText() {
+		if(status2element.highlighted) return status2element.highlighted.textContent;
 		else return "";
 	}
 	
@@ -331,11 +329,11 @@
 		switch(readingEvent) {
 			case("loading"):
 				readingStatus = "loading";
-				addStatus(clickedElement,"loading");
+				addStatus(requestedElement,"loading");
 				break;
 			case("start"):
 				readingStatus = "playing";
-				addStatus(clickedElement,"playing");
+				addStatus(requestedElement,"playing");
 				break;
 			case("end"):
 				readingStatus = null;
@@ -343,7 +341,7 @@
 				break;
 			case("error"):
 				readingStatus = "error";
-				addStatus(clickedElement,"error");
+				addStatus(requestedElement,"error");
 				break;
 		}
 	}
@@ -356,31 +354,35 @@
 	
 	// ============================================= read =============================================
 	
-	/** reads the text to be read (highlighted paragraph / selected text) */
-	function readText() {
-		chrome.runtime.sendMessage({
-			action: "read"
-			,text: getTextToRead()	//should never reach this point if getTextToRead is null
-			,lan: document.documentElement.lang
-		});
+	/** reads the text given by getTextToRead callback (highlighted paragraph / selected text) */
+	function readText(getTextToRead) {
+		chrome.runtime.sendMessage({action: "read",text: getTextToRead(),lan: document.documentElement.lang});
+	}
+	
+	/** should be called with the mousedown event
+	 * reads text provided by getBrowserSelectedText */
+	function readBrowserSelectedText() {
+		readText(getBrowserSelectedText);
 	}
 	
 	/** should be called with the click event
-	 * reads text provided by getText() and stops delegating the click event if the highlighted element is NOT being read */
-	function readTextAndPreventClickDelegation(event) {
+	 * reads text provided by getHighlightedParagraphText and stops delegating the click event if the highlighted element is NOT being read */
+	function readHighLightedTextAndPreventClick(event) {
 		//highlightSelect - in case the click element is NOT being read, we read it + stop click propagation
 		var activeElements = [status2element.loading,status2element.playing,status2element.error];
 		if(activeElements.indexOf(status2element.highlighted) < 0 || status2element.highlighted == null) {
-			readText();
+			requestedElement = status2element.highlighted;
+			readText(getHighlightedParagraphText);
 			event.stopPropagation();
 			event.preventDefault();
 		}
 	}
 	
 	/** should be called with the "keydown" event when space is pressed
-	 * reads text provided by getText(), and stops page scroll if the active element is an input*/
-	function readTextAndPreventScroll(event) {
-		readText();
+	 * reads text provided by getHighlightedParagraphText, and stops page scroll if the active element is an input*/
+	function readHighLightedTextAndPreventScroll(event) {
+		requestedElement = status2element.highlighted;
+		readText(getHighlightedParagraphText);
 		event.preventDefault();	//stop scrolling
 	}
 	
@@ -401,18 +403,16 @@
 		
 		//selectType: highlightSelect
 		if(settings.selectType == "highlightSelect") {
-			getTextToRead = getHoveredParagraphText;
 			onMouseMove = settings.highlightOnHover?highlightHoveredElement:null;
 			onArrow = settings.highlightOnArrows?stepHighlight:null;
 		}
 		
 		//selectType: builtInSelect
 		if(settings.selectType == "builtInSelect") {
-			getTextToRead = getBrowserSelectedText;
 			onMouseMove = null;
 			onArrow = null;
 			revert("highlighted");
-			clickedElement = null;	//otherwise loading + reading event would color it
+			requestedElement = null;	//otherwise loading + reading event would color it
 		}
 		
 		//highlightOnHover
@@ -427,15 +427,15 @@
 		if(!settings.highlightOnArrows && !settings.highlightOnHover) revert("highlighted");
 		
 		//readOnClick - builtInSelect
-		if(settings.readOnClick && settings.selectType == "builtInSelect") onMouseDown = readText;
+		if(settings.readOnClick && settings.selectType == "builtInSelect") onMouseDown = readBrowserSelectedText;
 		else onMouseDown = null;
  
 		//readOnClick - highlightSelect
-		if(settings.readOnClick && settings.selectType == "highlightSelect") onClick = readTextAndPreventClickDelegation;
+		if(settings.readOnClick && settings.selectType == "highlightSelect") onClick = readHighLightedTextAndPreventClick;
 		else onClick = null;
 		
 		//readOnSpace
-		if(settings.readOnSpace) onSpace = readTextAndPreventScroll;
+		if(settings.readOnSpace) onSpace = readHighLightedTextAndPreventScroll;
 		else onSpace = null;
 	}
 	

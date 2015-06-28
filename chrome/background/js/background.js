@@ -105,28 +105,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					iconDrawer.drawInteraction();
 					break;
 				case("set"):
-					console.log("set " + request.setting + ": " + request.value + " received");
-					settingsHandler.set(request.setting,request.value);
-					switch(request.setting) {
-						case("turnedOn"):
-							if(request.value) {
-								tts.onEvent = onTtsEvent;
-								iconDrawer.drawTurnedOn();
-							}
-							else {
-								tts.onEvent = null;	//so the 'end' event wont redraw the icon
-								tts.read({text:""});	//in case it is reading, we stop it
-								iconDrawer.drawTurnedOff();
-							}
-							notifyContentJs({action:"set", setting:request.setting, value:request.value});break;
-							break;
-						case("speed"): tts.speed = request.value; break;
-						case("selectType"):
-						case("highlightOnHover"):
-						case("highlightOnArrows"):
-						case("readOnClick"):
-						case("readOnSpace"): notifyContentJs({action:"set", setting:request.setting, value:request.value});break;
-					}
+					set(request.setting,request.value);
 					break;
 			}
 		}
