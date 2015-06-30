@@ -4,7 +4,6 @@ angular.module('optionsApp')
 	$scope.selectionOptionsName = toMessage("selectionOptions");
 	$scope.highlightOptionsName = toMessage("highlightOptions");
 	$scope.readEventOptionsName = toMessage("readEventOptions");
-	$scope.audioFeedbackOptionsName = toMessage("audioFeedbackOptions");
 	$scope.clickEventDelegationOptionsName = toMessage("clickEventDelegationOptions");
 	
 	//set up the list of options (select event + read event)
@@ -19,9 +18,6 @@ angular.module('optionsApp')
 	$scope.readEventOptions = [
 		{value:"readOnClick", text:toMessage("readOnClick"), selected:false}
 		,{value:"readOnSpace", text:toMessage("readOnSpace"), selected:false}
-	];
-	$scope.audioFeedbackOptions = [
-		{value:"audioFeedbackOnArrows", text:toMessage("audioFeedbackOnArrows"), selected:false}
 	];
 	$scope.clickEventDelegationOptions = [
 		{value:"noDelegateFirstClick", text:toMessage("noDelegateFirstClick"), selected:false}
@@ -42,11 +38,6 @@ angular.module('optionsApp')
 	$scope.highlightEventOptionsAvailable = function() {
 		return $scope.selectTypeOptions.some(function(option) {
 			return option.value == "highlightSelect" && option.selected
-		});
-	}
-	$scope.audioFeedbackOptionsAvailable = function() {
-		return $scope.highlightEventOptionsAvailable() && $scope.highlightEventOptions.some(function(option) {
-			return option.value == "highlightOnArrows" && option.selected;
 		});
 	}
 	$scope.clickEventDelegationOptionsAvailable = function() {
@@ -74,7 +65,6 @@ angular.module('optionsApp')
 		$scope.selectTypeOptions.forEach(function(option) {option.selected = (settings.selectType == option.value);});
 		$scope.highlightEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.readEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
-		$scope.audioFeedbackOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.clickEventDelegationOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.$digest();	//so angular recognizes the change
 	});

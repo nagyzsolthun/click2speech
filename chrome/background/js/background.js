@@ -98,7 +98,6 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					break;
 				case("stepHighlight"):
 					settingsHandler.getAll(function(settings) {
-						if(! settings.audioFeedbackOnArrows) return;
 						userInteractionAudio.currentTime = 0;
 						userInteractionAudio.play();
 					});

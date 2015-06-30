@@ -5,7 +5,6 @@
 	,"selectionOptions": {"message": "Kijelölés"}
 	,"readEventOptions": {"message": "Olvasás Elkezdése"}
 	,"highlightOptions": {"message": "Kiemelés"}
-	,"audioFeedbackOptions": {"message": "Hangos Értesítés"}
 	,"clickEventDelegationOptions": {"message": "Gombok és URL-ek"}
 	,"noDelegateFirstClick": {"message": "érintés/kattintás kezelése csak olvasáskor"}
 	,"ttsOptions": {"message": "Beszédszintézis"}
@@ -17,7 +16,6 @@
 	,"highlightOnArrows": {"message": "nyíl billentyűk"}
 	,"readOnClick": {"message": "érintés vagy kattintás"}
 	,"readOnSpace": {"message": "space billentyű"}
-	,"audioFeedbackOnArrows": {"message": "nyíl billentyűk"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}

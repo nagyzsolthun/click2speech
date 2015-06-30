@@ -5,7 +5,6 @@
 	,"selectionOptions": {"message": "Selection"}
 	,"readEventOptions": {"message": "Speech Start"}
 	,"highlightOptions": {"message": "Highlight"}
-	,"audioFeedbackOptions": {"message": "Audio Feedback"}
 	,"clickEventDelegationOptions": {"message": "Buttons and URLs"}
 	,"noDelegateFirstClick": {"message": "handle tap/click only when reading"}
 	,"ttsOptions": {"message": "Speech Synthesizer"}
@@ -17,7 +16,6 @@
 	,"highlightOnArrows": {"message": "arrow keys"}
 	,"readOnClick": {"message": "tap or click"}
 	,"readOnSpace": {"message": "space"}
-	,"audioFeedbackOnArrows": {"message": "arrow keys"}
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}

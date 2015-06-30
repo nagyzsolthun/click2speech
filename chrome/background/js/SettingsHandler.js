@@ -20,7 +20,6 @@ define([], function() {
 				,highlightOnArrows:false
 				,readOnClick:true
 				,readOnSpace:false
-				,audioFeedbackOnArrows:true
 				,noDelegateFirstClick:true
 				,tts:"iSpeech"
 				,gender:"female"
