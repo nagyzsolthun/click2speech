@@ -3,19 +3,14 @@
 	,"generalOptionsPage": {"message": "Általános"}
 	,"readingOptionsPage": {"message": "Olvasás"}
 	,"selectionOptions": {"message": "Kijelölés"}
-	,"readEventOptions": {"message": "Olvasás Elkezdése"}
 	,"highlightOptions": {"message": "Kiemelés"}
-	,"clickEventDelegationOptions": {"message": "Gombok és URL-ek"}
-	,"noDelegateFirstClick": {"message": "érintés/kattintás kezelése csak olvasáskor"}
+	,"noDelegateFirstClick": {"message": "a gombok és URLek csak olvasáskor aktívak"}
 	,"ttsOptions": {"message": "Beszédszintézis"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}
 	,"highlightSelect": {"message": "kiemelt bekezdés"}
 	,"builtInSelect": {"message": "böngészőbe épített kijelölés"}
-	,"highlightOnHover": {"message": "egér"}
-	,"highlightOnArrows": {"message": "nyíl billentyűk"}
-	,"readOnClick": {"message": "érintés vagy kattintás"}
-	,"readOnSpace": {"message": "space billentyű"}
+	,"highlightOnArrows": {"message": "navigálás a nyíl billentyűkkel"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}

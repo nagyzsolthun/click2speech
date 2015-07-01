@@ -16,10 +16,7 @@ define([], function() {
 			settings = {
 				turnedOn:true
 				,selectType:"highlightSelect"
-				,highlightOnHover:true
 				,highlightOnArrows:false
-				,readOnClick:true
-				,readOnSpace:false
 				,noDelegateFirstClick:true
 				,tts:"iSpeech"
 				,gender:"female"

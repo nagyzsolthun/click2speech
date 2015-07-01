@@ -3,7 +3,6 @@ angular.module('optionsApp')
 	function toMessage(text) {return chrome.i18n.getMessage(text) || "*"+text+"*";}
 	$scope.selectionOptionsName = toMessage("selectionOptions");
 	$scope.highlightOptionsName = toMessage("highlightOptions");
-	$scope.readEventOptionsName = toMessage("readEventOptions");
 	$scope.clickEventDelegationOptionsName = toMessage("clickEventDelegationOptions");
 	
 	//set up the list of options (select event + read event)
@@ -11,16 +10,9 @@ angular.module('optionsApp')
 		{value:"highlightSelect", text:toMessage("highlightSelect"), selected:false}
 		,{value:"builtInSelect", text:toMessage("builtInSelect"), selected:false}
 	];
-	$scope.highlightEventOptions = [
-		{value:"highlightOnHover", text:toMessage("highlightOnHover"), selected:false}
-		,{value:"highlightOnArrows", text:toMessage("highlightOnArrows"), selected:false}
-	];
-	$scope.readEventOptions = [
-		{value:"readOnClick", text:toMessage("readOnClick"), selected:false}
-		,{value:"readOnSpace", text:toMessage("readOnSpace"), selected:false}
-	];
-	$scope.clickEventDelegationOptions = [
-		{value:"noDelegateFirstClick", text:toMessage("noDelegateFirstClick"), selected:false}
+	$scope.highlightOptions = [
+		{value:"highlightOnArrows", text:toMessage("highlightOnArrows"), selected:false}
+		,{value:"noDelegateFirstClick", text:toMessage("noDelegateFirstClick"), selected:false}
 	];
 
 	//user interaction with the lists
@@ -38,11 +30,6 @@ angular.module('optionsApp')
 	$scope.highlightEventOptionsAvailable = function() {
 		return $scope.selectTypeOptions.some(function(option) {
 			return option.value == "highlightSelect" && option.selected
-		});
-	}
-	$scope.clickEventDelegationOptionsAvailable = function() {
-		return $scope.highlightEventOptionsAvailable() && $scope.highlightEventOptions.some(function(option) {
-			return option.value == "highlightOnHover" && option.selected;
 		});
 	}
 	
@@ -63,9 +50,7 @@ angular.module('optionsApp')
 	//initial setup
 	getSettings(function(settings) {
 		$scope.selectTypeOptions.forEach(function(option) {option.selected = (settings.selectType == option.value);});
-		$scope.highlightEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
-		$scope.readEventOptions.forEach(function(option) {option.selected = (settings[option.value]);});
-		$scope.clickEventDelegationOptions.forEach(function(option) {option.selected = (settings[option.value]);});
+		$scope.highlightOptions.forEach(function(option) {option.selected = (settings[option.value]);});
 		$scope.$digest();	//so angular recognizes the change
 	});
 });

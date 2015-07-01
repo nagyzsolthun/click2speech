@@ -9,26 +9,7 @@
 <div class="setting hoverable" ng-class="{unavailable: !highlightEventOptionsAvailable()}">
 	<div>{{highlightOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">
-		<li ng-repeat="option in highlightEventOptions" ng-class="{selected: option.selected}" ng-click="onMultiSelectOptionClick(option)">
-			<span>{{option.text}}</span>
-		</li>
-	</ul>
-</div>
-<div class="setting hoverable">
-	<div>{{readEventOptionsName}}</div>
-	<ul class="choiceList multipleChoiceList">
-		<li
-			ng-repeat="option in readEventOptions"
-			ng-class="{selected: option.selected, unavailable: !optionAvailable(option)}"
-			ng-click="onMultiSelectOptionClick(option)">
-			<span>{{option.text}}</span>
-		</li>
-	</ul>
-</div>
-<div class="setting hoverable" ng-class="{unavailable: !clickEventDelegationOptionsAvailable()}">
-	<div>{{clickEventDelegationOptionsName}}</div>
-	<ul class="choiceList multipleChoiceList">
-		<li ng-repeat="option in clickEventDelegationOptions" ng-class="{selected: option.selected}" ng-click="onMultiSelectOptionClick(option)">
+		<li ng-repeat="option in highlightOptions" ng-class="{selected: option.selected}" ng-click="onMultiSelectOptionClick(option)">
 			<span>{{option.text}}</span>
 		</li>
 	</ul>

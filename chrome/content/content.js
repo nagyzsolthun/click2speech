@@ -365,6 +365,13 @@
 		readText(getBrowserSelectedText);
 	}
 	
+	/** should be called with the "keydown" event when space is pressed
+	 * reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
+	function readBrowserSelectedTextAndPreventScroll(event) {
+		readText(getBrowserSelectedText);
+		event.preventDefault();	//stop scrolling
+	}
+	
 	/** should be called with the click event
 	 * reads text provided by getHighlightedParagraphText and stops delegating the click event if the highlighted element is NOT being read */
 	function readHighLightedTextAndPreventClick(event) {
@@ -392,51 +399,34 @@
 	function digestSettings() {
 		//turned off
 		if(! settings.turnedOn) {	
+			onArrow = null;
 			onClick = null;
 			onMouseDown = null;
-			onSpace = null;
 			onMouseMove = null;
-			onArrow = null;
+			onSpace = null;
 			revert("highlighted");
+			requestedElement = null;	//otherwise loading + reading event would color it
 			return;
-		}
-		
-		//selectType: highlightSelect
-		if(settings.selectType == "highlightSelect") {
-			onMouseMove = settings.highlightOnHover?highlightHoveredElement:null;
-			onArrow = settings.highlightOnArrows?stepHighlight:null;
 		}
 		
 		//selectType: builtInSelect
 		if(settings.selectType == "builtInSelect") {
-			onMouseMove = null;
 			onArrow = null;
+			onClick = null;
+			onMouseDown = readBrowserSelectedText;
+			onMouseMove = null;
+			onSpace = readBrowserSelectedTextAndPreventScroll;
 			revert("highlighted");
 			requestedElement = null;	//otherwise loading + reading event would color it
 		}
 		
-		//highlightOnHover
-		if(settings.highlightOnHover && settings.selectType == "highlightSelect") onMouseMove = highlightHoveredElement;
-		else onMouseMove = null;
-		
-		//highlightOnArrows
-		if(settings.highlightOnArrows && settings.selectType == "highlightSelect") onArrow = stepHighlight;
-		else onArrow = null;
-		
-		//revert highlight if no setting matches
-		if(!settings.highlightOnArrows && !settings.highlightOnHover) revert("highlighted");
-		
-		//readOnClick - builtInSelect
-		if(settings.readOnClick && settings.selectType == "builtInSelect") onMouseDown = readBrowserSelectedText;
-		else onMouseDown = null;
- 
-		//readOnClick - highlightSelect
-		if(settings.readOnClick && settings.selectType == "highlightSelect") onClick = readHighLightedTextAndPreventClick;
-		else onClick = null;
-		
-		//readOnSpace
-		if(settings.readOnSpace) onSpace = readHighLightedTextAndPreventScroll;
-		else onSpace = null;
+		if(settings.selectType == "highlightSelect") {
+			onArrow = settings.highlightOnArrows?stepHighlight:null;
+			onClick = readHighLightedTextAndPreventClick;
+			onMouseDown = null;
+			onMouseMove = highlightHoveredElement;
+			onSpace = readHighLightedTextAndPreventScroll;
+		}
 	}
 	
 	function onMessage(request, sender, sendResponse) {
@@ -502,10 +492,7 @@
 	chrome.runtime.sendMessage({action: "getSettings"}, function(storedSettings) {
 		settings.turnedOn = storedSettings.turnedOn;
 		settings.selectType = storedSettings.selectType;
-		settings.highlightOnHover = storedSettings.highlightOnHover;
 		settings.highlightOnArrows = storedSettings.highlightOnArrows;
-		settings.readOnClick = storedSettings.readOnClick;
-		settings.readOnSpace = storedSettings.readOnSpace;
 		settings.noDelegateFirstClick = storedSettings.noDelegateFirstClick;
 
 		digestSettings();
