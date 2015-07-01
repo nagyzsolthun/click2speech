@@ -26,6 +26,7 @@
 			backgroundColor:element.style["background-color"]
 			,color: element.style["color"]
 			,transition:element.style["-webkit-transition"]
+			,cursor:element.style["cursor"]
 		});
 	}
 	
@@ -44,30 +45,38 @@
 			case("highlighted"):
 				element.style["background-color"] = "#4f4";
 				element.style["color"] = "black";
+				if(settings.noDelegateFirstClick) element.style["cursor"] = "pointer";
+				else element2original.get(element).cursor;
 				break;
 			case("highlighted-loading"):
 				element.style["background-color"] = "#55f";
 				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("highlighted-playing"):
 				element.style["background-color"] = "#55f";
 				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("highlighted-error"):
 				element.style["background-color"] = "#f55";
 				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("loading"): 
 				element.style["background-color"] = "#bbf";
 				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("playing"):
 				element.style["background-color"] = "#bbf";
 				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("error"):
 				element.style["background-color"] = "#fbb";
 				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 		}
 	}
@@ -108,6 +117,7 @@
 		var original = element2original.get(element);
 		element.style["background-color"] = original.backgroundColor;
 		element.style["color"] = original.color;
+		element.style["cursor"] = original.cursor;
 		window.setTimeout(function() {
 			//if any style is set, we don't revert the the transition
 			if(concatenatedStatus(element)) return;
@@ -325,7 +335,7 @@
 	
 	// ============================================= animate clicked =============================================
 	
-	function animateClicked(readingEvent) {
+	function animateRequestedElement(readingEvent) {
 		switch(readingEvent) {
 			case("loading"):
 				readingStatus = "loading";
@@ -359,27 +369,37 @@
 		chrome.runtime.sendMessage({action: "read",text: getTextToRead(),lan: document.documentElement.lang});
 	}
 	
-	/** should be called with the mousedown event
-	 * reads text provided by getBrowserSelectedText */
+	/** reads text provided by getBrowserSelectedText */
 	function readBrowserSelectedText() {
 		readText(getBrowserSelectedText);
 	}
 	
-	/** should be called with the "keydown" event when space is pressed
-	 * reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
+	/** reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
 	function readBrowserSelectedTextAndPreventScroll(event) {
 		readText(getBrowserSelectedText);
 		event.preventDefault();	//stop scrolling
 	}
 	
-	/** should be called with the click event
-	 * reads text provided by getHighlightedParagraphText and stops delegating the click event if the highlighted element is NOT being read */
-	function readHighLightedTextAndPreventClick(event) {
-		//highlightSelect - in case the click element is NOT being read, we read it + stop click propagation
+	/** reads text provided by getHighlightedParagraphText + stops click event delegation if needed */
+	function readHighLightedText(event) {
+		//empty area clicked => stop reading
+		if(status2element.highlighted == null) {
+			readText(getHighlightedParagraphText);	//reads empty text => stops reading
+			return;
+		}
+	
+		//the requested element is being read|loading|error
 		var activeElements = [status2element.loading,status2element.playing,status2element.error];
-		if(activeElements.indexOf(status2element.highlighted) < 0 || status2element.highlighted == null) {
-			requestedElement = status2element.highlighted;
-			readText(getHighlightedParagraphText);
+		if(activeElements.indexOf(status2element.highlighted) > -1) {
+			return;
+		}
+
+		//the requested element is NOT being read|loading|error
+		requestedElement = status2element.highlighted;
+		readText(getHighlightedParagraphText);
+			
+		//check if click event needs to be delegated
+		if(settings.noDelegateFirstClick) {
 			event.stopPropagation();
 			event.preventDefault();
 		}
@@ -422,7 +442,7 @@
 		
 		if(settings.selectType == "highlightSelect") {
 			onArrow = settings.highlightOnArrows?stepHighlight:null;
-			onClick = readHighLightedTextAndPreventClick;
+			onClick = readHighLightedText;
 			onMouseDown = null;
 			onMouseMove = highlightHoveredElement;
 			onSpace = readHighLightedTextAndPreventScroll;
@@ -431,7 +451,7 @@
 	
 	function onMessage(request, sender, sendResponse) {
 		switch(request.action) {
-			case("event"): animateClicked(request.event); break;
+			case("event"): animateRequestedElement(request.event); break;
 			case("set"):
 				settings[request.setting] = request.value;
 				digestSettings();
