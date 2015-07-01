@@ -1,7 +1,9 @@
 var app = angular.module('popupApp', []);
 
 app.controller('popupController', function($scope) {
-	$scope.button = {text: "on/off",ttsOn: false}
+	function toMessage(text) {return chrome.i18n.getMessage(text) || "*"+text+"*";}
+
+	$scope.button = {text: "?",ttsOn: false}
 	$scope.errors = []
 
 	$scope.onOffButtonClick = function() {
@@ -21,12 +23,12 @@ app.controller('popupController', function($scope) {
 	
 	function turnOn() {
 		$scope.button.ttsOn = true;
-		$scope.button.text = "turn off";
+		$scope.button.text = toMessage("turnOff");
 	}
 	
 	function turnOff() {
 		$scope.button.ttsOn = false;
-		$scope.button.text = "turn on";
+		$scope.button.text = toMessage("turnOn");
 	}
 	
 	chrome.runtime.sendMessage({action: "getSettings"}, function(settings) {

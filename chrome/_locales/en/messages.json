@@ -14,4 +14,6 @@
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}
+	,"turnOff": {"message": "turn off"}
+	,"turnOn": {"message": "turn on"}
 }
