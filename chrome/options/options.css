@@ -53,24 +53,19 @@ body {
 
 /* ===================================== content settings =====================================*/
 
-#content {-webkit-transition: opacity .2s linear;}	/* transition of switch between pages */
-#content.ng-enter {
-    opacity: 0;
+#content {
+	position: absolute; /* overlapping while animation */
+	width: 80em;
+	-webkit-transition: opacity .2s linear;	/* transition of switching between pages */
 }
+#content.ng-enter {opacity: 0;}
 #content.ng-enter-active {
-	/* wait until first template disappears
-	 * smaller flash after list of tts is received */
+	/* wait some time to make sure the tts list is received when page is shown */
 	-webkit-transition-delay: .2s;
 	opacity:1;
 }
-#content.ng-leave {
-	position: absolute; /* the element is out of flow this way => the new tempalte fills parent, this just overlaps*/
-	width: 80em; /* width of container, needs to be set because of the absolute position */
-	opacity:1;
-}
-#content.ng-leave-active {
-	opacity:0;
-}
+#content.ng-leave {opacity:1;}
+#content.ng-leave-active {opacity:0;}
 
 .setting {
 	/* background-color: hides flash when changing to reading settings
