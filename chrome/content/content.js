@@ -5,9 +5,10 @@
 	
 	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
 	var onClick;	//called when mouse button is clicked
-	var onMouseDown;	//called when mouse button is down - used fot built-in select, so reading wont start only when 2nd click
-	var onSpace;	//called when space is pressed with parameter: keyEvent
+	var onMouseDown;	//called when mouse button is down - used fot built-in select, to make sure the click is an actual click and not a new selection-start
 	var onMouseMove;	//called when the mouse pinter moves
+	var onMouseUp;		//called when mouse buttin is up - used fot built-in select, to make sure the click is an actual click and not a new selection-start
+	var onSpace;	//called when space is pressed with parameter: keyEvent
 	var onEsc;	//called when esc key is pressed
 	
 	// ============================================= highlight =============================================	
@@ -48,33 +49,17 @@
 				if(settings.noDelegateFirstClick) element.style["cursor"] = "pointer";
 				else element2original.get(element).cursor;
 				break;
-			case("highlighted-loading"):
-				element.style["background-color"] = "#55f";
-				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
-				break;
-			case("highlighted-playing"):
-				element.style["background-color"] = "#55f";
-				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
-				break;
-			case("highlighted-error"):
-				element.style["background-color"] = "#f55";
-				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
-				break;
 			case("loading"): 
-				element.style["background-color"] = "#bbf";
-				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
-				break;
+			case("highlighted-loading"):
 			case("playing"):
-				element.style["background-color"] = "#bbf";
+			case("highlighted-playing"):
+				element.style["background-color"] = "#0a0";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("error"):
-				element.style["background-color"] = "#fbb";
+			case("highlighted-error"):
+				element.style["background-color"] = "#f55";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;
@@ -356,35 +341,41 @@
 		}
 	}
 
-	// ============================================= browser select =============================================
-	/** reads the selected area*/
-	function getBrowserSelectedText() {
-		return getSelection().toString();
-	}
-	
 	// ============================================= read =============================================
-	
+
 	/** reads the text given by getTextToRead callback (highlighted paragraph / selected text) */
-	function readText(getTextToRead) {
-		chrome.runtime.sendMessage({action: "read",text: getTextToRead(),lan: document.documentElement.lang});
+	function readText(text) {
+		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang});
+	}
+
+	// ============================================= read - browser select =============================================
+	var mouseDownText = null;
+
+	/** saves the text in the moment of mousedown, to be able to read on mouseUp, when selection is already empty */	
+	function saveBrowserSelectedText() {
+		mouseDownText = getSelection().toString();
 	}
 	
-	/** reads text provided by getBrowserSelectedText */
+	/** should be called with mouseUp - checks if this mouse event is the end of a click and not the end of a selection action */
 	function readBrowserSelectedText() {
-		readText(getBrowserSelectedText);
+		window.setTimeout(function() {
+			if(!getSelection().toString()) readText(mouseDownText);	//if this is a click, getSelection returns "", if this is the end of a selection, it returns the selection
+		}, 0);	//if we dont set the timeout, getSelection will return text even if this was just a click (sometimes)
 	}
 	
 	/** reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
 	function readBrowserSelectedTextAndPreventScroll(event) {
-		readText(getBrowserSelectedText);
+		readText(getSelection().toString());
 		event.preventDefault();	//stop scrolling
 	}
+	
+	// ============================================= read - highlighted =============================================
 	
 	/** reads text provided by getHighlightedParagraphText + stops click event delegation if needed */
 	function readHighLightedText(event) {
 		//empty area clicked => stop reading
 		if(status2element.highlighted == null) {
-			readText(getHighlightedParagraphText);	//reads empty text => stops reading
+			readText(getHighlightedParagraphText());	//reads empty text => stops reading
 			return;
 		}
 	
@@ -396,7 +387,7 @@
 
 		//the requested element is NOT being read|loading|error
 		requestedElement = status2element.highlighted;
-		readText(getHighlightedParagraphText);
+		readText(getHighlightedParagraphText());
 			
 		//check if click event needs to be delegated
 		if(settings.noDelegateFirstClick) {
@@ -409,7 +400,7 @@
 	 * reads text provided by getHighlightedParagraphText, and stops page scroll if the active element is an input*/
 	function readHighLightedTextAndPreventScroll(event) {
 		requestedElement = status2element.highlighted;
-		readText(getHighlightedParagraphText);
+		readText(getHighlightedParagraphText());
 		event.preventDefault();	//stop scrolling
 	}
 	
@@ -433,8 +424,9 @@
 		if(settings.selectType == "builtInSelect") {
 			onArrow = null;
 			onClick = null;
-			onMouseDown = readBrowserSelectedText;
+			onMouseDown = saveBrowserSelectedText;
 			onMouseMove = null;
+			onMouseUp = readBrowserSelectedText
 			onSpace = readBrowserSelectedTextAndPreventScroll;
 			revert("highlighted");
 			requestedElement = null;	//otherwise loading + reading event would color it
@@ -445,6 +437,7 @@
 			onClick = readHighLightedText;
 			onMouseDown = null;
 			onMouseMove = highlightHoveredElement;
+			onMouseUp = null;
 			onSpace = readHighLightedTextAndPreventScroll;
 		}
 	}
@@ -477,15 +470,10 @@
 		keyEvent.stopPropagation();	//other event listeners won't execute
 	}
 	
-	window.addEventListener("mousemove", function(event) {
-		if(onMouseMove) onMouseMove(event);
-	});
-	window.addEventListener("click", function(event) {
-		if(onClick) onClick(event);
-	}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
-	window.addEventListener("mousedown", function(event) {
-		if(onMouseDown) onMouseDown(event);
-	}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
+	window.addEventListener("mousemove", function(event) {if(onMouseMove) onMouseMove(event);});
+	window.addEventListener("click", function(event) {if(onClick) onClick(event);}, true);	//useCapture to have better chances that to execute first - so it can stop event propagation
+	window.addEventListener("mousedown", function(event) {if(onMouseDown) onMouseDown(event);}, true);	//useCapture to have better chances to execute first - so it can stop event propagation
+	window.addEventListener("mouseup", function(event) {if(onMouseUp) onMouseUp(event);}, true);	//useCapture to have better chances to execute first - so it can stop event propagation
 
 	window.addEventListener("keydown", function(event) {
 		//TODO this executes even if turned off
