@@ -17,7 +17,7 @@ define([], function() {
 				turnedOn:true
 				,selectType:"highlightSelect"
 				,highlightOnArrows:false
-				,noDelegateFirstClick:true
+				,noDelegateFirstClick:false
 				,tts:"iSpeech"
 				,gender:"female"
 				,speed:1
@@ -37,6 +37,8 @@ define([], function() {
 	/** persists given setting */
 	settingsHandler.set = function(setting, value) {
 		chrome.storage.local.get(['settings', 'setting2timestamp', 'setting2version'], function(items) {
+			if(items.settings[setting] == value) return;
+		
 			items.settings[setting] = value;
 			items.setting2timestamp[setting] = Date.now();
 			items.setting2version[setting] = chrome.app.getDetails().version;
