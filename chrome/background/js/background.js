@@ -34,7 +34,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	}
 	
 	function onTtsEvent(event) {
-		notifyContentJs({action:"event", event:event.type});
+		notifyContentJs({action:"event", event:event});
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
@@ -91,6 +91,10 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				case("getErrors"):
 					console.log("getErrors received");
 					sendResponse(tts.errors);
+					break;
+				case("getLastTtsEvent"):
+					console.log("getLastTtsEvent received");
+					sendResponse(tts.lastEvent);
 					break;
 				case("read"):
 					console.log("read received");

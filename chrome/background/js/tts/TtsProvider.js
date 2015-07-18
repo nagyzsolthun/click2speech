@@ -10,6 +10,8 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	//{ttsName,errorType[,url]} array
 	var errors = [];
 	
+	var lastEvent = null;
+	
 	//when any tts starts reading, it provides a speech object
 	var speech = null;
 	
@@ -55,6 +57,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 
 		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed, gender:c.gender});
 		speech.onEvent = function(event) {
+			lastEvent = event;
 			switch(event.type) {
 				case("error"):
 					errors.push({ttsName:tts.name,type:event.errorType,url:event.url});
@@ -79,6 +82,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 			});
 		}
 		,get errors() {return errors;}
+		,get lastEvent() {return lastEvent;}
 		,set speed(value) {if(speech) speech.speed = value;}	//in case speed changes while reading TODO, check if available
 		,set onEvent(callback) {onEvent = callback || function(){};}
 	};

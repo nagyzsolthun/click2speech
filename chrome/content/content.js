@@ -1,7 +1,7 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
 	var settings = {};	//last cahnge of all settings
-	var readingStatus = null;
+	var lastTtsEvent = null;	//to know whether esc event propagation should be stopped
 	
 	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
 	var onClick;	//called when mouse button is clicked
@@ -295,24 +295,13 @@
 	
 	// ============================================= animate clicked =============================================
 	
-	function animateRequestedElement(readingEvent) {
-		switch(readingEvent) {
-			case("loading"):
-				readingStatus = "loading";
-				addStatus(requestedElement,"loading");
-				break;
-			case("start"):
-				readingStatus = "playing";
-				addStatus(requestedElement,"playing");
-				break;
-			case("end"):
-				readingStatus = null;
-				addStatus(null,"playing");	//reverts loading, playing, error
-				break;
-			case("error"):
-				readingStatus = "error";
-				addStatus(requestedElement,"error");
-				break;
+	function animateRequestedElement(ttsEvent) {
+		lastTtsEvent = ttsEvent;
+		switch(ttsEvent.type) {
+			case("loading"): addStatus(requestedElement,"loading"); break;
+			case("start"): addStatus(requestedElement,"playing"); break;
+			case("end"): addStatus(null,"playing"); break;	//reverts loading, playing, error
+			case("error"): addStatus(requestedElement,"error"); break;
 		}
 	}
 
@@ -426,7 +415,7 @@
 				break;
 		}
 	}
-	/** to react when setting is changed in options*/
+	/** to react when setting is changed in options or when event is received*/
 	chrome.runtime.onMessage.addListener(onMessage);
 	
 	/** @return true if the active element is an input area */
@@ -458,7 +447,7 @@
 			case(38):
 			case(39):
 			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
-			case(27): if(readingStatus != "playing" && readingStatus != "loading") return;	//esc
+			case(27): if(["start","loading"].indexOf(lastTtsEvent.type) < 0) return;	//esc: only handle reading|loading
 		}
 	
 		switch(event.keyCode) {
@@ -479,5 +468,8 @@
 		settings.noDelegateFirstClick = storedSettings.noDelegateFirstClick;
 
 		digestSettings();
+	});
+	chrome.runtime.sendMessage({action: "getLastTtsEvent"}, function(event) {
+		lastTtsEvent = event;
 	});
 })();
