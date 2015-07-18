@@ -337,8 +337,11 @@
 	
 	/** reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
 	function readBrowserSelectedTextAndPreventScroll(event) {
-		readText(getSelection().toString());
-		event.preventDefault();	//stop scrolling
+		var text = getSelection().toString();
+		if(text) {
+			readText(text);
+			event.preventDefault();	//stop scrolling
+		}
 	}
 	
 	// ============================================= read - highlighted =============================================
