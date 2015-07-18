@@ -25,7 +25,7 @@ angular.module('optionsApp')
 	$scope.onGenderOptionClick = function(clickedOption) {
 		$scope.genderArr.forEach(function(gender) {gender.selected = false;});
 		clickedOption.selected = true;
-		sendSet("gender", clickedOption.name);
+		sendSet("gender", clickedOption.value);
 	}
 	$scope.isPropertyOfSelectedTts = function(property) {
 		var selectedTts = null;
