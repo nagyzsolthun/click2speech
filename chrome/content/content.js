@@ -200,6 +200,11 @@
 			//already highlighted
 			if(element === status2element.highlighted) return;
  
+			//visible
+			var style = window.getComputedStyle(element);
+			if(style["visibility"] === "hidden") return;
+			if(style["opacity"] === "0") return;
+ 
 			//on path
 			var rect = element.getBoundingClientRect();
 			if(!isOnPath(fromRect,rect,direction)) return;
