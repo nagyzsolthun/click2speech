@@ -375,8 +375,11 @@
 	 * reads text provided by getHighlightedParagraphText, and stops page scroll if the active element is an input*/
 	function readHighLightedTextAndPreventScroll(event) {
 		requestedElement = status2element.highlighted;
-		readText(getHighlightedParagraphText());
-		event.preventDefault();	//stop scrolling
+		var text = getHighlightedParagraphText();
+		if(text) {
+			readText(text);
+			event.preventDefault();	//stop scrolling
+		}
 	}
 	
 	// ============================================= general =============================================
