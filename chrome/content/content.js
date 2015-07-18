@@ -143,59 +143,27 @@
 	
 	/** highlights the element under mouse pointer */
 	function highlightHoveredElement() {
-		if(isMouseMoveEventFromScrolling()) return true;	//TODO, here?
+		if(isMouseMoveEventFromAutomaticScrolling()) return true;
 		var element = getHoveredParagraph();
 		addStatus(element, "highlighted");
-		setCursor();	//revert cursor
 	}
 	
 	// ============================================= keyboard navigation =============================================
 	
-	/** when stepping between elements, the cursor defines the path we can take. It has a rect and a direction (horizontal|vertical)
-	 * when moving up/down, all elements we step on are between the left and right side of cursor.rect (vertical path)
-	 * when moving left/right, the current element will be the cursor, and the path will be between rect.top and rect.bottom (horizontal path)
-	 * 
-	 * this strategy showed the best results when comparying different concepts*/
-	var cursor = {rect:null, direction:null}
-
-	/** sets the cursor
-	 * @param rect the rect of the currently highlighted element
-	 * @param direction up|down|left|right
-	 * if the direction of the cursor (horizontal|vertical) is different than the one defined by @param direction, cursor is reset*/
-	function setCursor(rect, direction) {
-		switch(direction) {
+	/** @param direction marks a path from @param fromRect: right|left: horizontal, up|down: vertical
+	 * @return whether @param rect has any part on the selected path */
+	function isOnPath(fromRect,rect,direction) {
+		switch(direction){
 			case("up"):
 			case("down"):
-				if(cursor.direction != "vertical") {
-					cursor.direction = "vertical";
-					cursor.rect = rect;
-				}
+				//equality: in case of tables, the top of underlying row is the same as bottom
+				if(rect.right <= fromRect.left) return false;
+				if(fromRect.right <= rect.left) return false;
 				break;
 			case("left"):
 			case("right"):
-				if(cursor.direction != "horizontal") {
-					cursor.direction = "horizontal";
-					cursor.rect = rect;
-				}
-				break;
-			default:	//to remove the cursor
-				cursor.direction = null;
-				cursor.rect = null;
-		}
-	}
-	
-	/** @return true if rect is on the path selected by the cursor. assuming the cursor is set*/
-	function isOnPath(rect) {
-		//filter based on cursor
-		switch(cursor.direction) {
-			case("vertical"):
-				//equality: in case of tables, the top of underlying row is the same as bottom
-				if(rect.right <= cursor.rect.left) return false;
-				if(cursor.rect.right <= rect.left) return false;
-				break;
-			case("horizontal"):
-				if(cursor.rect.bottom <= rect.top) return false;
-				if(rect.bottom <= cursor.rect.top) return false;
+				if(fromRect.bottom <= rect.top) return false;
+				if(rect.bottom <= fromRect.top) return false;
 				break;
 		}
 		return true;
@@ -229,11 +197,18 @@
 		
 		//contains text directly => check if position is fine
 		if(containsTextDirectly(element)) {
-			var rect = element.getBoundingClientRect();
-			if(!isOnPath(rect)) return;
+			//already highlighted
 			if(element === status2element.highlighted) return;
+ 
+			//on path
+			var rect = element.getBoundingClientRect();
+			if(!isOnPath(fromRect,rect,direction)) return;
+ 
+			//all good => calc distance
 			var d = dist(fromRect,rect,direction);
 			if(d <= 0) return;
+ 
+			//set closest
 			if((closest.dist > -1) && (closest.dist < d)) return;
 			closest.element = element;
 			closest.dist = d;
@@ -249,7 +224,7 @@
 	}
 	
 	/** @return the boundingClientRect of the currently higlighted element
-	 * otherwise return a rect representing the edge of the page:
+	 * if no highlighted element: return a rect representing the edge of the page:
 	 * up: bottom edge | down: top edge | left: right edge | right: left edge*/
 	function getFromRect(direction) {
 		if(status2element.highlighted) return status2element.highlighted.getBoundingClientRect();
@@ -273,10 +248,8 @@
 		keyEvent.stopPropagation();	//other event listeners won't execute
 		keyEvent.preventDefault();	//stop scrolling
 
-		var fromRect = getFromRect(direction);
-		setCursor(fromRect,direction);
-		
 		closest = {element:null,dist:-1,rect:null};
+		var fromRect = getFromRect(direction);
 		setClosest(fromRect, document.documentElement, direction);
 
 		if(!closest.element) return;
@@ -296,7 +269,9 @@
 		//createDivOnBoundingClientRect(closest.rect);
 	}
 	
-	function isMouseMoveEventFromScrolling() {
+	/** when using the arrow keys and we step out of the view, there is an automatic scrolling, which fires a mousemove event
+	 * @return true if the mouseMove event is beause of the automatic scrolling */
+	function isMouseMoveEventFromAutomaticScrolling() {
 		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
 	}
 	
