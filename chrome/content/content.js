@@ -53,7 +53,7 @@
 			case("highlighted-loading"):
 			case("playing"):
 			case("highlighted-playing"):
-				element.style["background-color"] = "#0a0";
+				element.style["background-color"] = "#8f8";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;
@@ -228,11 +228,14 @@
 		}
 	}
 	
-	/** @return the boundingClientRect of the currently higlighted element
-	 * if no highlighted element: return a rect representing the edge of the page:
+	/** @return the boundingClientRect of the currently higlighted|loading|playing|error element
+	 * if no such element: return a rect representing the edge of the page:
 	 * up: bottom edge | down: top edge | left: right edge | right: left edge*/
 	function getFromRect(direction) {
 		if(status2element.highlighted) return status2element.highlighted.getBoundingClientRect();
+		if(status2element.loading) return status2element.loading.getBoundingClientRect();
+		if(status2element.playing) return status2element.playing.getBoundingClientRect();
+		if(status2element.error) return status2element.error.getBoundingClientRect();
 
 		//dimensions of the page relative to view
 		result = {top: -window.pageYOffset, bottom: document.body.scrollHeight-window.pageYOffset, left:-window.pageXOffset, right: document.body.scrollWidth-window.pageXOffset};
