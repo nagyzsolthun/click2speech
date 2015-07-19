@@ -7,6 +7,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	
 	var userInteractionAudio = new Audio();
 	userInteractionAudio.src = "pop.wav";
+	userInteractionAudio.volume = 0.6;
 	
 	/** iconDrawer draws the icon on a canvas, this function shows the canvas on the toolbar */
 	function loadIconToToolbar() {

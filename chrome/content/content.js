@@ -338,7 +338,7 @@
 	/** reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
 	function readBrowserSelectedTextAndPreventScroll(event) {
 		var text = getSelection().toString();
-		if(text) {
+		if(text || isLoadingOrReading()) {
 			readText(text);
 			event.preventDefault();	//stop scrolling
 		}
@@ -376,7 +376,7 @@
 	function readHighLightedTextAndPreventScroll(event) {
 		requestedElement = status2element.highlighted;
 		var text = getHighlightedParagraphText();
-		if(text) {
+		if(text || isLoadingOrReading()) {
 			readText(text);
 			event.preventDefault();	//stop scrolling
 		}
@@ -443,6 +443,11 @@
 		return false;
 	}
 	
+	/** @return true if the last tts event is loading or start */
+	function isLoadingOrReading() {
+		return ["start","loading"].indexOf(lastTtsEvent.type) > -1;
+	}
+	
 	stopReading = function(keyEvent) {
 		chrome.runtime.sendMessage({action: "read",text:""});
 		keyEvent.stopPropagation();	//other event listeners won't execute
@@ -461,7 +466,7 @@
 			case(38):
 			case(39):
 			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
-			case(27): if(["start","loading"].indexOf(lastTtsEvent.type) < 0) return;	//esc: only handle reading|loading
+			case(27): if(!isLoadingOrReading()) return;	//esc: only handle reading|loading
 		}
 	
 		switch(event.keyCode) {

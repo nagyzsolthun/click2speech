@@ -18,10 +18,10 @@ define([], function() {
 	}
 	
 	var playingIcon = {
-		innerFill: rgba({b:1})
+		innerFill: rgba({g:0.7})
 		,innerRing: rgba({})	//black
-		,outerFill: rgba({b:1,a:1})	//blue
-		,outerRing: rgba({b:0.5})
+		,outerFill: rgba({g:1})
+		,outerRing: rgba({g:0.5})
 	}
 	
 	var errorIcon = {
@@ -46,9 +46,9 @@ define([], function() {
 	}
 	
 	var interactionAnimationIcon = {
-		innerFill: rgba({g:1})
+		innerFill: rgba({g:0.7})
 		,innerRing: rgba({})	//black
-		,outerFill: rgba({g:1})
+		,outerFill: rgba({g:0.7})
 		,outerRing: rgba({r:0.2,g:0.2,b:0.2})
 	}
 	
