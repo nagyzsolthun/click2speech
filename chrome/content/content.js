@@ -195,15 +195,15 @@
 		if(!element) return;
 		if(!element.getBoundingClientRect) return; //no getBoundingClientRect: no content
 		
+		//visible
+		var style = window.getComputedStyle(element);
+		if(style["visibility"] === "hidden") return;
+		if(style["opacity"] === "0") return;
+		
 		//contains text directly => check if position is fine
 		if(containsTextDirectly(element)) {
 			//already highlighted
 			if(element === status2element.highlighted) return;
- 
-			//visible
-			var style = window.getComputedStyle(element);
-			if(style["visibility"] === "hidden") return;
-			if(style["opacity"] === "0") return;
  
 			//on path
 			var rect = element.getBoundingClientRect();
