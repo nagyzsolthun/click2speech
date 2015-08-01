@@ -1,6 +1,6 @@
-Touch to Speech
+Click to Speech
 ===============
 
-Chrome plugin that helps people with vision disabilities browsing the web.
+Chrome plugin that helps the visually impaired browsing the web.
 
-Navigate between paragraphs using the arrow keys or the mouse pointer, and press spacebar or click to read the highlighted element. You can also use the selection mechenism built in Chrome.
+CLick on a paragraph and ClickToSpeech reads it out to you. You can also navigate using the arrow keys and start reading by pressing the spacebar.
