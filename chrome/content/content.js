@@ -149,6 +149,30 @@
 	}
 	
 	// ============================================= keyboard navigation =============================================
+	/** @return false if element has no content or is invisible to user */
+	function hasVisibleContent(element) {
+		if(!element) return false;
+		if(!element.getBoundingClientRect) return false; //no getBoundingClientRect function: no content
+		if(element === status2element.highlighted) return false;	//already highlighted
+ 
+		var style = window.getComputedStyle(element);
+		if(style["display"] === "none") return false;
+		if(style["visibility"] === "hidden") return false;
+		if(style["opacity"] === "0") return false;
+
+		return true;
+	}
+	
+	
+	/** @return true if element is part of the page (its all edges are inside the page */
+	function isOnPage(rect) {
+		if(!rect.width || !rect.height) return false;	//e.g. google noscript element
+		if(rect.top < -window.pageYOffset) return false;
+		if(rect.left < -window.pageXOffset) return false;
+		if(rect.bottom > document.body.scrollHeight-window.pageYOffset) return false;
+		if(rect.right > document.body.scrollWidth-window.pageXOffset) return false;
+		return true;
+	}
 	
 	/** @param direction marks a path from @param fromRect: right|left: horizontal, up|down: vertical
 	 * @return whether @param rect has any part on the selected path */
@@ -169,13 +193,10 @@
 		return true;
 	}
 	
-	/** @return distance between rect1 and rect2 in given direction
-	 * result my be negative in case rect2 is "behind" rect1 based on direction */
-	function dist(rect1,rect2,direction) {
+	/** @return offset of middle point from @param rect1 to @param rect2 in @param direction */
+	function getMidOffset(rect1,rect2,direction) {
 		var m1 = {x:(rect1.left + rect1.right)/2, y:(rect1.top + rect1.bottom)/2};
 		var m2 = {x:(rect2.left + rect2.right)/2, y:(rect2.top + rect2.bottom)/2};
-		
-		//get the distance in given direction
 		switch(direction) {
 			case("up"): return m1.y - m2.y;
 			case("down"): return m2.y - m1.y;
@@ -184,103 +205,151 @@
 		}
 	}
 	
-	var closest = {element:null,dist:-1,rect:null};
+	/** @return offset of closest edges from @param rect1 to @param rect2 in @param direction */
+	function getEdgeOffset(rect1,rect2,direction) {
+		switch(direction) {
+			case("up"): return rect1.top - rect2.bottom;
+			case("down"): return rect2.top - rect1.bottom;
+			case("left"): return rect1.left - rect2.right;
+			case("right"): return rect2.left - rect1.right;
+		}
+	}
 	
-	/** sets closest
+	/** @return the distance between rect1 and rect2 in 90 degrees rotated direction */
+	function midDistance90(rect1,rect2,direction) {
+		switch(direction) {
+			case("up"):
+			case("down"): return Math.abs(getMidOffset(rect1,rect2,"left"));
+			case("left"):
+			case("right"): return Math.abs(getMidOffset(rect1,rect2,"up"));
+		}
+	}
+
+	/** @return the object considered closer
+	 * @param o1 and o2 {element,rect,midDist,edgeDist,onPath} represent a distance and position measurement of an element*/
+	function closer(o1,o2) {
+		if(!o1) return o2;
+		if(!o2) return o1;
+	
+		//both onPath => smaller midDist wins
+		//this is important when elements overlap each-other (e.g. Wikipedia right panel)
+		if(o1.onPath && o2.onPath) return (o1.midOffset+o1.midDist90/5 <= o2.midOffset+o2.midDist90/5)?o1:o2;
+
+		//neither onPath => amaller edgeOffset wins
+		if(!o1.onPath && !o2.onPath) return (o1.edgeOffset+o1.midDist90/5 < o2.edgeOffset+o2.midDist90/5)?o1:o2;
+		
+		//otherwise the one on path wins
+		if(o1.onPath) return o1;
+		else return o2;
+	}
+	
+ 	/** @return the readableElement considered the closest to given fromRect in given direction
 	 * @param fromRect the rect to which the closest is searched
-	 * @param element the element we currently check
-	 * @param direction up|down|left|right the direction of search
-	 * @parant */
-	function setClosest(fromRect, element, direction) {
-		if(!element) return;
-		if(!element.getBoundingClientRect) return; //no getBoundingClientRect: no content
+	 * @param direction up|down|left|right the direction of search*/
+	function getClosestReadableElement(fromRect, direction) {
+		var result; //{element:null,rect:null,midOffset:-1,edgeOffset:-1,midDist90:-1,onPath:false};
+		var viewRect = {top: 0,bottom: window.innerHeight,left:0,right: window.innerWidth};
 		
-		//visible
-		var style = window.getComputedStyle(element);
-		if(style["visibility"] === "hidden") return;
-		if(style["opacity"] === "0") return;
-		
-		//contains text directly => check if position is fine
-		if(containsTextDirectly(element)) {
-			//already highlighted
-			if(element === status2element.highlighted) return;
- 
-			//on path
+		/** recursive function to update the result with given element (if needed) */
+		function updateResult(element) {
+			if(!hasVisibleContent(element)) return;
+			if(!containsTextDirectly(element)) {	//doesn't contain text directly => explore children
+				for(var i=0; i<element.childNodes.length; i++) updateResult(element.childNodes[i]);
+				return;
+			}
+			
+			//contains text directly => compare to current result
 			var rect = element.getBoundingClientRect();
-			if(!isOnPath(fromRect,rect,direction)) return;
- 
-			//all good => calc distance
-			var d = dist(fromRect,rect,direction);
-			if(d <= 0) return;
- 
-			//set closest
-			if((closest.dist > -1) && (closest.dist < d)) return;
-			closest.element = element;
-			closest.dist = d;
-			closest.rect = rect;
-			return;
+			if(!isOnPage(rect)) return;	//check if part of the page (e.g. google top left message for screen readers)
+			if(!isOnPath(viewRect,rect,direction)) return;	//when stepping left|right we don't want to search elements under|above the view
+			
+			var midOffset = getMidOffset(fromRect,rect,direction);
+			if(midOffset < 0) return;	//behind => not interested
+			
+			var edgeOffset = getEdgeOffset(fromRect,rect,direction);
+			var midDist90 = midDistance90(fromRect,rect,direction);
+			
+			var onPath = isOnPath(fromRect,rect,direction);
+			if(!onPath && edgeOffset < 0) return;
+			
+			result = closer(result,{element:element,rect:rect,midOffset:midOffset,edgeOffset:edgeOffset,midDist90:midDist90,onPath:onPath});
 		}
-		
-		//doesn't contain text directly => explore its children
-		for(var i=0; i<element.childNodes.length; i++) {
-			var child = element.childNodes[i];
-			setClosest(fromRect, child, direction);
-		}
+		updateResult(document.documentElement);	//call it on the root element
+		return result?result.element:null;
+	}
+	
+	function getDocumentBoundingClientRect() {
+		var result = {
+			top: -window.pageYOffset
+			,bottom: document.body.scrollHeight-window.pageYOffset
+			,left:-window.pageXOffset
+			,right: document.body.scrollWidth-window.pageXOffset
+		};
+		return result;
 	}
 	
 	/** @return the boundingClientRect of the currently higlighted|loading|playing|error element
 	 * if no such element: return a rect representing the edge of the page:
 	 * up: bottom edge | down: top edge | left: right edge | right: left edge*/
-	function getFromRect(direction) {
+	function getStepFromRect(direction) {
 		if(status2element.highlighted) return status2element.highlighted.getBoundingClientRect();
 		if(status2element.loading) return status2element.loading.getBoundingClientRect();
 		if(status2element.playing) return status2element.playing.getBoundingClientRect();
 		if(status2element.error) return status2element.error.getBoundingClientRect();
 
 		//dimensions of the page relative to view
-		result = {top: -window.pageYOffset, bottom: document.body.scrollHeight-window.pageYOffset, left:-window.pageXOffset, right: document.body.scrollWidth-window.pageXOffset};
+		result = {
+			top: -window.pageYOffset
+			,bottom: document.body.scrollHeight-window.pageYOffset
+			,left:-window.pageXOffset
+			,right: document.body.scrollWidth-window.pageXOffset
+		};
 		switch(direction) {
 			case("up"): result.top = result.bottom; break;
 			case("down"): result.bottom = result.top; break;
 			case("left"): result.left = result.right; break;
 			case("right"): result.right = result.left; break;
-			default: result = document.documentElement.getBoundingClientRect();	//wont reach
+			//default: wont reach
 		}
 		return result;
 	}
 	
 	var lastScroll = 0;	//time of last scrolling caused by stepping (to prevent unnecessary onMouseMove event)
+	function scrollIntoView(element) {
+		var scroll = {x:0,y:0};
+		
+		var rect = element.getBoundingClientRect();
+		if(rect.top < 0) scroll.y += rect.top;
+		if(rect.bottom > window.innerHeight) scroll.y += rect.bottom-window.innerHeight;
+		if(rect.left < 0) scroll.x += rect.left;
+		if(rect.right > window.innerWidth) scroll.x += rect.right-window.innerWidth;
+
+		if(scroll.x || scroll.y) {
+			window.scrollBy(scroll.x, scroll.y);
+			lastScroll = Date.now();
+		}
+	}
+	/** when using the arrow keys and we step out of the view, there is an automatic scrolling, which fires a mousemove event
+	 * @return true if the mouseMove event is beause of the automatic scrolling */
+	function isMouseMoveEventFromAutomaticScrolling() {
+		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
+	}
 	
 	/** highlights element in @param direction from currently highlighted element */
 	function stepHighlight(keyEvent, direction) {
 		keyEvent.stopPropagation();	//other event listeners won't execute
 		keyEvent.preventDefault();	//stop scrolling
 
-		closest = {element:null,dist:-1,rect:null};
-		var fromRect = getFromRect(direction);
-		setClosest(fromRect, document.documentElement, direction);
+		var fromRect = getStepFromRect(direction);
+		var closestReadable = getClosestReadableElement(fromRect, direction);
 
-		if(!closest.element) return;
-		addStatus(closest.element,"highlighted");
+		if(!closestReadable) return;
+		addStatus(closestReadable,"highlighted");
+		scrollIntoView(closestReadable);
+
 		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
 		
-		//scroll into view
-		var scroll = {x:0,y:0};
-		if(closest.rect.top < 0) scroll.y += closest.rect.top;
-		if(closest.rect.bottom > window.innerHeight) scroll.y += closest.rect.bottom-window.innerHeight;
-		if(closest.rect.left < 0) scroll.x += closest.rect.left;
-		if(closest.rect.right > window.innerWidth) scroll.x += closest.rect.right-window.innerWidth;
-		if(scroll.x || scroll.y) {
-			window.scrollBy(scroll.x, scroll.y);
-			lastScroll = Date.now();
-		}
-		//createDivOnBoundingClientRect(closest.rect);
-	}
-	
-	/** when using the arrow keys and we step out of the view, there is an automatic scrolling, which fires a mousemove event
-	 * @return true if the mouseMove event is beause of the automatic scrolling */
-	function isMouseMoveEventFromAutomaticScrolling() {
-		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
+		//createDivOnBoundingClientRect(closestReadable);
 	}
 	
 	//created for debugging
@@ -299,18 +368,6 @@
 		div.style.backgroundColor = "rgba(0,0,255,0.5)";
 		div.id = "highlightId";
 		document.documentElement.appendChild(div);
-	}
-	
-	// ============================================= animate clicked =============================================
-	
-	function animateRequestedElement(ttsEvent) {
-		lastTtsEvent = ttsEvent;
-		switch(ttsEvent.type) {
-			case("loading"): addStatus(requestedElement,"loading"); break;
-			case("start"): addStatus(requestedElement,"playing"); break;
-			case("end"): addStatus(null,"playing"); break;	//reverts loading, playing, error
-			case("error"): addStatus(requestedElement,"error"); break;
-		}
 	}
 
 	// ============================================= read =============================================
@@ -384,6 +441,17 @@
 	
 	// ============================================= general =============================================
 	
+	//animates clicked|playing|error element
+	function onTtsEvent(ttsEvent) {
+		lastTtsEvent = ttsEvent;
+		switch(ttsEvent.type) {
+			case("loading"): addStatus(requestedElement,"loading"); break;
+			case("start"): addStatus(requestedElement,"playing"); break;
+			case("end"): addStatus(null,"playing"); break;	//reverts loading, playing, error
+			case("error"): addStatus(requestedElement,"error"); break;
+		}
+	}
+	
 	//sets behavior of the content script based on the settings cache
 	function digestSettings() {
 		//turned off
@@ -422,7 +490,7 @@
 	
 	function onMessage(request, sender, sendResponse) {
 		switch(request.action) {
-			case("event"): animateRequestedElement(request.event); break;
+			case("event"): onTtsEvent(request.event); break;
 			case("set"):
 				settings[request.setting] = request.value;
 				digestSettings();
@@ -448,7 +516,7 @@
 		return ["start","loading"].indexOf(lastTtsEvent.type) > -1;
 	}
 	
-	stopReading = function(keyEvent) {
+	function stopReading(keyEvent) {
 		chrome.runtime.sendMessage({action: "read",text:""});
 		keyEvent.stopPropagation();	//other event listeners won't execute
 	}
@@ -492,3 +560,4 @@
 		lastTtsEvent = event;
 	});
 })();
+
