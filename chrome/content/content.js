@@ -24,7 +24,8 @@
 	function saveOriginal(element) {
 		if(element2original.get(element)) return;	//already saved
 		element2original.set(element,{
-			backgroundColor:element.style["background-color"]
+			background:element.style["background"]	//this overrides background-color => therefore set to none (e.g. google search result top-right element for login)
+			,backgroundColor:element.style["background-color"]
 			,color: element.style["color"]
 			,transition:element.style["-webkit-transition"]
 			,cursor:element.style["cursor"]
@@ -41,9 +42,10 @@
 	/** animates given element based on the status2element */
 	function animate(element) {
 		var status = concatenatedStatus(element);
-		element.style["-webkit-transition"] = "background-color .2s linear, color .2s linear";
+		element.style["-webkit-transition"] = "background .2s, background-color .2s, color .2s";	//'background' transition doesn't seem to work
 		switch(status) {
 			case("highlighted"):
+				element.style["background"] = "none";
 				element.style["background-color"] = "#4f4";
 				element.style["color"] = "black";
 				if(settings.noDelegateFirstClick) element.style["cursor"] = "pointer";
@@ -53,12 +55,14 @@
 			case("highlighted-loading"):
 			case("playing"):
 			case("highlighted-playing"):
+				element.style["background"] = "none";
 				element.style["background-color"] = "#8f8";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("error"):
 			case("highlighted-error"):
+				element.style["background"] = "none";
 				element.style["background-color"] = "#f55";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
@@ -100,6 +104,7 @@
 		}
 		
 		var original = element2original.get(element);
+		element.style["background"] = original.background;
 		element.style["background-color"] = original.backgroundColor;
 		element.style["color"] = original.color;
 		element.style["cursor"] = original.cursor;
