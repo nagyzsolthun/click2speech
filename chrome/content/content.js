@@ -113,6 +113,13 @@
 		}, 200);
 	}
 	
+	/** @return the text in highlighted element */
+	function getHighlightedParagraphText() {
+		if(status2element.highlighted) return status2element.highlighted.textContent;
+		else return "";
+	}
+	
+	// ============================================= highlighted element =============================================
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
@@ -121,13 +128,8 @@
 		return false;
 	}
 	
-	/** @return the text in highlighted element */
-	function getHighlightedParagraphText() {
-		if(status2element.highlighted) return status2element.highlighted.textContent;
-		else return "";
-	}
+	// ============================================= hover highlight =============================================
 	
-	// ============================================= highlighted element =============================================
 	/** @return the hovered paragraph
 	 * the top element that contains text directly
 	 * there are elements inside a text in many cases (e.g. <i> in wikipedia articles)
@@ -193,18 +195,6 @@
 		return true;
 	}
 	
-	/** @return offset of middle point from @param rect1 to @param rect2 in @param direction */
-	function getMidOffset(rect1,rect2,direction) {
-		var m1 = {x:(rect1.left + rect1.right)/2, y:(rect1.top + rect1.bottom)/2};
-		var m2 = {x:(rect2.left + rect2.right)/2, y:(rect2.top + rect2.bottom)/2};
-		switch(direction) {
-			case("up"): return m1.y - m2.y;
-			case("down"): return m2.y - m1.y;
-			case("left"): return m1.x - m2.x;
-			case("right"): return m2.x - m1.x;
-		}
-	}
-	
 	/** @return offset of closest edges from @param rect1 to @param rect2 in @param direction */
 	function getEdgeOffset(rect1,rect2,direction) {
 		switch(direction) {
@@ -215,39 +205,48 @@
 		}
 	}
 	
-	/** @return the distance between rect1 and rect2 in 90 degrees rotated direction */
-	function midDistance90(rect1,rect2,direction) {
+	/** @return distance between rect1.mid->direction and rect2.mid */
+	function getAxisDist(rect1,rect2,direction) {
+		var m1 = {x:(rect1.left + rect1.right)/2, y:(rect1.top + rect1.bottom)/2};
+		var m2 = {x:(rect2.left + rect2.right)/2, y:(rect2.top + rect2.bottom)/2};
 		switch(direction) {
 			case("up"):
-			case("down"): return Math.abs(getMidOffset(rect1,rect2,"left"));
+			case("down"): return Math.abs(m2.x-m1.x);
 			case("left"):
-			case("right"): return Math.abs(getMidOffset(rect1,rect2,"up"));
+			case("right"): return Math.abs(m2.y-m1.y);
+		}
+	}
+	
+	/** @return size of @param rect on the line perpendicular to @param direction */
+	function getPathWidth(rect,direction) {
+		switch(direction) {
+			case("up"):
+			case("down"): return rect.width;
+			case("left"):
+			case("right"): return rect.height;
 		}
 	}
 
-	/** @return the object considered closer
-	 * @param o1 and o2 {element,rect,midDist,edgeDist,onPath} represent a distance and position measurement of an element*/
-	function closer(o1,o2) {
+	/** @return the object considered closer 
+	 * @param o1 o2 {element,edgeOffset,onPath,relWidth,axisDist}
+	 * priority: onPath>edgeOffset>axisDist*/
+	function closer(o1,o2,pathWidth) {
 		if(!o1) return o2;
 		if(!o2) return o1;
-	
-		//both onPath => smaller midDist wins
-		//this is important when elements overlap each-other (e.g. Wikipedia right panel)
-		if(o1.onPath && o2.onPath) return (o1.midOffset+o1.midDist90/5 <= o2.midOffset+o2.midDist90/5)?o1:o2;
-
-		//neither onPath => amaller edgeOffset wins
-		if(!o1.onPath && !o2.onPath) return (o1.edgeOffset+o1.midDist90/5 < o2.edgeOffset+o2.midDist90/5)?o1:o2;
 		
-		//otherwise the one on path wins
-		if(o1.onPath) return o1;
-		else return o2;
+		//pathWidth: the wider the element (perpendicular to direction) is, the more weight onPath has
+		var weightedDist1 = o1.edgeOffset/100 + o1.axisDist/1000 - (o1.onPath?pathWidth:0);
+		var weightedDist2 = o2.edgeOffset/100 + o2.axisDist/1000 - (o2.onPath?pathWidth:0);
+		
+		return (weightedDist1 < weightedDist2)?o1:o2;
 	}
 	
  	/** @return the readableElement considered the closest to given fromRect in given direction
 	 * @param fromRect the rect to which the closest is searched
 	 * @param direction up|down|left|right the direction of search*/
 	function getClosestReadableElement(fromRect, direction) {
-		var result; //{element:null,rect:null,midOffset:-1,edgeOffset:-1,midDist90:-1,onPath:false};
+		var result; //element,edgeOffset,onPath,relWidth,axisDist
+		var pathWidth = getPathWidth(fromRect,direction);
 		var viewRect = {top: 0,bottom: window.innerHeight,left:0,right: window.innerWidth};
 		
 		/** recursive function to update the result with given element (if needed) */
@@ -259,20 +258,19 @@
 			}
 			
 			//contains text directly => compare to current result
-			var rect = element.getBoundingClientRect();
-			if(!isOnPage(rect)) return;	//check if part of the page (e.g. google top left message for screen readers)
-			if(!isOnPath(viewRect,rect,direction)) return;	//when stepping left|right we don't want to search elements under|above the view
+			var range = document.createRange();
+			range.selectNodeContents(element);
+			var textRect = range.getBoundingClientRect();
+
+			if(!isOnPage(textRect)) return;	//e.g. top left element on google for screen-readers
+			if(!isOnPath(viewRect,textRect,direction)) return;	//when stepping left|right we don't want to search elements under|above the view
 			
-			var midOffset = getMidOffset(fromRect,rect,direction);
-			if(midOffset < 0) return;	//behind => not interested
+			var edgeOffset = getEdgeOffset(fromRect,textRect,direction);
+			if(edgeOffset < 0) return;
 			
-			var edgeOffset = getEdgeOffset(fromRect,rect,direction);
-			var midDist90 = midDistance90(fromRect,rect,direction);
-			
-			var onPath = isOnPath(fromRect,rect,direction);
-			if(!onPath && edgeOffset < 0) return;
-			
-			result = closer(result,{element:element,rect:rect,midOffset:midOffset,edgeOffset:edgeOffset,midDist90:midDist90,onPath:onPath});
+			var onPath = isOnPath(fromRect,textRect,direction);	
+			var axisDist = getAxisDist(fromRect,textRect,direction);
+			result = closer(result,{element:element,edgeOffset:edgeOffset,onPath:onPath,axisDist:axisDist},pathWidth);
 		}
 		updateResult(document.documentElement);	//call it on the root element
 		return result?result.element:null;
@@ -284,6 +282,8 @@
 			,bottom: document.body.scrollHeight-window.pageYOffset
 			,left:-window.pageXOffset
 			,right: document.body.scrollWidth-window.pageXOffset
+			,width: document.body.scrollWidth
+			,height: document.body.scrollHeight-2*window.pageYOffset
 		};
 		return result;
 	}
@@ -292,18 +292,19 @@
 	 * if no such element: return a rect representing the edge of the page:
 	 * up: bottom edge | down: top edge | left: right edge | right: left edge*/
 	function getStepFromRect(direction) {
-		if(status2element.highlighted) return status2element.highlighted.getBoundingClientRect();
-		if(status2element.loading) return status2element.loading.getBoundingClientRect();
-		if(status2element.playing) return status2element.playing.getBoundingClientRect();
-		if(status2element.error) return status2element.error.getBoundingClientRect();
+		var activeElement = null;
+		if(status2element.loading) activeElement = status2element.loading;
+		if(status2element.playing) activeElement = status2element.playing;
+		if(status2element.error) activeElement = status2element.error;
+		if(status2element.highlighted) activeElement = status2element.highlighted;
+		if(activeElement) {
+			var range = document.createRange();
+			range.selectNodeContents(activeElement);
+			return range.getBoundingClientRect();
+		}
 
 		//dimensions of the page relative to view
-		result = {
-			top: -window.pageYOffset
-			,bottom: document.body.scrollHeight-window.pageYOffset
-			,left:-window.pageXOffset
-			,right: document.body.scrollWidth-window.pageXOffset
-		};
+		result = getDocumentBoundingClientRect();
 		switch(direction) {
 			case("up"): result.top = result.bottom; break;
 			case("down"): result.bottom = result.top; break;
