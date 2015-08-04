@@ -410,7 +410,9 @@
 	// ============================================= read - highlighted =============================================
 	
 	/** reads text provided by getHighlightedParagraphText + stops click event delegation if needed */
-	function readHighLightedText(event) {
+	function readClickedElement(clickEvent) {
+		highlightHoveredElement();
+	
 		//empty area clicked => stop reading
 		if(status2element.highlighted == null) {
 			readText(getHighlightedParagraphText());	//reads empty text => stops reading
@@ -429,8 +431,8 @@
 			
 		//check if click event needs to be delegated
 		if(settings.noDelegateFirstClick) {
-			event.stopPropagation();
-			event.preventDefault();
+			clickEvent.stopPropagation();
+			clickEvent.preventDefault();
 		}
 	}
 	
@@ -486,7 +488,7 @@
 		
 		if(settings.selectType == "highlightSelect") {
 			onArrow = settings.highlightOnArrows?stepHighlight:null;
-			onClick = readHighLightedText;
+			onClick = readClickedElement;
 			onMouseDown = null;
 			onMouseMove = highlightHoveredElement;
 			onMouseUp = null;
