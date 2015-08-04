@@ -11,10 +11,15 @@
 	var onSpace;	//called when space is pressed with parameter: keyEvent
 	var onEsc;	//called when esc key is pressed
 	
+	/** @return true if the last tts event is loading or start */
+	function isLoadingOrReading() {
+		return ["start","loading"].indexOf(lastTtsEvent.type) > -1;
+	}
+	
 	// ============================================= highlight =============================================	
 	var requestedElement = null;	//the clicked|space-pressed element
 	
-	//elements can be highlighted based on their status: highlighted|loading|playing|error
+	//elements are styled based on their status: highlighted|loading|playing|error
 	var status2element = {};
 	
 	//element => {cakgroundColor,transition}
@@ -32,7 +37,7 @@
 		});
 	}
 	
-	/** @return concatenates statuses of given element with "-" in order highlighted-loading-playing-error */
+	/** @return concatenated statuses of given element with "-" in order: highlighted-loading-playing-error */
 	function concatenatedStatus(element) {
 		return ["highlighted","loading","playing","error"].filter(function(status) {
 			return status2element[status] === element;	//only inerested in statuses where element is given element
@@ -91,14 +96,14 @@
 		animate(element);
 	}
 	
-	/** reverts the highlighted element */
+	/** reverts the element having @param status */
 	function revert(status) {
 		var element = status2element[status];
 		if(!element) return;
 
-		status2element[status] = null;	
+		status2element[status] = null;
 		if(concatenatedStatus(element)) {
-			//element still has some status, animate based on the new concatenated style
+			//element still has some status, animate based on the new concatenated status
 			animate(element);
 			return;
 		}
@@ -109,7 +114,7 @@
 		element.style["color"] = original.color;
 		element.style["cursor"] = original.cursor;
 		window.setTimeout(function() {
-			//if any style is set, we don't revert the the transition
+			//if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
 			if(concatenatedStatus(element)) return;
 			
 			//otherwise we do, and also remove the original for given element
@@ -119,12 +124,11 @@
 	}
 	
 	/** @return the text in highlighted element */
-	function getHighlightedParagraphText() {
+	function getHighlightedElementText() {
 		if(status2element.highlighted) return status2element.highlighted.textContent;
 		else return "";
 	}
-	
-	// ============================================= highlighted element =============================================
+
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
@@ -133,34 +137,11 @@
 		return false;
 	}
 	
-	// ============================================= hover highlight =============================================
-	
-	/** @return the hovered paragraph
-	 * the top element that contains text directly
-	 * there are elements inside a text in many cases (e.g. <i> in wikipedia articles)
-	 * we want to select the whole paragraph even if this inside element is hovered*/
-	function getHoveredParagraph() {
-		var hoveredNodes = document.querySelectorAll(":hover");
-		for(var i=0; i<hoveredNodes.length; i++) {
-			var element = hoveredNodes[i];
-			if(containsTextDirectly(element)) return element;
-		}
-		return null;
-	}
-	
-	/** highlights the element under mouse pointer */
-	function highlightHoveredElement() {
-		if(isMouseMoveEventFromAutomaticScrolling()) return true;
-		var element = getHoveredParagraph();
-		addStatus(element, "highlighted");
-	}
-	
 	// ============================================= keyboard navigation =============================================
 	/** @return false if element has no content or is invisible to user */
 	function hasVisibleContent(element) {
 		if(!element) return false;
 		if(!element.getBoundingClientRect) return false; //no getBoundingClientRect function: no content
-		if(element === status2element.highlighted) return false;	//already highlighted
  
 		var style = window.getComputedStyle(element);
 		if(style["display"] === "none") return false;
@@ -256,6 +237,7 @@
 		
 		/** recursive function to update the result with given element (if needed) */
 		function updateResult(element) {
+			if(element === status2element.highlighted) return;	//already highlighted
 			if(!hasVisibleContent(element)) return;
 			if(!containsTextDirectly(element)) {	//doesn't contain text directly => explore children
 				for(var i=0; i<element.childNodes.length; i++) updateResult(element.childNodes[i]);
@@ -375,6 +357,17 @@
 		div.id = "highlightId";
 		document.documentElement.appendChild(div);
 	}
+	
+	/** should be called with the "keydown" event when space is pressed
+	 * reads text provided by getHighlightedElementText, and stops page scroll if the active element is an input*/
+	function readHighLightedTextAndPreventScroll(keyEvent) {
+		requestedElement = status2element.highlighted;
+		var text = getHighlightedElementText();
+		if(text || isLoadingOrReading()) {
+			readText(text);
+			keyEvent.preventDefault();	//stop scrolling
+		}
+	}
 
 	// ============================================= read =============================================
 
@@ -382,8 +375,57 @@
 	function readText(text) {
 		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang});
 	}
+	
+	// ============================================= highlighted click =============================================
 
-	// ============================================= read - browser select =============================================
+	/** @return the hovered paragraph
+	 * the top element that contains text directly
+	 * there are elements inside a text in many cases (e.g. <i> in wikipedia articles)
+	 * we want to select the whole paragraph even if this inside element is hovered*/
+	function getHoveredReadableElement() {
+		var hoveredNodes = document.querySelectorAll(":hover");
+		for(var i=0; i<hoveredNodes.length; i++) {
+			var element = hoveredNodes[i];
+			if(containsTextDirectly(element)) return element;
+		}
+		return null;
+	}
+	
+	/** highlights the element under mouse pointer */
+	function highlightHoveredElement() {
+		if(isMouseMoveEventFromAutomaticScrolling()) return true;
+		var element = getHoveredReadableElement();
+		addStatus(element, "highlighted");
+	}
+	
+	/** reads text provided by getHighlightedElementText + stops click event delegation if needed */
+	function readClickedElement(clickEvent) {
+		highlightHoveredElement();
+	
+		//empty area clicked => stop reading
+		if(status2element.highlighted == null) {
+			readText(getHighlightedElementText());	//reads empty text => stops reading
+			return;
+		}
+	
+		//the requested element is being read|loading|error
+		var activeElements = [status2element.loading,status2element.playing,status2element.error];
+		if(activeElements.indexOf(status2element.highlighted) > -1) {
+			return;
+		}
+
+		//the requested element is NOT being read|loading|error
+		requestedElement = status2element.highlighted;
+		readText(getHighlightedElementText());
+			
+		//check if click event needs to be delegated
+		if(settings.noDelegateFirstClick) {
+			clickEvent.stopPropagation();
+			clickEvent.preventDefault();
+		}
+	}
+
+	// ============================================= browser select =============================================
 	var mouseDownText = null;
 
 	/** saves the text in the moment of mousedown, to be able to read on mouseUp, when selection is already empty */	
@@ -401,46 +443,6 @@
 	/** reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
 	function readBrowserSelectedTextAndPreventScroll(event) {
 		var text = getSelection().toString();
-		if(text || isLoadingOrReading()) {
-			readText(text);
-			event.preventDefault();	//stop scrolling
-		}
-	}
-	
-	// ============================================= read - highlighted =============================================
-	
-	/** reads text provided by getHighlightedParagraphText + stops click event delegation if needed */
-	function readClickedElement(clickEvent) {
-		highlightHoveredElement();
-	
-		//empty area clicked => stop reading
-		if(status2element.highlighted == null) {
-			readText(getHighlightedParagraphText());	//reads empty text => stops reading
-			return;
-		}
-	
-		//the requested element is being read|loading|error
-		var activeElements = [status2element.loading,status2element.playing,status2element.error];
-		if(activeElements.indexOf(status2element.highlighted) > -1) {
-			return;
-		}
-
-		//the requested element is NOT being read|loading|error
-		requestedElement = status2element.highlighted;
-		readText(getHighlightedParagraphText());
-			
-		//check if click event needs to be delegated
-		if(settings.noDelegateFirstClick) {
-			clickEvent.stopPropagation();
-			clickEvent.preventDefault();
-		}
-	}
-	
-	/** should be called with the "keydown" event when space is pressed
-	 * reads text provided by getHighlightedParagraphText, and stops page scroll if the active element is an input*/
-	function readHighLightedTextAndPreventScroll(event) {
-		requestedElement = status2element.highlighted;
-		var text = getHighlightedParagraphText();
 		if(text || isLoadingOrReading()) {
 			readText(text);
 			event.preventDefault();	//stop scrolling
@@ -517,11 +519,6 @@
 			if(activeElement.isContentEditable) return true;	//gmail new email
 		}
 		return false;
-	}
-	
-	/** @return true if the last tts event is loading or start */
-	function isLoadingOrReading() {
-		return ["start","loading"].indexOf(lastTtsEvent.type) > -1;
 	}
 	
 	function stopReading(keyEvent) {
