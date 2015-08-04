@@ -175,7 +175,7 @@ body {
 .singleChoiceList > li:before						{background-image: url('img/radio.svg');}
 .singleChoiceList > li.selected:before				{background-image: url('img/radioSelected.svg');}
 .singleChoiceList > li.selected.loading:before		{background-image: url('img/radioSelectedLoading.svg');}
-.singleChoiceList > li.selected.unavailable:before	{background-image: url('img/radioSelectedUnavailable.svg');}
+.singleChoiceList > li.selected.unavailable:before	{background-image: url('img/radioSelectedUnavailable.svg');opacity: 1;}
 
 .multipleChoiceList > :before			{background-image: url('img/check.svg');}
 .multipleChoiceList > .selected:before	{background-image: url('img/checkSelected.svg');}
