@@ -14,9 +14,9 @@
    viewBox="0 0 384.00001 63.999999"
    id="svg4185"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.48.4 r9939"
    sodipodi:docname="logo.svg"
-   inkscape:export-filename="/home/zsolt/prog/TouchToSpeech/chrome/options/img/logo.png"
+   inkscape:export-filename="/home/pnagy/ClickToSpeech/chrome/options/img/logo.png"
    inkscape:export-xdpi="270"
    inkscape:export-ydpi="270">
   <defs
@@ -57,6 +57,14 @@
        effect="spiro"
        id="path-effect4138-1-2"
        is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-8"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-3-9"
+       is_visible="true" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -65,17 +73,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4.1354167"
-     inkscape:cx="347.43973"
-     inkscape:cy="15.714284"
+     inkscape:zoom="2.0677084"
+     inkscape:cx="384.23255"
+     inkscape:cy="1.9106811"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
-     inkscape:window-width="1280"
-     inkscape:window-height="743"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-width="1366"
+     inkscape:window-height="713"
+     inkscape:window-x="-2"
+     inkscape:window-y="-3"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata4190">
@@ -85,7 +93,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -116,36 +124,52 @@
            height="123.74369"
            x="106.06602"
            y="-36.0051" /></flowRegion><flowPara
-         id="flowPara4839" /></flowRoot>    <circle
-       r="8"
-       cy="1020.3622"
-       cx="352"
-       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path3001" />
-    <circle
-       r="16"
-       cy="1020.3622"
-       cx="352"
-       style="fill:none;stroke:#3c3c3c;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path3803" />
-    <circle
-       r="24"
-       cy="1020.3622"
-       cx="352"
-       style="fill:none;stroke:#787878;stroke-width:2;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path3803-8" />
-    <circle
-       r="31"
-       cy="1020.3622"
-       cx="352"
-       style="fill:none;stroke:#b4b4b4;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path3803-8-0" />
+         id="flowPara4839" /></flowRoot>    <path
+       sodipodi:type="arc"
+       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:2.81818175;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3001"
+       sodipodi:cx="-50.363636"
+       sodipodi:cy="8.181818"
+       sodipodi:rx="11.272727"
+       sodipodi:ry="11.272727"
+       d="m -39.090909,8.181818 a 11.272727,11.272727 0 1 1 -22.545454,0 11.272727,11.272727 0 1 1 22.545454,0 z"
+       transform="matrix(0.70967747,0,0,0.70967747,387.74195,1014.5558)" />
     <path
-       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.98000002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 364.7475,1037.0929 -4.6669,-4.6669 -2.3335,4.2002 -6.067,-16.3342 16.3342,6.067 -4.2002,2.3334 4.6669,4.6669 -3.7335,3.7336 z"
+       sodipodi:type="arc"
+       style="fill:none;stroke:#3c3c3c;stroke-width:3.48889041;stroke-linecap:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3803"
+       sodipodi:cx="-64.237923"
+       sodipodi:cy="36.639404"
+       sodipodi:rx="26.646841"
+       sodipodi:ry="25.695168"
+       d="m -37.591082,36.639404 a 26.646841,25.695168 0 1 1 -53.293682,0 26.646841,25.695168 0 1 1 53.293682,0 z"
+       transform="matrix(0.56291852,0,0,0.58376738,388.16074,998.97332)" />
+    <path
+       sodipodi:type="arc"
+       style="fill:none;stroke:#787878;stroke-width:2.27536345;stroke-linecap:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3803-8"
+       sodipodi:cx="-64.237923"
+       sodipodi:cy="36.639404"
+       sodipodi:rx="26.646841"
+       sodipodi:ry="25.695168"
+       d="m -37.591082,36.639404 a 26.646841,25.695168 0 1 1 -53.293682,0 26.646841,25.695168 0 1 1 53.293682,0 z"
+       transform="matrix(0.86314173,0,0,0.89510996,407.44645,987.56591)" />
+    <path
+       sodipodi:type="arc"
+       style="fill:none;stroke:#b4b4b4;stroke-width:1.68817282;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3803-8-0"
+       sodipodi:cx="-64.237923"
+       sodipodi:cy="36.639404"
+       sodipodi:rx="26.646841"
+       sodipodi:ry="25.695168"
+       d="m -37.591082,36.639404 a 26.646841,25.695168 0 1 1 -53.293682,0 26.646841,25.695168 0 1 1 53.293682,0 z"
+       transform="matrix(1.1633649,0,0,1.2064525,426.73215,976.15851)" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.98000002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 363.06735,1035.1633 -4.6669,-4.6669 -2.33345,4.2002 -6.06698,-16.3343 16.33417,6.0671 -4.20022,2.3335 4.66691,4.6669 -3.73353,3.7335"
        id="path4136"
-       inkscape:path-effect="#path-effect4138-1-2"
-       inkscape:original-d="m 364.7475,1037.0929 -4.6669,-4.6669 -2.3335,4.2002 -6.067,-16.3342 16.3342,6.067 -4.2002,2.3334 4.6669,4.6669 z"
+       inkscape:path-effect="#path-effect4138-3-9"
+       inkscape:original-d="m 363.06735,1035.1633 -4.6669,-4.6669 -2.33345,4.2002 -6.06698,-16.3343 16.33417,6.0671 -4.20022,2.3335 4.66691,4.6669 z"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccc" />
   </g>

@@ -32,29 +32,23 @@ define([], function() {
 		context.lineWidth = 3;
 		context.strokeStyle = "rgba(0,0,0," + alpha + ")";
 		context.fillStyle = "rgba(255,255,255," + alpha + ")";
-		
-		//drawing the pointer happens on a 32x32 context - which is way too big for a 19x19 icon => lets scale
-		context.scale(size/45, size/45);
-		
-		//the coordinates are given for a standing pointer (see options/img/pointer.svg), but we need another direction => rotate
-		context.rotate(135*Math.PI/180);	//90 + 45 degress
-		context.translate(-16, -60);	//many trials and errors
+
+		context.scale(size/32, size/32);	//pointer is defined in a 32x32 grid, where top is in the origin
+		context.translate(14, 14);	//move origin to center (not exavtly to center: top of pointer should cover the middle)
+		context.rotate(-45 * Math.PI/180);	//45 degrees rotation
+		context.scale(0.66,0.66);	//we actually use the 66% of the size of the pointer (see icon32On)
+
 		context.beginPath();
-		context.moveTo(12,0);
-		context.lineTo(20,0);
-		context.lineTo(20,10);
-		context.lineTo(27,8);
-		context.lineTo(16,32);
-		context.lineTo(5,8);
-		context.lineTo(12,10);
+		context.moveTo(0,0);
+		context.lineTo(-11,24);
+		context.lineTo(-4,22);
+		context.lineTo(-4,32);
+		context.lineTo(4,32);
+		context.lineTo(4,22);
+		context.lineTo(11,24);
 		context.closePath();
 		context.fill();
 		context.stroke();
-		
-		//revert rotate, translate, scale
-		context.rotate(-135*Math.PI/180);
-		context.translate(16, 60);
- 		context.scale(45/size, 45/size);	//scale back
 		
 		if(alpha == 0 || alpha == 1) return true;	//animation finished TODO check
 		else return false;
