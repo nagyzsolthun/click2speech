@@ -2,28 +2,38 @@ define([], function() {
 	var context;	//TODO maybe not as an attibute
 	var size;
 	
-	var speed = 0.5;	//rounds/sec
+	//when calling setOn or setOff, these values are manipulated
 	var fadeLength = 300;	//millisec
-	
-	var start = null;	//start in millisec
-	var end = Date.now();	//end in millisec
-	
-	/** @return the alpha value for given millis:
-	 *0 at startTime
-	 * 1 at startTime + fadeLength
-	 * 1 at endTime
-	 * 0 at endTime + fadeLength*/
+	var start = Date.now();	//start of start animation
+	var end = 0;	//start of end animation
+	//end is set to an earlier point, so when initial setOn is received, animation happens
+
+	/** @return the alpha value for given millis */
 	function calcAlpha(millis) {
-		if(end) {
-			if(end < millis) return 0;
-			if(end-fadeLength > millis) return 1;
-			return (end-millis)/fadeLength;
+		var fadeInAlpha = (millis-start)/fadeLength;
+		fadeInAlpha = (fadeInAlpha<0)?0:fadeInAlpha;
+		fadeInAlpha = (fadeInAlpha>1)?1:fadeInAlpha;
+		
+		var fadeOutAlpha = 1 - (millis-end)/fadeLength;
+		fadeOutAlpha = (fadeOutAlpha<0)?0:fadeOutAlpha;
+		fadeOutAlpha = (fadeOutAlpha>1)?1:fadeOutAlpha;
+		
+		if(start<end) {
+			//end is next => tend to disappear => prefer the LOWER alpha
+			return (fadeInAlpha<fadeOutAlpha)?fadeInAlpha:fadeOutAlpha;
 		}
-		if(start) {
-			if(start > millis) return 0;
-			if(start+fadeLength < millis) return 1;
-			return (millis-start)/fadeLength;
+		if(end<start) {
+			//start is next => tend to appear => prefer the HIGHER alpha
+			return (fadeInAlpha<fadeOutAlpha)?fadeOutAlpha:fadeInAlpha;
 		}
+		return 1;
+	}
+	
+	/** @return true if animation finished */
+	function animationFinished(millis) {
+		if(millis < start+fadeLength) return false;
+		if(millis < end+fadeLength) return false;
+		return true;
 	}
 	
 	function render(millis) {
@@ -50,9 +60,9 @@ define([], function() {
 		context.fill();
 		context.stroke();
 		
-		if(alpha == 0 || alpha == 1) return true;	//animation finished TODO check
+		if(animationFinished(millis)) return true;
 		else return false;
-	}
+	}null
 	
 	// ============================ public ============================
 	var drawer = {
@@ -62,12 +72,12 @@ define([], function() {
 		}
 	};
 	drawer.setOn = function() {
-		end = null;
+		if(end < start) return;	//animation already finished/happening
 		start = Date.now();
 	}
 	drawer.setOff = function() {
-		if(end) return;	//already ended, no need to animate again
-		end = Date.now() + fadeLength;
+		if(start < end) return;	//animation already finished/happening
+		end = Date.now();
 	}
 
 	/** @param millis the time at when the animation is rendered

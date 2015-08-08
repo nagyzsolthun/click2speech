@@ -44,12 +44,14 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDra
 	drawer.drawTurnedOff = function() {
 		mainLayerDrawer.setOff();
 		loadingLayerDrawer.setOff();
+		pointerLayerDrawer.setOn();
 		animate();
 	}
 	
 	drawer.drawPlaying = function() {
 		mainLayerDrawer.setPlaying();
 		loadingLayerDrawer.setOff();
+		pointerLayerDrawer.setOn();
 		animate();
 	}
 	
@@ -64,6 +66,7 @@ define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDra
 		loadingLayerDrawer.setOff();
 		mainLayerDrawer.setError();
 		mainLayerDrawer.animateError();
+		pointerLayerDrawer.setOn();
 		animate();
 	}
 	
