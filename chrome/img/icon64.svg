@@ -36,6 +36,18 @@
        effect="spiro"
        id="path-effect4138-3"
        is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-12"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-37"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-9"
+       is_visible="true" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -44,9 +56,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="6.3286056"
-     inkscape:cx="14.704386"
-     inkscape:cy="37.734808"
+     inkscape:zoom="12.657211"
+     inkscape:cx="38.184331"
+     inkscape:cy="24.942316"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:grid-bbox="true"
@@ -91,7 +103,7 @@
        sodipodi:cy="36.639404"
        sodipodi:rx="26.646841"
        sodipodi:ry="25.695168"
-       d="m -37.591082,36.639404 a 26.646841,25.695168 0 1 1 -53.293682,0 26.646841,25.695168 0 1 1 53.293682,0 z"
+       d="m -37.591082,36.639404 c 0,14.191049 -11.930197,25.695168 -26.646841,25.695168 -14.716644,0 -26.646841,-11.504119 -26.646841,-25.695168 0,-14.191049 11.930197,-25.695167 26.646841,-25.695167 14.716644,0 26.646841,11.504118 26.646841,25.695167 z"
        transform="matrix(0.56291851,0,0,0.58376736,68.160716,-5.3888882)" />
     <path
        sodipodi:type="arc"
@@ -101,7 +113,7 @@
        sodipodi:cy="36.639404"
        sodipodi:rx="26.646841"
        sodipodi:ry="25.695168"
-       d="m -37.591082,36.639404 a 26.646841,25.695168 0 1 1 -53.293682,0 26.646841,25.695168 0 1 1 53.293682,0 z"
+       d="m -37.591082,36.639404 c 0,14.191049 -11.930197,25.695168 -26.646841,25.695168 -14.716644,0 -26.646841,-11.504119 -26.646841,-25.695168 0,-14.191049 11.930197,-25.695167 26.646841,-25.695167 14.716644,0 26.646841,11.504118 26.646841,25.695167 z"
        transform="matrix(0.86314171,0,0,0.89510994,87.44643,-16.796295)" />
     <path
        sodipodi:type="arc"
@@ -114,11 +126,11 @@
        d="m -37.591082,36.639404 c 0,14.191049 -11.930197,25.695168 -26.646841,25.695168 -14.716644,0 -26.646841,-11.504119 -26.646841,-25.695168 0,-14.191049 11.930197,-25.695167 26.646841,-25.695167 14.716644,0 26.646841,11.504118 26.646841,25.695167 z"
        transform="matrix(1.1633649,0,0,1.2064525,106.73214,-28.2037)" />
     <path
-       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.98000002;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       d="M 43.067334,30.801 38.400429,26.134095 36.066977,30.334309 30,14.000142 l 16.334167,6.066977 -4.200214,2.333452 4.666905,4.666905 -3.733524,3.733524"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 42.879394,30.274 39.485281,26.879888 37.363961,29.849736 31,15.000494 l 14.849242,6.363961 -2.969848,2.12132 3.394112,3.394113 -3.394112,3.394112"
        id="path4136"
-       inkscape:path-effect="#path-effect4138-3"
-       inkscape:original-d="M 43.067334,30.801 38.400429,26.134095 36.066977,30.334309 30,14.000142 l 16.334167,6.066977 -4.200214,2.333452 4.666905,4.666905 z"
+       inkscape:path-effect="#path-effect4138-9"
+       inkscape:original-d="M 42.879394,30.274 39.485281,26.879888 37.363961,29.849736 31,15.000494 l 14.849242,6.363961 -2.969848,2.12132 3.394112,3.394113 z"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccc" />
   </g>

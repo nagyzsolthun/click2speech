@@ -64,7 +64,7 @@ define([], function() {
 	}
 	drawer.setOff = function() {
 		if(start < end) return;	//animation already finished/happening
-		end = Date.now() + fadeLength;
+		end = Date.now();
 	}
 
 	/** @param millis the time at when the animation is rendered

@@ -28,6 +28,30 @@
        effect="spiro"
        id="path-effect4138-0"
        is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-8"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-5"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-6"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-57"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-3"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4138-52"
+       is_visible="true" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -36,9 +60,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.313708"
-     inkscape:cx="20.454945"
-     inkscape:cy="20.000017"
+     inkscape:zoom="15.999999"
+     inkscape:cx="24.46197"
+     inkscape:cy="14.271005"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:document-units="px"
@@ -56,7 +80,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -88,11 +112,11 @@
        inkscape:export-xdpi="180"
        inkscape:export-ydpi="180" />
     <path
-       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.97999999999999998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       d="M 27.067334,62.801 22.400429,58.134095 20.066977,62.334309 14,46.000142 l 16.334167,6.066977 -4.200214,2.333452 4.666905,4.666905 -3.733524,3.733524"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 26.879393,62.274 23.485281,58.879888 21.363961,61.849735 15,47.000494 l 14.849242,6.363961 -2.969849,2.12132 3.394113,3.394113 -3.394113,3.394112"
        id="path4136"
-       inkscape:path-effect="#path-effect4138-0"
-       inkscape:original-d="M 27.067334,62.801 22.400429,58.134095 20.066977,62.334309 14,46.000142 l 16.334167,6.066977 -4.200214,2.333452 4.666905,4.666905 z"
+       inkscape:path-effect="#path-effect4138-52"
+       inkscape:original-d="M 26.879393,62.274 23.485281,58.879888 21.363961,61.849735 15,47.000494 l 14.849242,6.363961 -2.969849,2.12132 3.394113,3.394113 z"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccc" />
   </g>

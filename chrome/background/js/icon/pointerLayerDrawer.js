@@ -39,23 +39,23 @@ define([], function() {
 	function render(millis) {
 		var alpha = calcAlpha(millis);
 		
-		context.lineWidth = 3;
+		context.lineWidth = 3.33;
 		context.strokeStyle = "rgba(0,0,0," + alpha + ")";
 		context.fillStyle = "rgba(255,255,255," + alpha + ")";
 
 		context.scale(size/32, size/32);	//pointer is defined in a 32x32 grid, where top is in the origin
-		context.translate(14, 14);	//move origin to center (not exavtly to center: top of pointer should cover the middle)
+		context.translate(15, 15);	//move origin to center (not exavtly to center: top of pointer should cover the middle)
 		context.rotate(-45 * Math.PI/180);	//45 degrees rotation
-		context.scale(0.66,0.66);	//we actually use the 66% of the size of the pointer (see icon32On)
+		context.scale(.6,.6);	//we actually use the 60% of the size of the pointer (see icon32On)
 
 		context.beginPath();
 		context.moveTo(0,0);
-		context.lineTo(-11,24);
-		context.lineTo(-4,22);
+		context.lineTo(-10,25);
+		context.lineTo(-4,24);
 		context.lineTo(-4,32);
 		context.lineTo(4,32);
-		context.lineTo(4,22);
-		context.lineTo(11,24);
+		context.lineTo(4,24);
+		context.lineTo(10,25);
 		context.closePath();
 		context.fill();
 		context.stroke();
