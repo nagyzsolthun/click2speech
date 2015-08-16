@@ -5,7 +5,7 @@
 	,"selectionOptions": {"message": "Selection"}
 	,"highlightOptions": {"message": "Highlight"}
 	,"noDelegateFirstClick": {"message": "buttons and URLs active only when reading"}
-	,"ttsOptions": {"message": "Speech Synthesizer"}
+	,"ttsOptions": {"message": "Reader"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}
 	,"highlightSelect": {"message": "highlighted paragraph"}

@@ -5,7 +5,7 @@
 	,"selectionOptions": {"message": "Kijelölés"}
 	,"highlightOptions": {"message": "Kiemelés"}
 	,"noDelegateFirstClick": {"message": "a gombok és URL-ek csak olvasáskor aktívak"}
-	,"ttsOptions": {"message": "Beszédszintézis"}
+	,"ttsOptions": {"message": "Olvasó"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}
 	,"highlightSelect": {"message": "kiemelt bekezdés"}
