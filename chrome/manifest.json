@@ -3,7 +3,7 @@
 	"name": "Click to Speech",
 	"default_locale": "en",
 	"description": "__MSG_extensionDescription__",
-	"version": "0.9.6.1",
+	"version": "0.9.6.2",
 	"content_scripts": [{
 		"matches": ["<all_urls>"],
 		"js": ["content/content.js"]

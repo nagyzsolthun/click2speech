@@ -1,10 +1,10 @@
 {
-	"extensionDescription": {"message": "Szövegfelolvasó gyengénlátóknak."}
+	"extensionDescription": {"message": "Klikkelj az egérrel egy bekezdésre, és a Click to Speech felolvassa azt."}
 	,"generalOptionsPage": {"message": "Általános"}
 	,"readingOptionsPage": {"message": "Olvasás"}
 	,"selectionOptions": {"message": "Kijelölés"}
 	,"highlightOptions": {"message": "Kiemelés"}
-	,"noDelegateFirstClick": {"message": "a gombok és URLek csak olvasáskor aktívak"}
+	,"noDelegateFirstClick": {"message": "a gombok és URL-ek csak olvasáskor aktívak"}
 	,"ttsOptions": {"message": "Beszédszintézis"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}
