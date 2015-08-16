@@ -20,7 +20,7 @@ define([], function() {
 				,noDelegateFirstClick:false
 				,tts:"iSpeech"
 				,gender:"female"
-				,speed:1
+				,speed:1.2
 			}
 			console.log("persist defaults..");
 			chrome.storage.local.set({settings:settings});
