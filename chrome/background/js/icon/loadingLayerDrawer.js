@@ -7,7 +7,7 @@ define([], function() {
 	//when calling setOn or setOff, these values are manipulated
 	var fadeLength = 300;	//millisec
 	var start = 0;	//start of start animation
-	var end = Date.now() - fadeLength;	//start of end animation
+	var end = 1;	//start of end animation
 	//end is set to a later point, so when initial setOff is received, NO animation happens
 	
 	/** @return the alpha value for given millis */
