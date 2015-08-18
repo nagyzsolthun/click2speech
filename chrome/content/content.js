@@ -56,12 +56,17 @@
 				if(settings.noDelegateFirstClick) element.style["cursor"] = "pointer";
 				else element2original.get(element).cursor;
 				break;
-			case("loading"): 
-			case("highlighted-loading"):
+			case("loading"):
 			case("playing"):
+				element.style["background"] = "none";
+				element.style["background-color"] = "#bbf";
+				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
+				break;
+			case("highlighted-loading"):
 			case("highlighted-playing"):
 				element.style["background"] = "none";
-				element.style["background-color"] = "#8f8";
+				element.style["background-color"] = "#88f";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;

@@ -43,6 +43,7 @@ define([], function() {
 		context.strokeStyle = "rgba(0,0,0," + alpha + ")";
 		context.fillStyle = "rgba(255,255,255," + alpha + ")";
 
+		context.save();
 		context.scale(size/32, size/32);	//pointer is defined in a 32x32 grid, where top is in the origin
 		context.translate(15, 15);	//move origin to center (not exavtly to center: top of pointer should cover the middle)
 		context.rotate(-45 * Math.PI/180);	//45 degrees rotation
@@ -59,6 +60,7 @@ define([], function() {
 		context.closePath();
 		context.fill();
 		context.stroke();
+		context.restore();
 		
 		if(animationFinished(millis)) return true;
 		else return false;
