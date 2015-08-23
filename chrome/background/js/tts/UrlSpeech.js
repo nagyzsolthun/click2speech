@@ -8,42 +8,87 @@ define(function() {
 	 * @param c.cutEnd the length of audio to be ignored at the end (iSpeech "powered by iSpeech" sound)
 	 * @param c.textArr array of text (urlArr[i] always have the url for textArr[i])*/
 	function UrlSpeech(c) {
-		var audios = [];
-		var audioErrors = {};
-		var onEvent = function() {};
-
-		/** sets the url for each audio, and wires up sequence:
-		 * one audio should start after previous finishes and itself is loaded
-		 * except the first one that starts only when play() is valled*/
-		c.urlArr.forEach(function(url,i) {
-			var audio = new Audio();
-			audios.push(audio);
-			
-			audio.defaultPlaybackRate = c.speed || 1;
-			audio.src = url;
-			audio.onerror = function() {audioErrors[i] = true;}
-			
-			setCutEnd({audio:audio, cutEnd: c.cutEnd});
-
-			//not the first audio => start playing when previous ends
-			var previous = audios[i-1];
-			if(previous) previous.onended = function() {playWhenPossible(i);}
-			
-			//last audio
-			if(i == c.urlArr.length-1) audio.onended = function() {onEvent({type:"end"});}
-		});
+		var audios = {};
+		var endListeners = {};	//end event listeners - to be able to remove them when manually stopped
+		var loadingTimes = {};	//time passed until canplaythrough event received (seconds) - to know when to start loading of the next audio
 		
-		/** sets up @param c.audio to stop before the end by @param c.cutEnd */
-		function setCutEnd(c) {
-			if(!c.cutEnd) return;
-			c.audio.ontimeupdate = function() {
-				if(c.audio.currentTime > c.audio.duration - c.cutEnd) {
-					c.audio.onerror = null;
-					c.audio.src = "";
-					c.audio.onended();
-				}
+		var speed = c.speed || 1;	//store in a variable - it may change later
+		
+		var onEvent = function() {};
+		
+		/** calls prepareAudio(i+1) when playing of audios[i] reaches a point where request should be sent
+		 * OR fires "end" event when last audio ends */
+		function scheduleNext(i) {
+			var audio = audios[i];
+
+			//audio is the last one => fire "end" event when over
+			if(i > c.urlArr.length-2) {
+				endListeners[i] = function() {onEvent({type:"end"})};
+				audio.addEventListener("pause", endListeners[i]);
+				return;
 			}
+			
+			//audio is NOT the last one => prepare next when needed
+			//when to send the request for the next audio? end - (1 sec + loadingTime x 2) seems good (considering speed)
+			audio.addEventListener("timeupdate", function() {
+				if(audios[i+1]) return;	//already prepared
+				var audioTimeForLoading = (1 + loadingTimes[i]*2)*speed;
+				if(audio.currentTime < audio.duration - (c.cutEnd || 0) - audioTimeForLoading) return;	//nothing to do yet
+				prepareAudio(i+1);
+			});
+			
+			//play next audio when this is over
+			endListeners[i] = function() {play(i+1);}
+			audio.addEventListener("pause", endListeners[i]);
 		}
+		
+		/** creates an audio for the url on the @param i index, and sets up callbacks to create following audios
+		 * @note: when this function is called, the browser sends a request*/
+		function prepareAudio(i) {
+			var audio = new Audio();
+			audios[i] = audio;
+
+			audio.defaultPlaybackRate = speed;
+			audio.src = c.urlArr[i];
+
+			//cutEnd			
+			if(c.cutEnd) audios[i].addEventListener("timeupdate", function() {
+				if(audios[i].currentTime > audios[i].duration - c.cutEnd) audios[i].pause();
+			});
+
+			//ladingTime - to know when to start loading of next audio
+			var loadingStart = Date.now();
+			audio.addEventListener("canplaythrough", function() {
+				var loadingEnd = Date.now();
+				loadingTimes[i] = (loadingEnd - loadingStart) / 1000.0;
+			});
+			
+			//next
+			scheduleNext(i);
+		}
+		
+		/** starts audio in @param i index + sets up events (loading, start, error) */
+		function play(i) {
+			var audio = audios[i];
+
+			if(audio.error) {
+				handleUrlError(i);
+				return;
+			}
+			audio.addEventListener("waiting", function() {
+				onEvent({type:"loading"});
+			});
+			audio.addEventListener("playing", function() {
+				onEvent({type:"start"});
+			});
+			audio.addEventListener("error", function(e) {
+				handleUrlError(i);
+			});
+
+			audio.play();
+		}
+		
+		// ================================ error handling ================================
 		
 		/** @return the text after the textArr on @param i index*/
 		function remainingText(i) {
@@ -56,57 +101,32 @@ define(function() {
 		
 		/** stops playing + calls onEvent with URL_ERROR, provides its necessary data: url, remaing text */
 		function handleUrlError(i) {
-			stop();
+			this.stop();
 			onEvent({type:"error",errorType:"URL_ERROR",url:c.urlArr[i],remaining:remainingText(i)});
 		}
 		
-		/** starts audio in @param i index if it can play, or waits until it is able to play */
-		function playWhenPossible(i) {
-			if(audioErrors[i]) {
-				handleUrlError(i);
-				return;
-			}
-			
-			var audio = audios[i];
-			if(audio.readyState == 4) {
-				audio.play();	//audio can play
-				return;
-			}
-
-			onEvent({type:"loading"});
-			audio.oncanplay = function() {audio.play();onEvent({type:"start"});}
-			audio.onerror = function() {
-				handleUrlError(i);
-			}
-		}
-		
-		/** stops playing - no "end" event raised*/
-		function stop() {
-			audios.forEach(function(audio) {
-				audio.onerror = null;
-				audio.src = "";
-				audio.load();
-			});
-			audios = [];
-		}
+		// ================================ public ================================
 		
 		/** starts playing when possible */
 		this.play = function() {
-			if(!audios.length) {	//in case we received no text
-				onEvent({type:"end"});
-				return;
-			}
-			playWhenPossible(0);
+			if(c.urlArr.length) play(0);
 		}
 		
-		/** stops playing the audio + raises "end" callback */
+		/** stops playing the audio + firse "end" callback */
 		this.stop = function() {
-			var last = audios[audios.length-1];
-			last && last.onended();
-			stop();
+			for(var i=0; i<c.urlArr.length; i++) {
+				var audio = audios[i];
+				if(!audio) continue;	//not prepared (manual stop befor prepare called)
+				
+				var endListener = endListeners[i];
+				audio.removeEventListener("pause",endListener);
+
+				audio.pause();
+				onEvent({type:"end"});
+			};
 		}
 		
-		/** called when any event arises
+		/** called when an audio event is fired
 		 * "loading" loading starts OR playing of audio can't be started because of still loading
 		 * "start" when reading starts
 		 * "end" the last audio finished playing
@@ -114,12 +134,16 @@ define(function() {
 		Object.defineProperty(this, 'onEvent', {set: function(callback){onEvent = callback;}});
 		Object.defineProperty(this, 'tts', {get: function() {return c.tts;}});
 		Object.defineProperty(this, 'speed', {
-			set: function(speed) {
-				audios.forEach(function(audio) {
-					audio.playbackRate = speed;
-				});
+			set: function(value) {
+				speed = value;
+				for(var i=0; i<c.urlArr.length; i++) {
+					if(audios[i]) audios[i].playbackRate = speed;
+				}
 			}
 		});
+		
+		// ================================ init ================================
+		if(c.urlArr.length) prepareAudio(0);
 	}
 
 	return UrlSpeech;
