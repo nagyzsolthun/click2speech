@@ -12,7 +12,6 @@ angular.module('optionsApp')
 	];
 	$scope.highlightOptions = [
 		{value:"highlightOnArrows", text:toMessage("highlightOnArrows"), selected:false}
-		,{value:"noDelegateFirstClick", text:toMessage("noDelegateFirstClick"), selected:false}
 	];
 
 	//user interaction with the lists

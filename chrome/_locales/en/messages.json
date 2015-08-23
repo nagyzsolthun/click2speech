@@ -4,7 +4,6 @@
 	,"readingOptionsPage": {"message": "Reading"}
 	,"selectionOptions": {"message": "Selection"}
 	,"highlightOptions": {"message": "Highlight"}
-	,"noDelegateFirstClick": {"message": "buttons and URLs active only when reading"}
 	,"ttsOptions": {"message": "Reader"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}

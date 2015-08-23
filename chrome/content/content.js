@@ -33,7 +33,6 @@
 			,backgroundColor:element.style["background-color"]
 			,color: element.style["color"]
 			,transition:element.style["-webkit-transition"]
-			,cursor:element.style["cursor"]
 		});
 	}
 	
@@ -53,34 +52,28 @@
 				element.style["background"] = "none";
 				element.style["background-color"] = "#4f4";
 				element.style["color"] = "black";
-				if(settings.noDelegateFirstClick) element.style["cursor"] = "pointer";
-				else element2original.get(element).cursor;
 				break;
 			case("loading"):
 			case("playing"):
 				element.style["background"] = "none";
 				element.style["background-color"] = "#bbf";
 				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("highlighted-loading"):
 			case("highlighted-playing"):
 				element.style["background"] = "none";
 				element.style["background-color"] = "#88f";
 				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("error"):
 				element.style["background"] = "none";
 				element.style["background-color"] = "#fbb";
 				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("highlighted-error"):
 				element.style["background"] = "none";
 				element.style["background-color"] = "#f88";
 				element.style["color"] = "black";
-				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 		}
 	}
@@ -122,7 +115,6 @@
 		element.style["background"] = original.background;
 		element.style["background-color"] = original.backgroundColor;
 		element.style["color"] = original.color;
-		element.style["cursor"] = original.cursor;
 		window.setTimeout(function() {
 			//if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
 			if(concatenatedStatus(element)) return;
@@ -427,12 +419,6 @@
 		//the requested element is NOT being read|loading|error
 		requestedElement = status2element.highlighted;
 		readText(getHighlightedElementText());
-			
-		//check if click event needs to be delegated
-		if(settings.noDelegateFirstClick) {
-			clickEvent.stopPropagation();
-			clickEvent.preventDefault();
-		}
 	}
 
 	// ============================================= browser select =============================================
@@ -567,7 +553,6 @@
 		settings.turnedOn = storedSettings.turnedOn;
 		settings.selectType = storedSettings.selectType;
 		settings.highlightOnArrows = storedSettings.highlightOnArrows;
-		settings.noDelegateFirstClick = storedSettings.noDelegateFirstClick;
 
 		digestSettings();
 	});

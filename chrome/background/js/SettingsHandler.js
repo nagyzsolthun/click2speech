@@ -17,7 +17,6 @@ define([], function() {
 				turnedOn:true
 				,selectType:"highlightSelect"
 				,highlightOnArrows:true
-				,noDelegateFirstClick:false
 				,tts:"iSpeech"
 				,gender:"female"
 				,speed:1.2
