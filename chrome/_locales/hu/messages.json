@@ -9,7 +9,7 @@
 	,"genderOptions": {"message": "Nem"}
 	,"highlightSelect": {"message": "kiemelt bekezdés"}
 	,"builtInSelect": {"message": "böngészőbe épített kijelölés"}
-	,"highlightOnArrows": {"message": "navigálás a nyíl billentyűkkel"}
+	,"highlightOnArrows": {"message": "nyíl billentyűk"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}
