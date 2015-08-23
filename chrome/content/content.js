@@ -71,9 +71,14 @@
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;
 			case("error"):
+				element.style["background"] = "none";
+				element.style["background-color"] = "#fbb";
+				element.style["color"] = "black";
+				element.style["cursor"] = element2original.get(element).cursor;
+				break;
 			case("highlighted-error"):
 				element.style["background"] = "none";
-				element.style["background-color"] = "#f55";
+				element.style["background-color"] = "#f88";
 				element.style["color"] = "black";
 				element.style["cursor"] = element2original.get(element).cursor;
 				break;

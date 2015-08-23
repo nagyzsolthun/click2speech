@@ -50,10 +50,13 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	 * @param c.gender
 	 */
 	function read(c) {
-		if(speech) speech.stop();
-
 		var tts = nextTts();	//errors must be prepared
-		if(! tts) return;	//no more usable tts
+		if(! tts) {	//no more usable tts
+			onEvent({type:"error"});
+			return;
+		}
+		
+		if(speech) speech.stop();	//this will NOT fire any event
 
 		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed, gender:c.gender});
 		speech.onEvent = function(event) {
@@ -71,7 +74,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 			}
 		}
 		
-		speech.play();
+		speech.play();	//fires event
 	}
 	
 	// =============================== public ===============================
@@ -94,7 +97,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	provider.read = function(c) {
 		settingsHandler.getAll(function(settings) {
 			//new reading => no error
-			if(c.text) errors = [];
+			errors = [];
 			
 			//set up preferred tts
 			ttsArray.forEach(function(tts) {if(tts.name == settings.tts) preferredTts = tts;});

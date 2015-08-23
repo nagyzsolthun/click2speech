@@ -110,9 +110,10 @@ define(function() {
 		/** starts playing when possible */
 		this.play = function() {
 			if(c.urlArr.length) play(0);
+			else onEvent({type:"end"});
 		}
 		
-		/** stops playing the audio + firse "end" callback */
+		/** stops playing - NO event is fired */
 		this.stop = function() {
 			for(var i=0; i<c.urlArr.length; i++) {
 				var audio = audios[i];
@@ -120,9 +121,7 @@ define(function() {
 				
 				var endListener = endListeners[i];
 				audio.removeEventListener("pause",endListener);
-
 				audio.pause();
-				onEvent({type:"end"});
 			};
 		}
 		

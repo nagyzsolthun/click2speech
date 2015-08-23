@@ -21,13 +21,16 @@ define([], function() {
 						case("start"):		onEvent({type:"start"}); break;
 						case("end"):		onEvent({type:"end"}); break;
 						case("interrupted"):onEvent({type:"end"}); break;
-						case("error"):		onEvent({type:"error",errorType:"UNKOWN",remaining:c.text}); break;
+						case("error"):		onEvent({type:"error",errorType:"NOT_SUPPORTED",remaining:c.text}); break;
 					}
 				}
 			});
+			onEvent({type:"loading"});
 		}
 		
+		/** stops playing - NO event is fired */
 		this.stop = function() {
+			onEvent = function() {};
 			chrome.tts.stop();
 		}
 		
