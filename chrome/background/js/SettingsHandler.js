@@ -15,8 +15,9 @@ define([], function() {
 			//settings are not persisted (first ever execution)
 			settings = {
 				turnedOn:true
-				,selectType:"highlightSelect"
-				,highlightOnArrows:true
+				,hoverSelect:true
+				,arrowSelect:true
+				,browserSelect:false
 				,tts:"iSpeech"
 				,gender:"female"
 				,speed:1.2

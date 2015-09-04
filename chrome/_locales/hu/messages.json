@@ -7,9 +7,9 @@
 	,"ttsOptions": {"message": "Olvasó"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}
-	,"highlightSelect": {"message": "kiemelt bekezdés"}
-	,"builtInSelect": {"message": "böngészőbe épített kijelölés"}
-	,"highlightOnArrows": {"message": "nyíl billentyűk"}
+	,"hoverSelect": {"message": "egérrel mutatott"}
+	,"arrowSelect": {"message": "nyíl billentyűk"}
+	,"browserSelect": {"message": "böngészőbe épített kijelölés"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}

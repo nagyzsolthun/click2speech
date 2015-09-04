@@ -62,9 +62,9 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				notifyContentJs({action:"set", setting:setting, value:value});
 				break;
 			case("speed"): tts.speed = value; break;
-			case("selectType"):
-			case("highlightOnArrows"):
-			case("readOnClick"): notifyContentJs({action:"set", setting:setting, value:value});break;
+			case("hoverSelect"):
+			case("arrowSelect"):
+			case("browserSelect"): notifyContentJs({action:"set", setting:setting, value:value});break;
 		}
 	}
 	

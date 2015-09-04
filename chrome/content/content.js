@@ -1,31 +1,27 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
 	var settings = {};	//last cahnge of all settings
-	var lastTtsEvent = null;	//to know whether esc event propagation should be stopped
+	var lastTtsEventType = null;	//to know whether esc event propagation should be stopped
+	
+	function nothing() {};	//used when no event listener needed
 	
 	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
-	var onClick;	//called when mouse button is clicked
-	var onMouseDown;	//called when mouse button is down - used fot built-in select, to make sure the click is an actual click and not a new selection-start
-	var onMouseMove;	//called when the mouse pinter moves
-	var onMouseUp;		//called when mouse buttin is up - used fot built-in select, to make sure the click is an actual click and not a new selection-start
 	var onSpace;	//called when space is pressed with parameter: keyEvent
-	var onEsc;	//called when esc key is pressed
+ 	var onSelectingMouseMove;	//called when mouse pointer moves while selection is happening
+ 	var onNonSelectingMouseMove;	//called when mouse pointer moves while selection is NOT happening
+ 	var onSelectingMouseUp;	//called when mouseUp while selection is happening
+ 	var onNonSelectingMouseUp;	//called when mouseUp while selection is NOT happening
 	
-	/** @return true if the last tts event is loading or start */
-	function isLoadingOrReading() {
-		return ["start","loading"].indexOf(lastTtsEvent.type) > -1;
-	}
-	
-	// ============================================= highlight =============================================	
-	var requestedElement = null;	//the clicked|space-pressed element
+	// ============================================= status =============================================	
+	var requestedElement = null;	//the clicked|space-pressed element - colored when tts events received
 	
 	//elements are styled based on their status: highlighted|loading|playing|error
 	var status2element = {};
 	
-	//element => {cakgroundColor,transition}
+	//element => {background, backgroundColor, color, transition}
 	var element2original = new Map();
 	
-	/** stores the current backgroundColor and tansition styles of given element */
+	/** saves the current style of @param element */
 	function saveOriginal(element) {
 		if(element2original.get(element)) return;	//already saved
 		element2original.set(element,{
@@ -36,14 +32,14 @@
 		});
 	}
 	
-	/** @return concatenated statuses of given element with "-" in order: highlighted-loading-playing-error */
+	/** @return concatenated statuses of @param element with "-" in order: highlighted-loading-playing-error */
 	function concatenatedStatus(element) {
 		return ["highlighted","loading","playing","error"].filter(function(status) {
 			return status2element[status] === element;	//only inerested in statuses where element is given element
 		}).join("-");
 	}
 
-	/** animates given element based on the status2element */
+	/** sets style of @param element based on the status2element */
 	function animate(element) {
 		var status = concatenatedStatus(element);
 		element.style["-webkit-transition"] = "background .2s, background-color .2s, color .2s";	//'background' transition doesn't seem to work
@@ -125,11 +121,7 @@
 		}, 200);
 	}
 	
-	/** @return the text in highlighted element */
-	function getHighlightedElementText() {
-		if(status2element.highlighted) return status2element.highlighted.textContent;
-		else return "";
-	}
+	// ============================================= highlight general =============================================
 
 	function containsTextDirectly(element) {
 		for(var i=0; i<element.childNodes.length; i++) {
@@ -137,6 +129,10 @@
 			if(child.nodeType == Node.TEXT_NODE && /\S/.test(child.nodeValue)) return true;	//text node AND not empty
 		}
 		return false;
+	}
+	
+	function removeHighlight() {
+		revert("highlighted");
 	}
 	
 	// ============================================= keyboard navigation =============================================
@@ -305,6 +301,7 @@
 	}
 	
 	var lastScroll = 0;	//time of last scrolling caused by stepping (to prevent unnecessary onMouseMove event)
+
 	function scrollIntoView(element) {
 		var scroll = {x:0,y:0};
 		
@@ -319,9 +316,10 @@
 			lastScroll = Date.now();
 		}
 	}
+	
 	/** when using the arrow keys and we step out of the view, there is an automatic scrolling, which fires a mousemove event
 	 * @return true if the mouseMove event is beause of the automatic scrolling */
-	function isMouseMoveEventFromAutomaticScrolling() {
+	function isAutomaticScrollingRecent() {
 		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
 	}
 	
@@ -345,10 +343,7 @@
 	//created for debugging
 	var div = null;
 	function createDivOnBoundingClientRect(rect) {
-		if(div) {
-			div.parentElement.removeChild(div);
-		}
-		
+		if(div) div.parentElement.removeChild(div);
 		div = document.createElement("div");
 		div.style.position = "absolute";
 		div.style.left = rect.left + window.scrollX + "px";
@@ -360,25 +355,7 @@
 		document.documentElement.appendChild(div);
 	}
 	
-	/** should be called with the "keydown" event when space is pressed
-	 * reads text provided by getHighlightedElementText, and stops page scroll if the active element is an input*/
-	function readHighLightedTextAndPreventScroll(keyEvent) {
-		requestedElement = status2element.highlighted;
-		var text = getHighlightedElementText();
-		if(text || isLoadingOrReading()) {
-			readText(text);
-			keyEvent.preventDefault();	//stop scrolling
-		}
-	}
-
-	// ============================================= read =============================================
-
-	/** reads the text given by getTextToRead callback (highlighted paragraph / selected text) */
-	function readText(text) {
-		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang});
-	}
-	
-	// ============================================= highlighted click =============================================
+	// ============================================= hovered =============================================
 
 	/** @return the hovered paragraph
 	 * the top element that contains text directly
@@ -395,61 +372,57 @@
 	
 	/** highlights the element under mouse pointer */
 	function highlightHoveredElement() {
-		if(isMouseMoveEventFromAutomaticScrolling()) return true;
-		var element = getHoveredReadableElement();
-		addStatus(element, "highlighted");
+		addStatus(getHoveredReadableElement(), "highlighted");
 	}
 	
-	/** reads text provided by getHighlightedElementText + stops click event delegation if needed */
-	function readClickedElement(clickEvent) {
-		highlightHoveredElement();
-	
-		//empty area clicked => stop reading
-		if(status2element.highlighted == null) {
-			readText(getHighlightedElementText());	//reads empty text => stops reading
-			return;
-		}
-	
-		//the requested element is being read|loading|error
-		var activeElements = [status2element.loading,status2element.playing,status2element.error];
-		if(activeElements.indexOf(status2element.highlighted) > -1) {
-			return;
-		}
+	// ============================================= read =============================================
 
-		//the requested element is NOT being read|loading|error
+	/** sends "read" message with @param text */
+	function readText(text) {
+		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang});
+	}
+	
+	/** @return the text in highlighted element */
+	function getHighlightedElementText() {
+		if(status2element.highlighted) return status2element.highlighted.textContent;
+		else return "";
+	}
+
+	/** reads text of hovered element */
+	function readHovered() {
+		highlightHoveredElement();
 		requestedElement = status2element.highlighted;
 		readText(getHighlightedElementText());
 	}
-
-	// ============================================= browser select =============================================
-	var mouseDownText = null;
-
-	/** saves the text in the moment of mousedown, to be able to read on mouseUp, when selection is already empty */	
-	function saveBrowserSelectedText() {
-		mouseDownText = getSelection().toString();
+	
+	/** reads the text provided by browserSelect */
+	function readBrowserSelected() {
+		requestedElement = null;	//so tts events don't color arrowSelected element
+		readText(getSelection().toString());
 	}
 	
-	/** should be called with mouseUp - checks if this mouse event is the end of a click and not the end of a selection action */
-	function readBrowserSelectedText() {
-		window.setTimeout(function() {
-			if(!getSelection().toString()) readText(mouseDownText);	//if this is a click, getSelection returns "", if this is the end of a selection, it returns the selection
-		}, 0);	//if we dont set the timeout, getSelection will return text even if this was just a click (sometimes)
+	//TODO check this
+	function stopReading() {
+		readText("");
 	}
 	
-	/** reads text provided by getBrowserSelectedText, and stops page scroll if the active element is an input*/
-	function readBrowserSelectedTextAndPreventScroll(event) {
-		var text = getSelection().toString();
-		if(text || isLoadingOrReading()) {
-			readText(text);
+	/** reads highlighted text + prevents scrolling */
+	function readHighlightedAndPreventScroll(event) {
+		requestedElement = status2element.highlighted;
+		var highlightedText = getHighlightedElementText();
+		
+		//stop default behavior if: there is highlighted text OR reading is happening
+		if(highlightedText || lastTtsEventType == "start") {
+			readText(highlightedText);
 			event.preventDefault();	//stop scrolling
 		}
 	}
 	
-	// ============================================= general =============================================
+	// ============================================= internal events =============================================
 	
 	//animates clicked|playing|error element
 	function onTtsEvent(ttsEvent) {
-		lastTtsEvent = ttsEvent;
+		lastTtsEventType = ttsEvent.type;
 		switch(ttsEvent.type) {
 			case("loading"): addStatus(requestedElement,"loading"); break;
 			case("start"): addStatus(requestedElement,"playing"); break;
@@ -460,38 +433,29 @@
 	
 	//sets behavior of the content script based on the settings cache
 	function digestSettings() {
-		//turned off
-		if(! settings.turnedOn) {	
-			onArrow = null;
-			onClick = null;
-			onMouseDown = null;
-			onMouseMove = null;
-			onSpace = null;
+		if(! settings.turnedOn) {
+			onSelectingMouseMove	= nothing;
+			onNonSelectingMouseMove	= nothing;
+			onSelectingMouseUp		= nothing;
+			onNonSelectingMouseUp	= nothing;
+			onArrow					= nothing;
+			onSpace					= nothing;
+			addStatus(null,"playing");	//reverts loading, playing, error
 			revert("highlighted");
-			requestedElement = null;	//otherwise loading + reading event would color it
 			return;
 		}
 		
-		//selectType: builtInSelect
-		if(settings.selectType == "builtInSelect") {
-			onArrow = null;
-			onClick = null;
-			onMouseDown = saveBrowserSelectedText;
-			onMouseMove = null;
-			onMouseUp = readBrowserSelectedText
-			onSpace = readBrowserSelectedTextAndPreventScroll;
-			revert("highlighted");
-			requestedElement = null;	//otherwise loading + reading event would color it
-		}
+		onArrow = settings.arrowSelect ? stepHighlight : nothing;
 		
-		if(settings.selectType == "highlightSelect") {
-			onArrow = settings.highlightOnArrows?stepHighlight:null;
-			onClick = readClickedElement;
-			onMouseDown = null;
-			onMouseMove = highlightHoveredElement;
-			onMouseUp = null;
-			onSpace = readHighLightedTextAndPreventScroll;
-		}
+		onSelectingMouseMove = settings.hoverSelect ? removeHighlight : nothing;
+		onNonSelectingMouseMove = settings.hoverSelect ? highlightHoveredElement : nothing;
+		onSelectingMouseUp = settings.browserSelect ? readBrowserSelected : nothing;
+
+		onNonSelectingMouseUp = settings.browserSelect ? stopReading : nothing;	//TODO check this logic + explain
+		onNonSelectingMouseUp = settings.hoverSelect ? readHovered : onNonSelectingMouseUp;
+		
+		onSpace = (settings.hoverSelect || settings.arrowSelect) ? readHighlightedAndPreventScroll : nothing;
+		if(!settings.hoverSelect && !settings.arrowSelect) revert("highlighted");
 	}
 	
 	function onMessage(request, sender, sendResponse) {
@@ -503,8 +467,21 @@
 				break;
 		}
 	}
-	/** to react when setting is changed in options or when event is received*/
 	chrome.runtime.onMessage.addListener(onMessage);
+	
+	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
+	 * if no reading, neither highlight => nothing*/
+	function stopReadingOrRevertHighlighted(keyEvent) {
+		if(["loading","start","error"].indexOf(lastTtsEventType) > -1) {
+			chrome.runtime.sendMessage({action: "read",text:""});
+			keyEvent.stopPropagation();
+			return;
+		}
+		if(status2element.highlighted) {
+			revert("highlighted");
+			keyEvent.stopPropagation();
+		}
+	}
 	
 	/** @return true if the active element is an input area */
 	function isUserTyping() {
@@ -517,47 +494,81 @@
 		return false;
 	}
 	
-	function stopReading(keyEvent) {
-		chrome.runtime.sendMessage({action: "read",text:""});
-		keyEvent.stopPropagation();	//other event listeners won't execute
+	// ============================================= browserSelect decisions =============================================
+	var mouseUpTime = 0;
+	var mouseDownTime = 0;
+	function saveMouseUpTime() {mouseUpTime = Date.now();}
+	function saveMouseDownTime() {mouseDownTime = Date.now();}
+	function isMouseButtonBeingPressed() {return mouseUpTime < mouseDownTime;}
+	function recentMouseUp() {return Date.now() - 300 < mouseUpTime;}
+	
+	/** selecting means: getSelection() returns something + mouse button being pressed or mouseUp happened recently
+	 * recent mouseUp: e.g. browserSelecting while hoverSelect is on => when slecting is over, we dont want the highlight to appear right away*/
+	function isSelecting() {
+		if(!getSelection().toString()) return false;	//no text is selected => user is not selecting anything
+		if(isMouseButtonBeingPressed()) return true;	//this is important when checking on mouseMove
+		if(recentMouseUp()) return true;	//no hover right after selecting is over
+		return false;
 	}
 	
-	window.addEventListener("mousemove", function(event) {if(onMouseMove) onMouseMove(event);});
-	window.addEventListener("click", function(event) {if(onClick) onClick(event);}, true);	//useCapture to have better chances that to execute first - so it can stop event propagation
-	window.addEventListener("mousedown", function(event) {if(onMouseDown) onMouseDown(event);}, true);	//useCapture to have better chances to execute first - so it can stop event propagation
-	window.addEventListener("mouseup", function(event) {if(onMouseUp) onMouseUp(event);}, true);	//useCapture to have better chances to execute first - so it can stop event propagation
+	/** @param selectCallback is called in case selecting is happening
+	 * @param nonSelectCallback is called in case selecting is NOT happening
+	 * we use callbacks because result of getSelection() when mouseUp is inconsistent in chrome. It is consistent if the check is shceduled*/
+	function checkBrowserSelect(selectingCallback, nonSelectingCallback, event) {
+		window.setTimeout(function() {
+			if(isSelecting()) selectingCallback();	//TODO mouseUp when selecting is over => 0.3 sec selection time after
+			else nonSelectingCallback();
+		},0);
+	}
+	
+	// ============================================= browser events =============================================
+	
+	function setBrowserEvents() {
+		//event listeners executing even when TTS off TODO maybe not
+		window.addEventListener("mouseup", saveMouseUpTime);
+		window.addEventListener("mousedown", saveMouseDownTime);
 
-	window.addEventListener("keydown", function(event) {
-		//TODO this executes even if turned off
-		switch(event.keyCode) {
-			case(32):
-			case(37):
-			case(38):
-			case(39):
-			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
-			case(27): if(!isLoadingOrReading()) return;	//esc: only handle reading|loading
-		}
+		window.addEventListener("mousemove", function(event) {
+			if(isAutomaticScrollingRecent()) return;
+			checkBrowserSelect(onSelectingMouseMove, onNonSelectingMouseMove);
+		});
+
+		window.addEventListener("mouseup", function(event) {
+			checkBrowserSelect(onSelectingMouseUp, onNonSelectingMouseUp);
+		});
+
+		window.addEventListener("keydown", function(event) {
+			//TODO this executes even if turned off
+			switch(event.keyCode) {
+				case(32):
+				case(37):
+				case(38):
+				case(39):
+				case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
+			}
 	
-		switch(event.keyCode) {
-			case(32): if(onSpace) onSpace(event);			break;
-			case(37): if(onArrow) onArrow(event, "left");	break;
-			case(38): if(onArrow) onArrow(event, "up");		break;
-			case(39): if(onArrow) onArrow(event, "right");	break;
-			case(40): if(onArrow) onArrow(event, "down");	break;
-			case(27): stopReading(event);					break;
-		}
-	}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
+			switch(event.keyCode) {
+				case(32): onSpace(event);			break;
+				case(37): onArrow(event, "left");	break;
+				case(38): onArrow(event, "up");		break;
+				case(39): onArrow(event, "right");	break;
+				case(40): onArrow(event, "down");	break;
+				case(27): stopReadingOrRevertHighlighted(event);	break;
+			}
+		}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
+	}
 	
-	//initial setup
+	// ============================================= init =============================================
 	chrome.runtime.sendMessage({action: "getSettings"}, function(storedSettings) {
 		settings.turnedOn = storedSettings.turnedOn;
-		settings.selectType = storedSettings.selectType;
-		settings.highlightOnArrows = storedSettings.highlightOnArrows;
-
+		settings.hoverSelect = storedSettings.hoverSelect;
+		settings.arrowSelect = storedSettings.arrowSelect;
+		settings.browserSelect = storedSettings.browserSelect;
 		digestSettings();
+		setBrowserEvents();
 	});
 	chrome.runtime.sendMessage({action: "getLastTtsEvent"}, function(event) {
-		lastTtsEvent = event;
+		lastTtsEventType = event ? event.type : null;
 	});
 })();
 

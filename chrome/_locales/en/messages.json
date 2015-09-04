@@ -7,9 +7,9 @@
 	,"ttsOptions": {"message": "Reader"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}
-	,"highlightSelect": {"message": "highlighted paragraph"}
-	,"builtInSelect": {"message": "browser built-in selection"}
-	,"highlightOnArrows": {"message": "arrow keys"}
+	,"hoverSelect": {"message": "mouse pointed"}
+	,"arrowSelect": {"message": "arrow keys"}
+	,"browserSelect": {"message": "browser built-in"}
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}

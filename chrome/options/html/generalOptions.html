@@ -1,15 +1,7 @@
 <div class="setting hoverable">
 	<div>{{selectionOptionsName}}</div>
-	<ul class="choiceList singleChoiceList">
-		<li ng-repeat="option in selectTypeOptions" ng-class="{selected: option.selected}" ng-click="onSelectTypeOptionClick(option)">
-			<span>{{option.text}}</span>
-		</li>
-	</ul>
-</div>
-<div class="setting hoverable" ng-class="{unavailable: !highlightEventOptionsAvailable()}">
-	<div>{{highlightOptionsName}}</div>
 	<ul class="choiceList multipleChoiceList">
-		<li ng-repeat="option in highlightOptions" ng-class="{selected: option.selected}" ng-click="onMultiSelectOptionClick(option)">
+		<li ng-repeat="option in selectOptions" ng-class="{selected: option.selected}" ng-click="onMultiSelectOptionClick(option)">
 			<span>{{option.text}}</span>
 		</li>
 	</ul>

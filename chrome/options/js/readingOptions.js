@@ -6,13 +6,12 @@ function testTts(tts, callback) {
 
 angular.module('optionsApp')
 .controller('readingOptionsController', function($scope) {
-	function toMessage(text) {return chrome.i18n.getMessage(text) || "*"+text+"*";}
 	$scope.ttsOptionsName = toMessage("ttsOptions");
 	$scope.speedOptionsName = toMessage("speedOptions");
 	$scope.genderOptionsName = toMessage("genderOptions");
 	
 	$scope.ttsArr = [];
-	$scope.speed = {min: 0.5, max: 4, step: 0.1}
+	$scope.speed = {min: 0.5, max: 4, step: 0.1};
 	$scope.genderArr = [{value:"female",text:toMessage("femaleReadingGender")},{value:"male",text:toMessage("maleReadingGender")}];
 	
 	$scope.onServiceOptionClick = function(clickedOption) {

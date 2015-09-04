@@ -10,6 +10,10 @@ function getSettings(callback) {
 	chrome.runtime.sendMessage({action: "getSettings"}, callback);
 }
 
+function toMessage(text) {
+	return chrome.i18n.getMessage(text) || "*"+text+"*";
+}
+
 app.config(function($routeProvider) {
 	$routeProvider.when('/general', {templateUrl: 'generalOptions.html', controller: 'generalOptionsController'});
 	$routeProvider.when('/reading', {templateUrl: 'readingOptions.html', controller: 'readingOptionsController'});
