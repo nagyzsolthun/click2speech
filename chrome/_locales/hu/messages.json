@@ -9,7 +9,7 @@
 	,"genderOptions": {"message": "Nem"}
 	,"hoverSelect": {"message": "egérrel mutatott"}
 	,"arrowSelect": {"message": "nyíl billentyűk"}
-	,"browserSelect": {"message": "böngészőbe épített kijelölés"}
+	,"browserSelect": {"message": "böngészőbe épített"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}
