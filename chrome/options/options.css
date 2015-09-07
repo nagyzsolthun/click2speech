@@ -118,10 +118,8 @@ body {
 	opacity: 0;
 	pointer-events: none;
 }
-.setting.unavailable > .rangeInput {
-	background-color:#bbb;
-	pointer-events: none;
-}
+.setting.unavailable > .rangeInput {pointer-events: none;}
+.setting.unavailable > .rangeInput::-webkit-slider-runnable-track {background-color: #bbb;}
 .setting.unavailable > .rangeInput::-webkit-slider-thumb {opacity: 0;}
 
 /* ===================================== choiceList =====================================*/
