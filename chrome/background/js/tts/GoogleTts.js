@@ -37,6 +37,5 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 		UrlAudioTester.test({url:url, callback:callback});
 	}
 
-	console.log("GoogleTts initialized");
 	return reader;
 });

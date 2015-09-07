@@ -63,6 +63,5 @@ define([], function() {
 		});
 	}
 
-	console.log("OsTts initialized");
 	return reader;
 });

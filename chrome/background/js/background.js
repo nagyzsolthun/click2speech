@@ -46,7 +46,6 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	
 	// ========================================= handling messages =========================================
 	function set(setting, value) {
-		console.log("set " + setting + ": " + value + " received");
 		settingsHandler.set(setting,value);
 		switch(setting) {
 			case("turnedOn"):
@@ -73,40 +72,22 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		function(request, sender, sendResponse) {
 			switch(request.action) {
 				case("getSettings"):
-					console.log("getSettings received");
 					settingsHandler.getAll(function(settings){
 						sendResponse(settings);
 					});
 					return true;	//keeps sendResponse channel open until it is used
-				case("getTtsProperties"):
-					console.log("getTtsProperties received");
-					sendResponse(tts.ttsProperties);
-					break;
-				case("testTtsService"):
-					console.log("testTtsService received");
-					tts.test(request.tts, sendResponse);
-					return true;	//keeps sendResponse channel open until it is used
-				case("getErrors"):
-					console.log("getErrors received");
-					sendResponse(tts.errors);
-					break;
-				case("getLastTtsEvent"):
-					console.log("getLastTtsEvent received");
-					sendResponse(tts.lastEvent);
-					break;
-				case("read"):
-					console.log("read received");
-					read({text: request.text,lan: request.lan || navigator.language});
-					break;
+				case("set"): set(request.setting,request.value); break;
+				case("getTtsProperties"): sendResponse(tts.ttsProperties); break;
+				case("testTtsService"): tts.test(request.tts, sendResponse); return true;	//return true keeps sendResponse channel open until it is used
+				case("getErrors"): sendResponse(tts.errors); break;
+				case("getLastTtsEvent"): sendResponse(tts.lastEvent); break;
+				case("read"): read({text: request.text,lan: request.lan || navigator.language}); break;
 				case("stepHighlight"):
 					settingsHandler.getAll(function(settings) {
 						userInteractionAudio.currentTime = 0;
 						userInteractionAudio.play();
 					});
 					iconDrawer.drawInteraction();
-					break;
-				case("set"):
-					set(request.setting,request.value);
 					break;
 			}
 		}

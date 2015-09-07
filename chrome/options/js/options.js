@@ -3,7 +3,6 @@ var app = angular.module('optionsApp', ['ngRoute','ngAnimate']);
 /** notifies background.js about a changed setting*/
 function sendSet(setting, value) {
 	chrome.runtime.sendMessage({action:"set",setting: setting,value: value});
-	console.log("set: " + setting + " " + value);
 }
 
 function getSettings(callback) {

@@ -120,7 +120,5 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 		});
 	}
 
-
-	console.log("ttsProvider initialized");
 	return provider;
 });

@@ -129,6 +129,5 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		UrlAudioTester.test({url:url, callback:callback});
 	}
 	
-	console.log("iSpeechTts initialized");
 	return reader;
 });

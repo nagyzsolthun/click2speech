@@ -1,9 +1,3 @@
-function testTts(tts, callback) {
-	chrome.runtime.sendMessage({action: "testTtsServices", tts:tts}, function(success) {
-		console.log(tts + " " + success);
-	});
-}
-
 angular.module('optionsApp')
 .controller('readingOptionsController', function($scope) {
 	$scope.ttsOptionsName = toMessage("ttsOptions");
