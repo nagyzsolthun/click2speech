@@ -1,5 +1,41 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
+	// ============================================= simulate Map for older chrome versions =============================================
+	Map = (typeof Map != 'undefined') ? Map : function() {
+		var keys = [];
+		var values = [];
+		
+		//array.indexOf compares toString()
+		function indexOfKey(key) {
+			for(var i=0; i<keys.length; i++) {
+				if(keys[i] === key) return i;
+			}
+			return -1;
+		}
+		
+		this.get = function(key) {
+			var i = indexOfKey(key);
+			return values[i];
+		}
+		this.set = function(key, value) {
+			var i = indexOfKey(key);
+			if(i < 0) {	//doesnt contains
+				keys.push(key);
+				values.push(value);
+				return;
+			}
+			values[i] = value;
+		}
+		this.delete = function(key) {
+			var i = indexOfKey(key);
+			if(i > -1) {
+				keys.splice(i, 1);
+				values.splice(i, 1);
+			}
+		}
+	}
+
+	// ============================================= some attributs =============================================
 	var settings = {};	//last cahnge of all settings
 	var lastTtsEventType = null;	//to know whether esc event propagation should be stopped
 	
