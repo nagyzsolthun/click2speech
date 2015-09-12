@@ -116,7 +116,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
 		
-		var lan = c.lan || navigator.language;
+		var lan = c.lan.replace(/[._:]/g,'-') || navigator.language;	//e.g. Google Analytics' page is en_US, but we need en-US
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan, gender:c.gender});});
 		
 		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(lan)});
