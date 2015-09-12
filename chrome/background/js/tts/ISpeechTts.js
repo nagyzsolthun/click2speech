@@ -90,7 +90,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	/** @return length of "Powered by iSpeech" at the end of the returned audio
 	 * @param lan the language (some have the promo text, some don't)*/
 	function getCutEnd(lan) {
-		switch(lan) {
+		switch(lan.replace(/[_]/g,'-')) {	//replace: Google Analytics' page is en_US, but we need en-US
 			case("en-US"): return 2.3;
 			case("en-GB"): return 2.3;
 			case("en"): return 2.3;
@@ -116,7 +116,7 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
 		
-		var lan = c.lan.replace(/[._:]/g,'-') || navigator.language;	//e.g. Google Analytics' page is en_US, but we need en-US
+		var lan = c.lan || navigator.language;
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan, gender:c.gender});});
 		
 		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(lan)});

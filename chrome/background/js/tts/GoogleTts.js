@@ -24,7 +24,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 			,limit: 100
 			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
 		});
-		var lan = c.lan.replace(/[._:]/g,'-') || navigator.language;
+		var lan = c.lan || navigator.language;
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan});});
 		
 		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed});
