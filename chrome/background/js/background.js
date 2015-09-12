@@ -1,4 +1,34 @@
 require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsHandler, tts, iconDrawer) {
+
+	//===================================== Google Anyltics =====================================
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://ssl.google-analytics.com/analytics.js','analytics');
+
+	analytics('create', 'UA-67507804-1', 'auto');	//create tracker
+	analytics('set', 'checkProtocolTask', function(){})	//https://code.google.com/p/analytics-issues/issues/detail?id=312
+	analytics('set', 'page', '/background');
+	
+	//some events occour many times in a short period
+	//e.g. speed change is received many times while user moves the range, or click event received if user double or triple clicks
+	//in order NOT to send too many analytics request, we only send an event if 1 sec passed after the last event
+	var event2scheduledAnalytics = {};
+	function scheduleAnalytics(category, action, label) {	//an event is basically a category + action + label. NOTE: label is not part of the key, the last set label will be sent, not all
+		var key = JSON.stringify([category, action]);	//stringify so keys are compared based on value and not reference
+
+		var scheduled = event2scheduledAnalytics[key];
+		if(scheduled) clearTimeout(scheduled);
+		
+		scheduled = window.setTimeout(function() {
+			event2scheduledAnalytics[key] = undefined;
+			analytics('send', 'event', category, action, label);
+		}, 1000);
+		event2scheduledAnalytics[key] = scheduled;
+	}
+	
+	// ===================================== handle messages =====================================
+
 	var iconCanvas = document.createElement("canvas");
 	//19px is the size of the icons https://developer.chrome.com/extensions/browserAction#icon
 	iconCanvas.width = iconCanvas.height = 18;
@@ -15,8 +45,6 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 			imageData: iconCanvas.getContext("2d").getImageData(0, 0, 19, 19)
 		});
 	}
-
-	// ===================================== handle messages =====================================
 	
 	function read(c) {
 		settingsHandler.getAll(function(settings) {
@@ -36,6 +64,14 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	
 	function onTtsEvent(event) {
 		notifyContentJs({action:"event", event:event});
+		
+		//analytics
+		switch(event.type) {
+			case("start"): scheduleAnalytics('tts', 'start'); break;
+			case("error"): scheduleAnalytics('tts', 'error'); break;
+		}
+		
+		//icon
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
@@ -44,7 +80,6 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		}
 	}
 	
-	// ========================================= handling messages =========================================
 	function set(setting, value) {
 		settingsHandler.set(setting,value);
 		switch(setting) {
@@ -76,7 +111,10 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 						sendResponse(settings);
 					});
 					return true;	//keeps sendResponse channel open until it is used
-				case("set"): set(request.setting,request.value); break;
+				case("set"):
+					set(request.setting,request.value);
+					scheduleAnalytics('set', request.setting, request.value);
+					break;
 				case("getTtsProperties"): sendResponse(tts.ttsProperties); break;
 				case("testTtsService"): tts.test(request.tts, sendResponse); return true;	//return true keeps sendResponse channel open until it is used
 				case("getErrors"): sendResponse(tts.errors); break;

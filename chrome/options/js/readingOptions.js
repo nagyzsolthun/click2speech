@@ -27,7 +27,10 @@ angular.module('optionsApp')
 		});
 		return selectedTts && selectedTts.properties.indexOf(property) > -1;
 	}
-	$scope.$watch('speed.value', function() {
+	$scope.$watch('speed.value', function(newValue, oldValue) {
+		if(!oldValue) return;	//initial speed setting doesn't raise event
+		if(newValue == oldValue) return;	//double event would be sent because of the parseFloat
+		
 		//range provides updates as strings and not numbers => need to convert
 		//https://github.com/angular/angular.js/issues/5892
 		$scope.speed.value = parseFloat($scope.speed.value);
