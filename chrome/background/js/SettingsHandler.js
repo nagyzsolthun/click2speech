@@ -1,7 +1,7 @@
 /** setters and getters for settings - persistence is also provided by chrome.storage.local*/
 define([], function() {
 	var availableSettings = ["turnedOn","hoverSelect","arrowSelect","browserSelect","tts","gender","speed"];
-	var defaults = {
+	var defaultValues = {
 		turnedOn:true
 		,hoverSelect:true
 		,arrowSelect:true
@@ -24,11 +24,13 @@ define([], function() {
 	var settingsHandler = {};
 	
 	/** async read of settings
-	 * @param response is called with the settings object
+	 * @param settingsResponse is called with the settings object
+	 * @param defaultsResponse is called with the settings for which defaults are being persisted (if any)
 	 * if no settings stored (first ever execution) it persists the default values */
-	settingsHandler.getAll = function(response) {
+	settingsHandler.getAll = function(settingsResponse, defaultsResponse) {
 		chrome.storage.local.get(availableSettings, function(storedSettings) {
 			var result = {};
+			var defaults = null;
 			availableSettings.forEach(function(name) {
 				//there is value for the setting
 				if(storedSettings[name]) {
@@ -37,11 +39,14 @@ define([], function() {
 				}
 
 				//there is no value for it
-				result[name] = defaults[name]
-				console.log("persisting default value for " + name + ":" + result[name] + "...");
+				if(!defaults) defaults = {};
+				defaults[name] = defaultValues[name];
+
+				result[name] = defaultValues[name];
 				settingsHandler.set(name, result[name]);
 			});
-			response(result);
+			settingsResponse(result);
+			if(defaultsResponse && defaults) defaultsResponse(defaults);
 		});
 	}
 	

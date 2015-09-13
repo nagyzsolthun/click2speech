@@ -10,19 +10,23 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	analytics('set', 'checkProtocolTask', function(){})	//https://code.google.com/p/analytics-issues/issues/detail?id=312
 	analytics('set', 'page', '/background');
 	
-	//some events occour many times in a short period
-	//e.g. speed change is received many times while user moves the range, or click event received if user double or triple clicks
-	//in order NOT to send too many analytics request, we only send an event if 1 sec passed after the last event
+	/** sends Google Analitics event - lifted up as a function so we dont send events while development */
+	function sendAnalytics(category,action,label) {
+		//analytics('send', 'event', category, action, label);
+		console.log("send event; category:" + category + " action:" + action + " label:" + label);
+	}
+	
+	/** some events occoure many times in a short period (e.g. changing speed occours every time the speed range changes in options)
+	 * this function sends analytics request only if no change happens for 1 sec
+	 * @param key defines the event to be scheduled (e.g. setspeed - when changing speed, label is different for each step, we only want to send the last state) */
 	var event2scheduledAnalytics = {};
-	function scheduleAnalytics(category, action, label) {	//an event is basically a category + action + label. NOTE: label is not part of the key, the last set label will be sent, not all
-		var key = JSON.stringify([category, action]);	//stringify so keys are compared based on value and not reference
-
+	function scheduleAnalytics(key,category,action,label) {
 		var scheduled = event2scheduledAnalytics[key];
 		if(scheduled) clearTimeout(scheduled);
 		
 		scheduled = window.setTimeout(function() {
 			event2scheduledAnalytics[key] = undefined;
-			analytics('send', 'event', category, action, label);
+			sendAnalytics(category,action,label);
 		}, 1000);
 		event2scheduledAnalytics[key] = scheduled;
 	}
@@ -64,19 +68,14 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	
 	function onTtsEvent(event) {
 		notifyContentJs({action:"event", event:event});
-		
-		//analytics
-		switch(event.type) {
-			case("start"): scheduleAnalytics('tts', 'start'); break;
-			case("error"): scheduleAnalytics('tts', 'error'); break;
-		}
-		
-		//icon
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
 			case("end"): iconDrawer.drawTurnedOn(); break;
-			case("error"): iconDrawer.drawError(); break;
+			case("error"):
+				iconDrawer.drawError();
+				sendAnalytics('tts', 'error'); break;
+				break;
 		}
 	}
 	
@@ -113,13 +112,17 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					return true;	//keeps sendResponse channel open until it is used
 				case("set"):
 					set(request.setting,request.value);
-					scheduleAnalytics('set', request.setting, request.value);
+					scheduleAnalytics('set' + request.setting, 'settings','set',request.setting+':'+request.value);	//schedule so speed changes count as one
 					break;
 				case("getTtsProperties"): sendResponse(tts.ttsProperties); break;
 				case("testTtsService"): tts.test(request.tts, sendResponse); return true;	//return true keeps sendResponse channel open until it is used
 				case("getErrors"): sendResponse(tts.errors); break;
 				case("getLastTtsEvent"): sendResponse(tts.lastEvent); break;
-				case("read"): read({text: request.text,lan: request.lan || navigator.language}); break;
+				case("read"):
+					read({text: request.text,lan: request.lan || navigator.language});
+					var analyticsEventLabel = (!request.text)?"read-empty":(request.text.length < 100)?"read-short":"read-long";
+					scheduleAnalytics('tts-read', 'tts', 'read', analyticsEventLabel ); break;	//schedule so browserSelect double+triple click counts as one
+					break;
 				case("stepHighlight"):
 					settingsHandler.getAll(function(settings) {
 						userInteractionAudio.currentTime = 0;
@@ -138,5 +141,8 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		tts.onEvent = settings.turnedOn?onTtsEvent:null;
 		if(settings.turnedOn) iconDrawer.drawTurnedOn();
 		else iconDrawer.drawTurnedOff();
+	}, function(defaults) {
+		console.log("persist default settings: " + JSON.stringify(defaults));
+		sendAnalytics('settings','setDefaults',JSON.stringify({version:chrome.app.getDetails().version, settings:defaults}));
 	});
 });
