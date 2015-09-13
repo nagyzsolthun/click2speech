@@ -2,14 +2,14 @@
 	"extensionDescription": {"message": "Click on a paragraph and Click to Speech reads it out to you."}
 	,"generalOptionsPage": {"message": "General"}
 	,"readingOptionsPage": {"message": "Reading"}
-	,"selectionOptions": {"message": "Selection"}
+	,"selectionOptions": {"message": "Text Selection"}
 	,"highlightOptions": {"message": "Highlight"}
 	,"ttsOptions": {"message": "Reader"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}
 	,"hoverSelect": {"message": "mouse pointed"}
 	,"arrowSelect": {"message": "arrow keys"}
-	,"browserSelect": {"message": "browser built-in"}
+	,"browserSelect": {"message": "browser built-in selection"}
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}

@@ -2,14 +2,14 @@
 	"extensionDescription": {"message": "Klikkelj az egérrel egy bekezdésre, és a Click to Speech felolvassa azt."}
 	,"generalOptionsPage": {"message": "Általános"}
 	,"readingOptionsPage": {"message": "Olvasás"}
-	,"selectionOptions": {"message": "Kijelölés"}
+	,"selectionOptions": {"message": "Szöveg Kijelölése"}
 	,"highlightOptions": {"message": "Kiemelés"}
 	,"ttsOptions": {"message": "Olvasó"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}
 	,"hoverSelect": {"message": "egérrel mutatott"}
 	,"arrowSelect": {"message": "nyíl billentyűk"}
-	,"browserSelect": {"message": "böngészőbe épített"}
+	,"browserSelect": {"message": "böngészőbe épített kijelölés"}
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}
