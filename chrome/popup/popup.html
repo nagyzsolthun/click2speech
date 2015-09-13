@@ -1,6 +1,6 @@
 <html ng-app="popupApp" ng-csp lang="en" ng-controller="popupController">
 	<div id="errorNotification" ng-class="{active: errors.length}">
-		<div ng-repeat="error in errors">{{error.ttsName}} TTS error: {{error.type}}</div>
+		<div ng-repeat="error in errors">{{error.ttsName}}: {{error.type}}</div>
 		<div id="readingOtionsButtion" class="button" ng-click="openReadingOptions()">reading options</div>
 	</div>
 	<div id="onOffButton" class="button" ng-class="{ttsOn: button.ttsOn}" ng-click="onOffButtonClick()">{{button.text}}</div>

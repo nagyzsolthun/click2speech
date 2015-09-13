@@ -143,6 +143,6 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		else iconDrawer.drawTurnedOff();
 	}, function(defaults) {
 		console.log("persist default settings: " + JSON.stringify(defaults));
-		sendAnalytics('settings','setDefaults',JSON.stringify({version:chrome.app.getDetails().version, settings:defaults}));
+		if(defaults.turnedOn) sendAnalytics('settings','setup','defaults-' + chrome.app.getDetails().version);
 	});
 });

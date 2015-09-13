@@ -64,7 +64,6 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 			switch(event.type) {
 				case("error"):
 					errors.push({ttsName:tts.name,type:event.errorType,url:event.url});
-					onEvent({type:"error"});	//TODO think about this
 					read({text:event.remaining,lan:c.lan,speed:c.speed,gender:c.gender});
 					break;
 				case("loading"):
