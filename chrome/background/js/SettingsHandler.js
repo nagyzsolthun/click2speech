@@ -1,6 +1,6 @@
 /** setters and getters for settings - persistence is also provided by chrome.storage.local*/
 define([], function() {
-	var availableSettings = ["turnedOn","hoverSelect","arrowSelect","browserSelect","tts","gender","speed", "settings"];	//TODO remove settings once migration done, only here to save old settings
+	var availableSettings = ["turnedOn","hoverSelect","arrowSelect","browserSelect","tts","gender","speed"];
 	var defaults = {
 		turnedOn:true
 		,hoverSelect:true
@@ -11,7 +11,7 @@ define([], function() {
 		,speed:1.2
 	};
 	
-	chrome.storage.local.remove(["highlightSelect","builtInSelect","highlightOnArrows"]);	//remove deprecated TODO include settings, setting2timestamp, setting2version once migration is done
+	chrome.storage.local.remove(["settings","setting2timestamp","setting2version","createTimestamp","createVersion"]);	//TODO remove this once all migrated
 
 	/** provides some metadata for a value */
 	function Setting(value) {
@@ -19,23 +19,6 @@ define([], function() {
 		this.timestamp = Date.now();
 		this.version = chrome.app.getDetails().version;
 	};
-	
-	function defaultValue(setting, storedSettings) {	//TODO remove 2nd param once migration done
-		//old settings structure TODO remove this once migration done
-		var oldSettings = storedSettings && storedSettings.settings;
-		if(oldSettings) {
-			console.log("old settings structure found, using it for " + setting);
-			switch(setting) {
-				case("hoverSelect"): return (oldSettings.selectType == "highlightSelect");
-				case("arrowSelect"): return (oldSettings.selectType == "highlightSelect" && oldSettings.highlightOnArrows);
-				case("browserSelect"): return (oldSettings.selectType != "highlightSelect");
-				default: return oldSettings[setting];
-			}
-		}
-		
-		//no old select.. simple defaults
-		return defaults[setting];
-	}
 
 	// =================================== public ===================================
 	var settingsHandler = {};
@@ -54,7 +37,7 @@ define([], function() {
 				}
 
 				//there is no value for it
-				result[name] = defaultValue(name, storedSettings);	//TODO remove 2nd param once migration is done
+				result[name] = defaults[name]
 				console.log("persisting default value for " + name + ":" + result[name] + "...");
 				settingsHandler.set(name, result[name]);
 			});
