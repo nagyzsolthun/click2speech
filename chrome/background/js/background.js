@@ -120,8 +120,9 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				case("getLastTtsEvent"): sendResponse(tts.lastEvent); break;
 				case("read"):
 					read({text: request.text,lan: request.lan || navigator.language});
-					var analyticsEventLabel = (!request.text)?"read-empty":(request.text.length < 100)?"read-short":"read-long";
-					scheduleAnalytics('tts-read', 'tts', 'read', analyticsEventLabel ); break;	//schedule so browserSelect double+triple click counts as one
+					var action = request.text?"read":"stop";
+					var label = request.source;
+					scheduleAnalytics('tts-read', 'tts', action, action+"-"+label); break;	//schedule so browserSelect double+triple click counts as one
 					break;
 				case("stepHighlight"):
 					settingsHandler.getAll(function(settings) {

@@ -419,9 +419,10 @@
 	
 	// ============================================= read =============================================
 
-	/** sends "read" message with @param text */
-	function readText(text) {
-		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang});
+	/** sends "read" message with @param text
+	 * @param source is hovered|space|esc */
+	function readText(text, source) {
+		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang, source:source});
 	}
 	
 	/** @return the text in highlighted element */
@@ -434,18 +435,18 @@
 	function readHovered() {
 		highlightHoveredElement();
 		requestedElement = status2element.highlighted;
-		readText(getHighlightedElementText());
+		readText(getHighlightedElementText(), "hoveredClick");
 	}
 	
 	/** reads the text provided by browserSelect */
 	function readBrowserSelected() {
 		requestedElement = null;	//so tts events don't color arrowSelected element
-		readText(getSelection().toString());
+		readText(getSelection().toString(), "browserSelect");
 	}
 	
-	//TODO check this
-	function stopReading() {
-		readText("");
+	/** stops reading + sets source as "browserSelected" */
+	function stopBrowserSelected() {
+		readText("", "browserSelect");
 	}
 	
 	/** reads highlighted text + prevents scrolling */
@@ -455,7 +456,7 @@
 		
 		//stop default behavior if: there is highlighted text OR reading is happening
 		if(highlightedText || lastTtsEventType == "start") {
-			readText(highlightedText);
+			readText(highlightedText, "space");
 			event.preventDefault();	//stop scrolling
 		}
 	}
@@ -493,7 +494,7 @@
 		onNonSelectingMouseMove = settings.hoverSelect ? highlightHoveredElement : nothing;
 		onSelectingMouseUp = settings.browserSelect ? readBrowserSelected : nothing;
 
-		onNonSelectingMouseUp = settings.browserSelect ? stopReading : nothing;	//TODO check this logic + explain
+		onNonSelectingMouseUp = settings.browserSelect ? stopBrowserSelected : nothing;
 		onNonSelectingMouseUp = settings.hoverSelect ? readHovered : onNonSelectingMouseUp;
 		
 		onSpace = (settings.hoverSelect || settings.arrowSelect) ? readHighlightedAndPreventScroll : nothing;
@@ -513,9 +514,9 @@
 	
 	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
 	 * if no reading, neither highlight => nothing*/
-	function stopReadingOrRevertHighlighted(keyEvent) {
+	function onEsc(keyEvent) {
 		if(["loading","start","error"].indexOf(lastTtsEventType) > -1) {
-			chrome.runtime.sendMessage({action: "read",text:""});
+			readText("", "esc");
 			keyEvent.stopPropagation();
 			return;
 		}
@@ -595,7 +596,7 @@
 				case(38): onArrow(event, "up");		break;
 				case(39): onArrow(event, "right");	break;
 				case(40): onArrow(event, "down");	break;
-				case(27): stopReadingOrRevertHighlighted(event);	break;
+				case(27): onEsc(event);				break;
 			}
 		}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
 	}
