@@ -160,9 +160,15 @@
 	// ============================================= highlight general =============================================
 
 	function containsTextDirectly(element) {
+		//check all nodes of the element - if any node is text + contains actual text (not only whitespaces or brackets) we return true
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
-			if(child.nodeType == Node.TEXT_NODE && /\S/.test(child.nodeValue)) return true;	//text node AND not empty
+			if(child.nodeType != Node.TEXT_NODE) continue;	//this is not a text node, continue searching
+			
+			var text = child.nodeValue;
+			if(! /\S/.test(text)) continue;	//text doesn't contain non-white space character
+			if(! /[^\[\]]/.test(text)) continue; //this is quite usual on wikipedia
+			return true;
 		}
 		return false;
 	}
