@@ -52,8 +52,12 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 	
 	function read(c) {
 		settingsHandler.getAll(function(settings) {
-			if(! settings.turnedOn) {return;}
+			if(!c.text && (!tts.lastEvent || tts.lastEvent.type == "end")) return;	//stop event received => do anything only if not stopped already
+			
 			tts.read({text:c.text,lan:c.lan,speed:settings.speed});
+			var action = c.text?"read":"stop";
+			var label = c.source;
+			scheduleAnalytics('tts-read', 'tts', action, action+"-"+label);	//schedule so browserSelect double+triple click counts as one
 		});
 	}
 	
@@ -118,12 +122,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				case("testTtsService"): tts.test(request.tts, sendResponse); return true;	//return true keeps sendResponse channel open until it is used
 				case("getErrors"): sendResponse(tts.errors); break;
 				case("getLastTtsEvent"): sendResponse(tts.lastEvent); break;
-				case("read"):
-					read({text: request.text,lan: request.lan || navigator.language});
-					var action = request.text?"read":"stop";
-					var label = request.source;
-					scheduleAnalytics('tts-read', 'tts', action, action+"-"+label); break;	//schedule so browserSelect double+triple click counts as one
-					break;
+				case("read"): read({text: request.text,lan: request.lan || navigator.language,source:request.source}); break;
 				case("stepHighlight"):
 					settingsHandler.getAll(function(settings) {
 						userInteractionAudio.currentTime = 0;
