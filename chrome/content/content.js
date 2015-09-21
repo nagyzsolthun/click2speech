@@ -36,8 +36,9 @@
 	}
 
 	// ============================================= some attributs =============================================
-	var settings = {};	//last cahnge of all settings
-	var lastTtsEventType = null;	//to know whether esc event propagation should be stopped
+	var settings = {};	//current settings
+	
+	var lastTtsEventType = null;
 	
 	function nothing() {};	//used when no event listener needed
 	
@@ -48,11 +49,9 @@
  	var onSelectingMouseUp;	//called when mouseUp while selection is happening
  	var onNonSelectingMouseUp;	//called when mouseUp while selection is NOT happening
 	
-	// ============================================= status =============================================	
-	var requestedElement = null;	//the clicked|space-pressed element - colored when tts events received
-	
-	//elements are styled based on their status: highlighted|loading|playing|error
-	var status2element = {};
+	// ============================================= status =============================================
+	var highlightedElement = null;	//hovered OR arrow selected
+	var requestedElement = null;	//clicked OR space-pressed element - colored when tts events received
 	
 	//element => {background, backgroundColor, color, transition}
 	var element2original = new Map();
@@ -61,95 +60,56 @@
 	function saveOriginal(element) {
 		if(element2original.get(element)) return;	//already saved
 		element2original.set(element,{
-			background:element.style["background"]	//this overrides background-color => therefore set to none (e.g. google search result top-right element for login)
+			background:element.style["background"]	//this overrides background-color => set to none (e.g. google search result top-right login button)
 			,backgroundColor:element.style["background-color"]
 			,color: element.style["color"]
 			,transition:element.style["-webkit-transition"]
 		});
 	}
 	
-	/** @return concatenated statuses of @param element with "-" in order: highlighted-loading-playing-error */
-	function concatenatedStatus(element) {
-		return ["highlighted","loading","playing","error"].filter(function(status) {
-			return status2element[status] === element;	//only inerested in statuses where element is given element
-		}).join("-");
-	}
+	/** @return true if click event has listener on the element
+	 * unfortunately there is no direct way to check this, so I created a blacklist here */
+	function isClickable(element) {
+		if(!element) return false;
 
-	/** sets style of @param element based on the status2element */
-	function animate(element) {
-		var status = concatenatedStatus(element);
-		element.style["-webkit-transition"] = "background .2s, background-color .2s, color .2s";	//'background' transition doesn't seem to work
-		switch(status) {
-			case("highlighted"):
-				element.style["background"] = "none";
-				element.style["background-color"] = "#4f4";
-				element.style["color"] = "black";
-				break;
-			case("loading"):
-			case("playing"):
-				element.style["background"] = "none";
-				element.style["background-color"] = "#bbf";
-				element.style["color"] = "black";
-				break;
-			case("highlighted-loading"):
-			case("highlighted-playing"):
-				element.style["background"] = "none";
-				element.style["background-color"] = "#88f";
-				element.style["color"] = "black";
-				break;
-			case("error"):
-				element.style["background"] = "none";
-				element.style["background-color"] = "#fbb";
-				element.style["color"] = "black";
-				break;
-			case("highlighted-error"):
-				element.style["background"] = "none";
-				element.style["background-color"] = "#f88";
-				element.style["color"] = "black";
-				break;
-		}
-	}
-	
-	/** adds @param status on @param element
-	 * removes same status from other elements
-	 * loading|playing|error are exclusive */
-	function addStatus(element,status) {
-		if(element && status2element[status] === element) return;	//all done
- 
-		//status is set on another element => revert first
-		if(["loading","playing","error"].indexOf(status) > -1) {
-			revert("loading");
-			revert("playing");
-			revert("error");
-		} else revert(status);
- 
-		//if we removed status (added status to null) revert already set the original styles
-		if(!element) return;
- 
-		status2element[status] = element;
-		saveOriginal(element);
-		animate(element);
-	}
-	
-	/** reverts the element having @param status */
-	function revert(status) {
-		var element = status2element[status];
-		if(!element) return;
-
-		status2element[status] = null;
-		if(concatenatedStatus(element)) {
-			//element still has some status, animate based on the new concatenated status
-			animate(element);
-			return;
-		}
+		if(element.tagName.toLowerCase() == "a") return true;
+		if(element.tagName.toLowerCase() == "button") return true;
+		if(element.getAttribute("type") == "button") return true;
+		if(element.hasAttribute("ng-click")) return true;	//angular
+		if(element.classList.contains("btn")) return true;	//boostrap
+		if(getComputedStyle(element).cursor == "pointer") return true;	//many pages, e.g. gmail
 		
+		if(window.location.hostname == "mail.google.com") {
+			if(element.getAttribute("role") == "button") return true;	//gmail compose button
+		}
+ 
+		return false;
+	}
+	
+	/** @return the status of @param element
+	 * status can be:
+	 * 1) highlighted-(clickable|nonclickable)
+	 * 2) (loading|reading|error)
+	 * 3) highlighted-(clickable|nonclickable)-(loading|reading|error)*/
+	function getStatus(element) {
+		var result = [];
+		if(highlightedElement === element) {
+			result.push("highlighted");
+			result.push(isClickable(element)?"clickable":"nonclickable");
+		}
+		if(lastTtsEventType && requestedElement === element) result.push(lastTtsEventType);
+		return result.join("-");
+	}
+	
+	/** sets original style of element + remvoes it from element2original */
+	function revertStyle(element) {
 		var original = element2original.get(element);
 		element.style["background"] = original.background;
 		element.style["background-color"] = original.backgroundColor;
 		element.style["color"] = original.color;
 		window.setTimeout(function() {
 			//if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
-			if(concatenatedStatus(element)) return;
+			if(getStatus(element)) return;
 			
 			//otherwise we do, and also remove the original for given element
 			element.style["-webkit-transition"] = original.transition;
@@ -157,9 +117,77 @@
 		}, 200);
 	}
 	
-	// ============================================= highlight general =============================================
+	/** sets the style of @param element
+	 * or reverts if it has no status */
+	function setStyle(element) {
+		if(!element) return;
+		if(!element2original.get(element)) saveOriginal(element);
+		
+		var status = getStatus(element);
+		if(!status) {
+			revertStyle(element);
+			return;
+		}
+		
+		//set actual style
+		element.style["-webkit-transition"] = "background .2s, background-color .2s, color .2s";	//'background' transition doesn't seem to work
+		element.style["background"] = "none";
+		element.style["color"] = "black";
+		
+		var backgroundColor = element2original.get(element).backgroundColor;
+		switch(status) {
+			case("highlighted-nonclickable"): backgroundColor = "#4f4"; break;
+			case("highlighted-clickable"): backgroundColor = "#ccc"; break;
+			case("loading"):
+			case("start"): backgroundColor = "#bbf"; break;
+			case("highlighted-nonclickable-loading"):
+			case("highlighted-nonclickable-start"):
+			case("highlighted-clickable-loading"):
+			case("highlighted-clickable-start"): backgroundColor = "#88f"; break;
+			case("error"): backgroundColor = "#fbb"; break;
+			case("highlighted-nonclickable-error"):
+			case("highlighted-clickable-error"): backgroundColor = "#f88"; break;
+			//the default case is reached many times too: if lastTtsEventType is end and we start reading, the type stays end..
+		}
+		element.style["background-color"] = backgroundColor;
+	}
+	
+	/** sets highlightedElement to be the @param element + cleans up */
+	function setHighlighted(element) {
+		if(highlightedElement === element) return;
+		
+		var oldHighlightedElement = highlightedElement;
+		highlightedElement = element;
+		
+		setStyle(oldHighlightedElement);
+		setStyle(highlightedElement);
+	}
+	
+	/** sets requestedElement to be the @param element + cleans up */
+	function setRequested(element) {
+		var oldRequestedElement = requestedElement;
+		requestedElement = element;
 
-	function containsTextDirectly(element) {
+		setStyle(oldRequestedElement);
+		setStyle(requestedElement);
+	}
+	
+	// ============================================= highlight general =============================================
+	
+	/** @return true if @param element is an input area*/
+	function isInputElement(element) {
+		if(element) {
+			if(element.tagName.toLowerCase() == "input") return true;
+			if(element.tagName.toLowerCase() == "textarea") return true;
+			if(element.isContentEditable) return true;	//gmail new email
+		}
+		return false;
+	}
+
+	/** @return true if element has any textNode direct children */
+	function containsReadableTextDirectly(element) {
+		if(isInputElement(element)) return false;	//not readable element
+	
 		//check all nodes of the element - if any node is text + contains actual text (not only whitespaces or brackets) we return true
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
@@ -173,8 +201,27 @@
 		return false;
 	}
 	
+	/** @return true if elements contains anything else then text nodes (even indirectly) */
+	function containsNonTextIndirectly(element) {
+		if(!element.childNodes.length) return true;
+		
+		if(window.location.hostname == "www.facebook.com") {
+			if(element.classList.contains("jewelButton")) return true;	//fb friend requests, messages, notifications
+		}
+
+		for(var i=0; i<element.childNodes.length; i++) {
+			var child = element.childNodes[i];
+			switch(child.nodeType) {
+				case(Node.ELEMENT_NODE): if(containsNonTextIndirectly(child)) return true; break;
+				case(Node.TEXT_NODE): continue; break;
+				default: return true;
+			}
+		}
+		return false;
+	}
+	
 	function removeHighlight() {
-		revert("highlighted");
+		setHighlighted(null);
 	}
 	
 	// ============================================= keyboard navigation =============================================
@@ -277,9 +324,9 @@
 		
 		/** recursive function to update the result with given element (if needed) */
 		function updateResult(element) {
-			if(element === status2element.highlighted) return;	//already highlighted
+			if(element === highlightedElement) return;	//already highlighted
 			if(!hasVisibleContent(element)) return;
-			if(!containsTextDirectly(element)) {	//doesn't contain text directly => explore children
+			if(!containsReadableTextDirectly(element)) {	//doesn't contain text directly => explore children
 				for(var i=0; i<element.childNodes.length; i++) updateResult(element.childNodes[i]);
 				return;
 			}
@@ -319,11 +366,7 @@
 	 * if no such element: return a rect representing the edge of the page:
 	 * up: bottom edge | down: top edge | left: right edge | right: left edge*/
 	function getStepFromRect(direction) {
-		var activeElement = null;
-		if(status2element.loading) activeElement = status2element.loading;
-		if(status2element.playing) activeElement = status2element.playing;
-		if(status2element.error) activeElement = status2element.error;
-		if(status2element.highlighted) activeElement = status2element.highlighted;
+		var activeElement = requestedElement || highlightedElement;
 		if(activeElement) {
 			var range = document.createRange();
 			range.selectNodeContents(activeElement);
@@ -374,7 +417,7 @@
 		var closestReadable = getClosestReadableElement(fromRect, direction);
 
 		if(!closestReadable) return;
-		addStatus(closestReadable,"highlighted");
+		setHighlighted(closestReadable);
 		scrollIntoView(closestReadable);
 
 		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
@@ -398,23 +441,35 @@
 	}
 	
 	// ============================================= hovered =============================================
-
-	/** @return the hovered paragraph
-	 * the top element that contains text directly
-	 * there are elements inside a text in many cases (e.g. <i> in wikipedia articles)
-	 * we want to select the whole paragraph even if this inside element is hovered*/
-	function getHoveredReadableElement() {
-		var hoveredNodes = document.querySelectorAll(":hover");
-		for(var i=0; i<hoveredNodes.length; i++) {
-			var element = hoveredNodes[i];
-			if(containsTextDirectly(element)) return element;
+	
+	/** @return the deepest clickable element from @param nodes */
+	function getDeepestClickableElement(nodes) {
+		for(var i=nodes.length-1; i>-1; i--) {
+			var element = nodes[i];
+			if(isClickable(element)) return element;
 		}
 		return null;
 	}
 	
+	function getTopReadableElement(nodes) {
+		for(var i=0; i<nodes.length; i++) {
+			var element = nodes[i];
+			if(containsReadableTextDirectly(element)) return element;
+		}
+		return null;
+	}
+	
+	function getHoveredReadableElement() {
+		var hoveredNodes = document.querySelectorAll(":hover");
+		var clickable = getDeepestClickableElement(hoveredNodes);
+		if(clickable) return containsNonTextIndirectly(clickable)?null:clickable;	//so we don't return with clickable images or huge clickable elements (e.g. youtube video)
+		return getTopReadableElement(hoveredNodes);
+	}
+	
 	/** highlights the element under mouse pointer */
 	function highlightHoveredElement() {
-		addStatus(getHoveredReadableElement(), "highlighted");
+		var element = getHoveredReadableElement();
+		setHighlighted(element);
 	}
 	
 	// ============================================= read =============================================
@@ -427,20 +482,23 @@
 	
 	/** @return the text in highlighted element */
 	function getHighlightedElementText() {
-		if(status2element.highlighted) return status2element.highlighted.textContent;
-		else return "";
+		return highlightedElement?highlightedElement.textContent:"";
 	}
 
 	/** reads text of hovered element */
-	function readHovered() {
+	function readHoveredNonClickable() {
 		highlightHoveredElement();
-		requestedElement = status2element.highlighted;
+		if(isClickable(highlightedElement)) {
+			readText("", "hoveredClickableClick");
+			return;
+		}
+		setRequested(highlightedElement);
 		readText(getHighlightedElementText(), "hoveredClick");
 	}
 	
 	/** reads the text provided by browserSelect */
 	function readBrowserSelected() {
-		requestedElement = null;	//so tts events don't color arrowSelected element
+		setRequested(null);	//so tts events don't color arrowSelected element
 		readText(getSelection().toString(), "browserSelect");
 	}
 	
@@ -451,11 +509,11 @@
 	
 	/** reads highlighted text + prevents scrolling */
 	function readHighlightedAndPreventScroll(event) {
-		requestedElement = status2element.highlighted;
+		setRequested(highlightedElement);
 		var highlightedText = getHighlightedElementText();
 		
 		//stop default behavior if: there is highlighted text OR reading is happening
-		if(highlightedText || lastTtsEventType == "start") {
+		if(highlightedText || ["loading","start","error"].indexOf(lastTtsEventType) > -1) {
 			readText(highlightedText, "space");
 			event.preventDefault();	//stop scrolling
 		}
@@ -467,10 +525,10 @@
 	function onTtsEvent(ttsEvent) {
 		lastTtsEventType = ttsEvent.type;
 		switch(ttsEvent.type) {
-			case("loading"): addStatus(requestedElement,"loading"); break;
-			case("start"): addStatus(requestedElement,"playing"); break;
-			case("end"): addStatus(null,"playing"); break;	//reverts loading, playing, error
-			case("error"): addStatus(requestedElement,"error"); break;
+			case("end"): setRequested(null);
+			case("loading"):
+			case("reading"):
+			case("error"): setStyle(requestedElement);
 		}
 	}
 	
@@ -483,8 +541,8 @@
 			onNonSelectingMouseUp	= nothing;
 			onArrow					= nothing;
 			onSpace					= nothing;
-			addStatus(null,"playing");	//reverts loading, playing, error
-			revert("highlighted");
+			setRequested(null);	//reverts loading, playing, error
+			setHighlighted(null);	//revertsd highlighted
 			return;
 		}
 		
@@ -495,10 +553,10 @@
 		onSelectingMouseUp = settings.browserSelect ? readBrowserSelected : nothing;
 
 		onNonSelectingMouseUp = settings.browserSelect ? stopBrowserSelected : nothing;
-		onNonSelectingMouseUp = settings.hoverSelect ? readHovered : onNonSelectingMouseUp;
+		onNonSelectingMouseUp = settings.hoverSelect ? readHoveredNonClickable : onNonSelectingMouseUp;
 		
 		onSpace = (settings.hoverSelect || settings.arrowSelect) ? readHighlightedAndPreventScroll : nothing;
-		if(!settings.hoverSelect && !settings.arrowSelect) revert("highlighted");
+		if(!settings.hoverSelect && !settings.arrowSelect) setHighlighted(null);
 	}
 	
 	function onMessage(request, sender, sendResponse) {
@@ -514,14 +572,14 @@
 	
 	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
 	 * if no reading, neither highlight => nothing*/
-	function onEsc(keyEvent) {
+	function stopReadingOrRevertHighlight(keyEvent) {
 		if(["loading","start","error"].indexOf(lastTtsEventType) > -1) {
 			readText("", "esc");
 			keyEvent.stopPropagation();
 			return;
 		}
-		if(status2element.highlighted) {
-			revert("highlighted");
+		if(highlightedElement) {
+			setHighlighted(null);
 			keyEvent.stopPropagation();
 		}
 	}
@@ -529,12 +587,7 @@
 	/** @return true if the active element is an input area */
 	function isUserTyping() {
 		var activeElement = document.activeElement;
-		if(activeElement) {
-			if(activeElement.tagName.toLowerCase() == "input") return true;
-			if(activeElement.tagName.toLowerCase() == "textarea") return true;
-			if(activeElement.isContentEditable) return true;	//gmail new email
-		}
-		return false;
+		return isInputElement(activeElement);
 	}
 	
 	// ============================================= browserSelect decisions =============================================
@@ -596,7 +649,7 @@
 				case(38): onArrow(event, "up");		break;
 				case(39): onArrow(event, "right");	break;
 				case(40): onArrow(event, "down");	break;
-				case(27): onEsc(event);				break;
+				case(27): stopReadingOrRevertHighlight(event); break;
 			}
 		}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
 	}

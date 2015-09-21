@@ -1,7 +1,7 @@
 1) hover
-1.1 click text => read
-1.2 click empty => stop
-1.3 space => start
+1.1 click text on nonclickable => read
+1.2 click empty or nonclickable => stop
+1.3 space (both clickable and nonclickable) => start
 1.4 esc => stop / revert highlight
 1.5 browserSelect => no highlight
 1.6 end browserSelect => no highlight for 0.3 sec
@@ -42,6 +42,7 @@ nothing extra
 
 7) input text behav
 7.1 space + arrows => default behav (check gmail new email too, its a special setup)
+7.2 click => default behav (check gmail new email)
 
 8) reading settings
 8.1 speed should change reading, also when starting a new one
