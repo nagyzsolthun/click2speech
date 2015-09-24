@@ -34,6 +34,13 @@ define([], function() {
 			availableSettings.forEach(function(name) {
 				//there is value for the setting
 				if(storedSettings[name]) {
+					//TODO remove this once all migrated
+					//bug: name of OsTts was set from i18n, this fixes it
+					if(name == "tts" && ["iSpeech","Google","OsTts"].indexOf(storedSettings[name].value) < 0) {
+						console.log("change name of " + storedSettings[name].value + " to OsTts");
+						settingsHandler.set("tts","OsTts");
+						result[name] = "OsTts";
+					}
 					result[name] = storedSettings[name].value;
 					return;
 				}

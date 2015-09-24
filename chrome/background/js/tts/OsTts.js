@@ -41,7 +41,7 @@ define([], function() {
 	
 	// =================================== public ===================================
 	var reader = {
-		get name() {return chrome.i18n.getMessage("OsTts") || "*OsTts*";}
+		get name() {return "OsTts";}
 		,get properties() {return [];}
 	}
 	

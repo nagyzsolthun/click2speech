@@ -10,7 +10,7 @@ function getSettings(callback) {
 }
 
 function toMessage(text) {
-	return chrome.i18n.getMessage(text) || "*"+text+"*";
+	return chrome.i18n.getMessage(text) || text;
 }
 
 app.config(function($routeProvider) {

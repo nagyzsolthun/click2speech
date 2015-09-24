@@ -42,7 +42,7 @@ angular.module('optionsApp')
 
 	chrome.runtime.sendMessage({action: "getTtsProperties"}, function(ttsProperties) {
 		ttsProperties.forEach(function(tts) {
-			var ttsService = {name: tts.name, properties: tts.properties, selected: false, status: "loading"};
+			var ttsService = {name: tts.name, text: toMessage(tts.name), properties: tts.properties, selected: false, status: "loading"};
 			$scope.ttsArr.push(ttsService);
 			chrome.runtime.sendMessage({action: "testTtsService", tts:tts.name}, function(success) {
 				if(success) ttsService.status = "available";
