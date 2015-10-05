@@ -1,5 +1,5 @@
 {
-	"extensionDescription": {"message": "Klikkelj az egérrel egy bekezdésre, és a Click to Speech felolvassa azt."}
+	"extensionDescription": {"message": "Klikkelj az egérrel egy szövegre, és a Click to Speech felolvassa azt."}
 	,"generalOptionsPage": {"message": "Általános"}
 	,"readingOptionsPage": {"message": "Olvasás"}
 	,"selectionOptions": {"message": "Szöveg Kijelölése"}

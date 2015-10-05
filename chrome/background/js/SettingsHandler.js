@@ -4,7 +4,7 @@ define([], function() {
 	var defaultValues = {
 		turnedOn:true
 		,hoverSelect:true
-		,arrowSelect:true
+		,arrowSelect:false
 		,browserSelect:false
 		,tts:"iSpeech"
 		,gender:"female"
