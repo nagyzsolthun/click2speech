@@ -1,8 +1,6 @@
 angular.module('optionsApp')
 .controller('generalOptionsController', function($scope) {
 	$scope.selectionOptionsName = toMessage("selectionOptions");
-	$scope.highlightOptionsName = toMessage("highlightOptions");
-	$scope.clickEventDelegationOptionsName = toMessage("clickEventDelegationOptions");
 	
 	//set up the list of options (select event + read event)
 	$scope.selectOptions = [

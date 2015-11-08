@@ -1,0 +1,17 @@
+{
+	"extensionDescription": {"message": "Klik op een tekst en het Click to Speech leest het voor."}
+	,"generalOptionsPage": {"message": "Algemeen"}
+	,"readingOptionsPage": {"message": "Lezen"}
+	,"selectionOptions": {"message": "Tekst Markeren"}
+	,"ttsOptions": {"message": "Lezer"}
+	,"speedOptions": {"message": "Snelheid"}
+	,"genderOptions": {"message": "Geslacht"}
+	,"hoverSelect": {"message": "met de muis gewezen "}
+	,"arrowSelect": {"message": "pijltoetsen"}
+	,"browserSelect": {"message": "browser ingebouwde selectie"}
+	,"femaleReadingGender": {"message": "vrouwelijk"}
+	,"maleReadingGender": {"message": "mannelijk"}
+	,"OsTts": {"message": "Besturingssysteem"}
+	,"turnOff": {"message": "uitschakelen"}
+	,"turnOn": {"message": "aanzetten"}
+}

@@ -3,7 +3,6 @@
 	,"generalOptionsPage": {"message": "General"}
 	,"readingOptionsPage": {"message": "Reading"}
 	,"selectionOptions": {"message": "Text Selection"}
-	,"highlightOptions": {"message": "Highlight"}
 	,"ttsOptions": {"message": "Reader"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}

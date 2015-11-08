@@ -1,0 +1,17 @@
+{
+	"extensionDescription": {"message": "Klicken Sie auf einen Text und das Click to Speech liest den vor."}
+	,"generalOptionsPage": {"message": "Allgemein"}
+	,"readingOptionsPage": {"message": "Lesen"}
+	,"selectionOptions": {"message": "Text Markieren"}
+	,"ttsOptions": {"message": "Leser"}
+	,"speedOptions": {"message": "Geschwindigkeit"}
+	,"genderOptions": {"message": "Geschlecht"}
+	,"hoverSelect": {"message": "mit der maus gewiesen"}
+	,"arrowSelect": {"message": "pfeiltasten"}
+	,"browserSelect": {"message": "browser eingebaute selektion"}
+	,"femaleReadingGender": {"message": "weiblich"}
+	,"maleReadingGender": {"message": "männlich"}
+	,"OsTts": {"message": "Betriebssystem"}
+	,"turnOff": {"message": "ausschalten"}
+	,"turnOn": {"message": "einschalten"}
+}
