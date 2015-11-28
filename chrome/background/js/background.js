@@ -130,6 +130,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					});
 					iconDrawer.drawInteraction();
 					break;
+				case("contactClick"): sendAnalytics('contact','click',request.contact); break;
 			}
 		}
 	);

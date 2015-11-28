@@ -45,6 +45,8 @@ body {
 .nav-bar li.active {background-color:#292;}
 .nav-bar li:hover {background-color:#4f4;}
 
+#contactNavButton {float:right;}
+
 /* ===================================== hoverable =====================================*/
 .hoverable {-webkit-transition: background-color .2s linear;}
 .hoverable:hover {background-color:#f0fff0;}
@@ -77,6 +79,15 @@ body {
 }
 
 .setting > div {-webkit-transition: color .2s linear;}	/* the transition of the setting titles (when they become unavailable) */
+
+.setting > a {
+	font-size: 15px;
+	-webkit-transition: color,background-color .2s;
+}
+.setting > a:hover {
+	color:black;
+	background-color:#4f4
+}
 
 /* ===================================== speed settings =====================================*/
 

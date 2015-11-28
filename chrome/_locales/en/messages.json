@@ -2,6 +2,7 @@
 	"extensionDescription": {"message": "Click on a text and Click to Speech reads it out to you."}
 	,"generalOptionsPage": {"message": "General"}
 	,"readingOptionsPage": {"message": "Reading"}
+	,"contactPage": {"message": "Contact"}
 	,"selectionOptions": {"message": "Text Selection"}
 	,"ttsOptions": {"message": "Reader"}
 	,"speedOptions": {"message": "Speed"}
@@ -12,6 +13,10 @@
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}
+	,"reviewsUrl": {"message": "Reviews"}
+	,"supportUrl": {"message": "Support"}
+	,"githubUrl": {"message": "GitHub"}
+	,"linkedinUrl": {"message": "Linkedin"}
 	,"turnOff": {"message": "turn off"}
 	,"turnOn": {"message": "turn on"}
 }

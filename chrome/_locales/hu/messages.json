@@ -2,6 +2,7 @@
 	"extensionDescription": {"message": "Klikkelj az egérrel egy szövegre, és a Click to Speech felolvassa azt."}
 	,"generalOptionsPage": {"message": "Általános"}
 	,"readingOptionsPage": {"message": "Olvasás"}
+	,"contactPage": {"message": "Kapcsolat"}
 	,"selectionOptions": {"message": "Szöveg Kijelölése"}
 	,"ttsOptions": {"message": "Olvasó"}
 	,"speedOptions": {"message": "Sebesség"}
@@ -12,6 +13,10 @@
 	,"femaleReadingGender": {"message": "női"}
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}
+	,"reviewsUrl": {"message": "Vélemények"}
+	,"supportUrl": {"message": "Támogatás"}
+	,"githubUrl": {"message": "GitHub"}
+	,"linkedinUrl": {"message": "Linkedin"}
 	,"turnOff": {"message": "kikapcsol"}
 	,"turnOn": {"message": "bekapcsol"}
 }

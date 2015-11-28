@@ -2,6 +2,7 @@
 	"extensionDescription": {"message": "Klik op een tekst en het Click to Speech leest het voor."}
 	,"generalOptionsPage": {"message": "Algemeen"}
 	,"readingOptionsPage": {"message": "Lezen"}
+	,"contactPage": {"message": "Contact"}
 	,"selectionOptions": {"message": "Tekst Markeren"}
 	,"ttsOptions": {"message": "Lezer"}
 	,"speedOptions": {"message": "Snelheid"}
@@ -12,6 +13,10 @@
 	,"femaleReadingGender": {"message": "vrouwelijk"}
 	,"maleReadingGender": {"message": "mannelijk"}
 	,"OsTts": {"message": "Besturingssysteem"}
+	,"reviewsUrl": {"message": "Recensies"}
+	,"supportUrl": {"message": "Ondersteuning"}
+	,"githubUrl": {"message": "GitHub"}
+	,"linkedinUrl": {"message": "Linkedin"}
 	,"turnOff": {"message": "uitschakelen"}
 	,"turnOn": {"message": "aanzetten"}
 }

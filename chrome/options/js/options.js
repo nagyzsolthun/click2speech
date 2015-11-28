@@ -16,5 +16,6 @@ function toMessage(text) {
 app.config(function($routeProvider) {
 	$routeProvider.when('/general', {templateUrl: 'generalOptions.html', controller: 'generalOptionsController'});
 	$routeProvider.when('/reading', {templateUrl: 'readingOptions.html', controller: 'readingOptionsController'});
+	$routeProvider.when('/contact', {templateUrl: 'contact.html', controller: 'contactController'});
 	$routeProvider.otherwise({redirectTo: '/general'});
 });
