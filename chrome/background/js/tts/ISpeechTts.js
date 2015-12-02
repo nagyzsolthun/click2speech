@@ -8,6 +8,10 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		,{lan:"en", dialect: "GB", gender: "female", iSpeechVoice: "ukenglishfemale"}
 		,{lan:"en", dialect: "GB", gender: "male", iSpeechVoice: "ukenglishmale"}
 		,{lan:"en", dialect: "AU", gender: "female", iSpeechVoice: "auenglishfemale"}
+		,{lan:"us", dialect: "", gender: "female", iSpeechVoice: "usenglishfemale"}
+		,{lan:"us", dialect: "", gender: "male", iSpeechVoice: "usenglishmale"}
+		,{lan:"gb", dialect: "", gender: "female", iSpeechVoice: "ukenglishfemale"}
+		,{lan:"gb", dialect: "", gender: "male", iSpeechVoice: "ukenglishmale"}
 		,{lan:"es", dialect: "", gender: "female", iSpeechVoice: "usspanishfemale"}
 		,{lan:"es", dialect: "", gender: "male", iSpeechVoice: "usspanishmale"}
 		,{lan:"zh", dialect: "", gender: "female", iSpeechVoice: "chchinesefemale"}
@@ -94,6 +98,8 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 			case("en-US"): return 2.3;
 			case("en-GB"): return 2.3;
 			case("en"): return 2.3;
+			case("us"): return 2.3;
+			case("gb"): return 2.3;
 			default: return null;
 		}
 	}
