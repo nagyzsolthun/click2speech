@@ -3,8 +3,8 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
-		var ttsurl = "https://translate.google.co.uk/translate_tts?client=a";	//if client not set, user is redirected to a chapta
-		var result = ttsurl + "&q=" + encodeURIComponent(c.text) + "&tl="+c.lan;
+		var ttsurl = "https://translate.google.co.uk/translate_tts?";
+		var result = ttsurl + "ie=UTF-8" + "&q=" + encodeURIComponent(c.text) + "&tl=" + c.lan + "&total=1&idx=0&textlen=" + c.text.length + "&tk=1&client=t&prev=input";	//TODO tk=what?
 		return result;
 	}
 	
