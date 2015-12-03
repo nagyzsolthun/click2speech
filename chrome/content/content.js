@@ -420,7 +420,7 @@
 		setHighlighted(closestReadable);
 		scrollIntoView(closestReadable);
 
-		chrome.runtime.sendMessage({action: "stepHighlight"}, null);
+		chrome.runtime.sendMessage({action: "arrowPressed"}, null);
 		
 		//createDivOnBoundingClientRect(closestReadable);
 	}

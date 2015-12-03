@@ -123,12 +123,13 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 				case("getErrors"): sendResponse(tts.errors); break;
 				case("getLastTtsEvent"): sendResponse(tts.lastEvent); break;
 				case("read"): read({text: request.text,lan: request.lan || navigator.language,source:request.source}); break;
-				case("stepHighlight"):
+				case("arrowPressed"):
 					settingsHandler.getAll(function(settings) {
 						userInteractionAudio.currentTime = 0;
 						userInteractionAudio.play();
 					});
 					iconDrawer.drawInteraction();
+					scheduleAnalytics('arrowPressed', 'arrow', 'pressed');
 					break;
 				case("contactClick"): sendAnalytics('contact','click',request.contact); break;
 			}
