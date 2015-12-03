@@ -9,7 +9,7 @@
 	,"genderOptions": {"message": "Gender"}
 	,"hoverSelect": {"message": "mouse pointed"}
 	,"arrowSelect": {"message": "arrow keys"}
-	,"browserSelect": {"message": "browser built-in selection"}
+	,"browserSelect": {"message": "built-in browser selection"}
 	,"femaleReadingGender": {"message": "female"}
 	,"maleReadingGender": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}
