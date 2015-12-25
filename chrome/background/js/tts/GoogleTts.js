@@ -3,8 +3,8 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
-		var ttsurl = "https://translate.google.co.uk/translate_tts?";
-		var result = ttsurl + "ie=UTF-8" + "&q=" + encodeURIComponent(c.text) + "&tl=" + c.lan + "&total=1&idx=0&textlen=" + c.text.length + "&tk=1&client=t&prev=input";	//TODO tk=what?
+		var ttsurl = "http://translate.google.com/translate_tts?";
+		var result = ttsurl + "ie=UTF-8Ctotal=1&idx=0&client=a&prev=input&tl=" + c.lan + "&q=" + encodeURIComponent(c.text);
 		return result;
 	}
 	
@@ -33,7 +33,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
 		var text = Math.round(Math.random() * 1000);
-		var url = buildUrl({text:text, lan:navigator.language});
+		var url = buildUrl({text:text, lan:navigator.language});	//lan: maybe navigator.language?
 		UrlAudioTester.test({url:url, callback:callback});
 	}
 
