@@ -473,11 +473,16 @@
 	}
 	
 	// ============================================= read =============================================
+	
+	/** removes curly quotes because iSpeech cannot handle them */
+	function removeCurlyQuotes(text) {
+		return text.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+	}
 
 	/** sends "read" message with @param text
 	 * @param source is hovered|space|esc */
 	function readText(text, source) {
-		chrome.runtime.sendMessage({action: "read",text: text,lan: document.documentElement.lang, source:source});
+		chrome.runtime.sendMessage({action: "read",text: removeCurlyQuotes(text),lan: document.documentElement.lang, source:source});
 	}
 	
 	/** @return the text in highlighted element */
