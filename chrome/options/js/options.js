@@ -1,12 +1,10 @@
 var app = angular.module('optionsApp', ['ngRoute','ngAnimate']);
 
+var backgroundCommunicationPort = chrome.runtime.connect();
+
 /** notifies background.js about a changed setting*/
 function sendSet(setting, value) {
-	chrome.runtime.sendMessage({action:"set",setting: setting,value: value});
-}
-
-function getSettings(callback) {
-	chrome.runtime.sendMessage({action: "getSettings"}, callback);
+	backgroundCommunicationPort.postMessage({action:"updateSetting",setting: setting,value: value});
 }
 
 function toMessage(text) {

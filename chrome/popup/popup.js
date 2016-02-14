@@ -3,15 +3,15 @@ var app = angular.module('popupApp', []);
 app.controller('popupController', function($scope) {
 	function toMessage(text) {return chrome.i18n.getMessage(text) || "*"+text+"*";}
 
-	$scope.button = {text: "?",ttsOn: false}
-	$scope.errors = []
+	$scope.button = {text: "?",ttsOn: false};
+	$scope.errors = [];
 
 	$scope.onOffButtonClick = function() {
 		if($scope.button.ttsOn) {
-			chrome.runtime.sendMessage({action: "set", setting:"turnedOn", value: false});
+			backgroundCommunicationPort.postMessage({action: "updateSetting", setting:"turnedOn", value: false});
 			turnOff();
 		} else {
-			chrome.runtime.sendMessage({action: "set", setting:"turnedOn", value: true});
+			backgroundCommunicationPort.postMessage({action: "updateSetting", setting:"turnedOn", value: true});
 			turnOn();
 		}
 	}
@@ -30,18 +30,29 @@ app.controller('popupController', function($scope) {
 		$scope.button.ttsOn = false;
 		$scope.button.text = toMessage("turnOn");
 	}
-	
-	chrome.runtime.sendMessage({action: "getSettings"}, function(settings) {
-		if(settings.turnedOn) turnOn();
-		else turnOff();
-		$scope.$digest();
+
+	// ============================================= message handling =============================================
+	var backgroundCommunicationPort = chrome.runtime.connect();
+	backgroundCommunicationPort.onMessage.addListener(function(message) {
+		var listener = backgroundEventListeners[message.action];
+		if(listener) listener(message);
 	});
-	
-	chrome.runtime.sendMessage({action: "getErrors"}, function(errors) {
+
+	var backgroundEventListeners = {};
+	backgroundEventListeners.updateTtsErrors = function(message) {
 		$scope.errors = [];
-		errors.forEach(function(error) {
+		message.errors.forEach(function(error) {
 			$scope.errors.push({ttsName:error.ttsName,type:error.type});
 		});
 		$scope.$digest();
-	});
+	}
+
+	backgroundEventListeners.updateSettings = function(message) {
+		if(message.settings.turnedOn) turnOn();
+		else turnOff();
+		$scope.$digest();
+	}
+
+	backgroundCommunicationPort.postMessage({action:"getSettings"});	//the response will call backgroundEventListeners.updateSettings
+	backgroundCommunicationPort.postMessage({action:"getTtsErrors"});	//the response will call backgroundEventListeners.updateTtsErrors
 });

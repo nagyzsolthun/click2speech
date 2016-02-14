@@ -1,4 +1,4 @@
-require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsHandler, tts, iconDrawer) {
+require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], function(settingsHandler, messageHandler, tts, iconDrawer) {
 
 	//===================================== Google Anyltics =====================================
 	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -61,17 +61,8 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		});
 	}
 	
-	/** notifies all content scripts */
-	function notifyContentJs(message) {
-		chrome.tabs.query({}, function(tabs) {
-			for (var i=0; i<tabs.length; i++) {
-				chrome.tabs.sendMessage(tabs[i].id, message);
-			}
-		});
-	}
-	
 	function onTtsEvent(event) {
-		notifyContentJs({action:"event", event:event});
+		messageHandler.messageAll({action:"ttsEvent", event:event})
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
 			case("start"): iconDrawer.drawPlaying(); break;
@@ -83,7 +74,7 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		}
 	}
 	
-	function set(setting, value) {
+	function updateSetting(setting, value) {
 		settingsHandler.set(setting,value);
 		switch(setting) {
 			case("turnedOn"):
@@ -96,45 +87,57 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 					tts.read({text:""});	//in case it is reading, we stop it
 					iconDrawer.drawTurnedOff();
 				}
-				notifyContentJs({action:"set", setting:setting, value:value});
+				messageHandler.messageAll({action:"updateSetting", setting:setting, value:value});
 				break;
 			case("speed"): tts.speed = value; break;
 			case("hoverSelect"):
 			case("arrowSelect"):
-			case("browserSelect"): notifyContentJs({action:"set", setting:setting, value:value});break;
+			case("browserSelect"): messageHandler.messageAll({action:"updateSetting", setting:setting, value:value});break;
 		}
 	}
-	
+
 	//receiving messages from cotnent script (to read) and popup (turnon/turnoff/getstatus)
-	chrome.runtime.onMessage.addListener(
-		function(request, sender, sendResponse) {
-			switch(request.action) {
-				case("getSettings"):
-					settingsHandler.getAll(function(settings){
-						sendResponse(settings);
-					});
-					return true;	//keeps sendResponse channel open until it is used
-				case("set"):
-					set(request.setting,request.value);
-					scheduleAnalytics('set' + request.setting, 'settings','set',request.setting+':'+request.value);	//schedule so speed changes count as one
-					break;
-				case("getTtsProperties"): sendResponse(tts.ttsProperties); break;
-				case("testTtsService"): tts.test(request.tts, sendResponse); return true;	//return true keeps sendResponse channel open until it is used
-				case("getErrors"): sendResponse(tts.errors); break;
-				case("getLastTtsEvent"): sendResponse(tts.lastEvent); break;
-				case("read"): read({text: request.text,lan: request.lan || navigator.language,source:request.source}); break;
-				case("arrowPressed"):
-					settingsHandler.getAll(function(settings) {
-						userInteractionAudio.currentTime = 0;
-						userInteractionAudio.play();
-					});
-					iconDrawer.drawInteraction();
-					scheduleAnalytics('arrowPressed', 'arrow', 'pressed');
-					break;
-				case("contactClick"): sendAnalytics('contact','click',request.contact); break;
-			}
-		}
-	);
+	var messageListeners = {};
+	messageHandler.onMessage = function(message,port) {
+		var listener = messageListeners[message.action];
+		if(listener) listener(message,port);
+		else console.log("no listener for action " + message.action);
+	}
+
+	messageListeners.getSettings = function(message,port) {
+		settingsHandler.getAll(function(settings){
+			port.postMessage({action:"updateSettings", settings:settings});
+		});
+	}
+	messageListeners.read = function(message) {
+		read({text: message.text,lan: message.lan || navigator.language,source:message.source});
+	}
+	messageListeners.arrowPressed = function() {
+		settingsHandler.getAll(function(settings) {
+			userInteractionAudio.currentTime = 0;
+			userInteractionAudio.play();
+		});
+		iconDrawer.drawInteraction();
+		scheduleAnalytics('arrowPressed', 'arrow', 'pressed');
+	}
+	messageListeners.getTtsErrors = function(message,port) {
+		port.postMessage({action:"updateTtsErrors",errors:tts.errors});
+	}
+	messageListeners.updateSetting = function(message,port) {
+		updateSetting(message.setting,message.value);
+		scheduleAnalytics('set' + message.setting, 'settings','set',message.setting+':'+message.value);	//schedule so speed changes count as one
+	}
+	messageListeners.getTtsProperties = function(message,port) {
+		port.postMessage({action:"updateTtsProperties", ttsProperties:tts.ttsProperties});
+	}
+	messageListeners.testTtsService = function(message,port) {
+		tts.test(message.tts, function(success) {
+			port.postMessage({action:"updateTtsAvailable", tts:message.tts, available:success});
+		});
+	}
+	messageListeners.contactClick = function(message) {
+		sendAnalytics('contact','click',message.contact);
+	}
 
 	// ===================================== initial settings =====================================
 	settingsHandler.getAll(function(settings) {
@@ -145,6 +148,18 @@ require(["SettingsHandler", "tts/TtsProvider","icon/drawer"], function(settingsH
 		else iconDrawer.drawTurnedOff();
 	}, function(defaults) {
 		console.log("persist default settings: " + JSON.stringify(defaults));
+		//default setting for turnedOn set => means first ever execution
 		if(defaults.turnedOn) sendAnalytics('settings','setup','defaults-' + chrome.app.getDetails().version);
+	});
+
+	function muteChromeRuntimeError() {
+		var error = chrome.runtime.lastError;
+	}
+
+	//initial content script injection - so no Chrome restart is needed after installation
+	chrome.tabs.query({}, function(tabs) {
+		for (var i=0; i<tabs.length; i++) {
+			chrome.tabs.executeScript(tabs[i].id, {file: 'content/content.js'}, muteChromeRuntimeError);
+		}
 	});
 });

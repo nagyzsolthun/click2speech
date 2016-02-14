@@ -1,5 +1,15 @@
 /* this is a content script - it is attached to each opened webpage*/
 (function() {
+	// ============================================= check if not already loaded =============================================
+
+	//content scripts can be injected by the background page
+	//this is a check to make sure the script is NOT loaded twice
+	if(window.clickToSpeechContentScriptLoaded) {
+		return;
+	}
+	console.log("injecting ClickToSpeech content script");
+	window.clickToSpeechContentScriptLoaded = true;
+
 	// ============================================= simulate Map for older chrome versions =============================================
 	Map = (typeof Map != 'undefined') ? Map : function() {
 		var keys = [];
@@ -35,19 +45,20 @@
 		}
 	}
 
-	// ============================================= some attributs =============================================
+	// ============================================= some attributes =============================================
+	var backgroundCommunicationPort = chrome.runtime.connect();
+
 	var settings = {};	//current settings
 	
 	var lastTtsEventType = null;
 	
 	function nothing() {};	//used when no event listener needed
-	
-	var onArrow;	//called when arrows are pressed, parameters: keyEvent, direction
-	var onSpace;	//called when space is pressed with parameter: keyEvent
- 	var onSelectingMouseMove;	//called when mouse pointer moves while selection is happening
- 	var onNonSelectingMouseMove;	//called when mouse pointer moves while selection is NOT happening
- 	var onSelectingMouseUp;	//called when mouseUp while selection is happening
- 	var onNonSelectingMouseUp;	//called when mouseUp while selection is NOT happening
+	var onArrow					= nothing;	//called when arrows are pressed, parameters: keyEvent, direction
+	var onSpace					= nothing;	//called when space is pressed with parameter: keyEvent
+ 	var onSelectingMouseMove	= nothing;	//called when mouse pointer moves while selection is happening
+ 	var onNonSelectingMouseMove	= nothing;	//called when mouse pointer moves while selection is NOT happening
+ 	var onSelectingMouseUp		= nothing;	//called when mouseUp while selection is happening
+ 	var onNonSelectingMouseUp	= nothing;	//called when mouseUp while selection is NOT happening
 	
 	// ============================================= status =============================================
 	var highlightedElement = null;	//hovered OR arrow selected
@@ -121,7 +132,7 @@
 	 * or reverts if it has no status */
 	function setStyle(element) {
 		if(!element) return;
-		if(!element2original.get(element)) saveOriginal(element);
+		saveOriginal(element);
 		
 		var status = getStatus(element);
 		if(!status) {
@@ -420,7 +431,7 @@
 		setHighlighted(closestReadable);
 		scrollIntoView(closestReadable);
 
-		chrome.runtime.sendMessage({action: "arrowPressed"}, null);
+		backgroundCommunicationPort.postMessage({action: "arrowPressed"});
 		
 		//createDivOnBoundingClientRect(closestReadable);
 	}
@@ -482,7 +493,7 @@
 	/** sends "read" message with @param text
 	 * @param source is hovered|space|esc */
 	function readText(text, source) {
-		chrome.runtime.sendMessage({action: "read",text: removeCurlyQuotes(text),lan: document.documentElement.lang, source:source});
+		backgroundCommunicationPort.postMessage({action: "read",text: removeCurlyQuotes(text),lan: document.documentElement.lang, source:source});
 	}
 	
 	/** @return the text in highlighted element */
@@ -523,31 +534,37 @@
 			event.preventDefault();	//stop scrolling
 		}
 	}
-	
-	// ============================================= internal events =============================================
-	
-	//animates clicked|playing|error element
-	function onTtsEvent(ttsEvent) {
-		lastTtsEventType = ttsEvent.type;
-		switch(ttsEvent.type) {
-			case("end"): setRequested(null);
-			case("loading"):
-			case("reading"):
-			case("error"): setStyle(requestedElement);
+
+	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
+	 * if no reading, neither highlight => nothing*/
+	function stopReadingOrRevertHighlight(keyEvent) {
+		if(["loading","start","error"].indexOf(lastTtsEventType) > -1) {
+			readText("", "esc");
+			keyEvent.stopPropagation();
+			return;
+		}
+		if(highlightedElement) {
+			setHighlighted(null);
+			keyEvent.stopPropagation();
 		}
 	}
-	
+
+	// ============================================= applying settings =============================================
+	function turnOff() {
+		onSelectingMouseMove	= nothing;
+		onNonSelectingMouseMove	= nothing;
+		onSelectingMouseUp		= nothing;
+		onNonSelectingMouseUp	= nothing;
+		onArrow					= nothing;
+		onSpace					= nothing;
+		setRequested(null);		//reverts loading, playing, error
+		removeHighlight();		//revertsd highlighted
+	}
+
 	//sets behavior of the content script based on the settings cache
-	function digestSettings() {
+	function applySettings() {
 		if(! settings.turnedOn) {
-			onSelectingMouseMove	= nothing;
-			onNonSelectingMouseMove	= nothing;
-			onSelectingMouseUp		= nothing;
-			onNonSelectingMouseUp	= nothing;
-			onArrow					= nothing;
-			onSpace					= nothing;
-			setRequested(null);	//reverts loading, playing, error
-			setHighlighted(null);	//revertsd highlighted
+			turnOff();
 			return;
 		}
 		
@@ -564,35 +581,34 @@
 		if(!settings.hoverSelect && !settings.arrowSelect) setHighlighted(null);
 	}
 	
-	function onMessage(request, sender, sendResponse) {
-		switch(request.action) {
-			case("event"): onTtsEvent(request.event); break;
-			case("set"):
-				settings[request.setting] = request.value;
-				digestSettings();
-				break;
+	// ============================================= ClickToSpeech events =============================================
+
+	backgroundCommunicationPort.onMessage.addListener(function(message) {
+		var listener = backgroundEventListeners[message.action];
+		if(listener) listener(message);
+	});
+
+	var backgroundEventListeners = {};
+
+	//animates clicked|playing|error element
+	backgroundEventListeners.ttsEvent = function(message) {
+		lastTtsEventType = message.event ? message.event.type : null;
+		switch(lastTtsEventType) {
+			case("end"): setRequested(null);
+			case("loading"):
+			case("reading"):
+			case("error"): setStyle(requestedElement);
 		}
 	}
-	chrome.runtime.onMessage.addListener(onMessage);
-	
-	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
-	 * if no reading, neither highlight => nothing*/
-	function stopReadingOrRevertHighlight(keyEvent) {
-		if(["loading","start","error"].indexOf(lastTtsEventType) > -1) {
-			readText("", "esc");
-			keyEvent.stopPropagation();
-			return;
-		}
-		if(highlightedElement) {
-			setHighlighted(null);
-			keyEvent.stopPropagation();
-		}
+
+	backgroundEventListeners.updateSetting = function(message) {
+		settings[message.setting] = message.value;
+		applySettings();
 	}
-	
-	/** @return true if the active element is an input area */
-	function isUserTyping() {
-		var activeElement = document.activeElement;
-		return isInputElement(activeElement);
+
+	backgroundEventListeners.updateSettings = function(message) {
+		for(var setting in message.settings) settings[setting] = message.settings[setting];
+		applySettings();
 	}
 	
 	// ============================================= browserSelect decisions =============================================
@@ -623,53 +639,79 @@
 	}
 	
 	// ============================================= browser events =============================================
-	
-	function setBrowserEvents() {
-		//event listeners executing even when TTS off TODO maybe not
-		window.addEventListener("mouseup", saveMouseUpTime);
-		window.addEventListener("mousedown", saveMouseDownTime);
-
-		window.addEventListener("mousemove", function(event) {
-			if(isAutomaticScrollingRecent()) return;
-			checkBrowserSelect(onSelectingMouseMove, onNonSelectingMouseMove);
-		});
-
-		window.addEventListener("mouseup", function(event) {
-			checkBrowserSelect(onSelectingMouseUp, onNonSelectingMouseUp);
-		});
-
-		window.addEventListener("keydown", function(event) {
-			//TODO this executes even if turned off
-			switch(event.keyCode) {
-				case(32):
-				case(37):
-				case(38):
-				case(39):
-				case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
-			}
-	
-			switch(event.keyCode) {
-				case(32): onSpace(event);			break;
-				case(37): onArrow(event, "left");	break;
-				case(38): onArrow(event, "up");		break;
-				case(39): onArrow(event, "right");	break;
-				case(40): onArrow(event, "down");	break;
-				case(27): stopReadingOrRevertHighlight(event); break;
-			}
-		}, true);	//useCapture to have better chances that this listener executes first - so it can stop event propagation
+	/** @return true if the active element is an input area */
+	function isUserTyping() {
+		var activeElement = document.activeElement;
+		return isInputElement(activeElement);
 	}
+
+	//browserEvent:eventHandler map
+	var browserEventListeners = {};
+
+	browserEventListeners.mousedown = saveMouseDownTime;
+	browserEventListeners.mousemove = function() {
+		if(isAutomaticScrollingRecent()) return;
+
+		//why not just pass the functions?:
+		//in case of destroy, it is possible that the scheduled onSelectingMouseMove changes between calling checkBrowserSelect and the actual onSelectingMouseMove execution
+		//by passing the function itself, this change is not reflected
+		checkBrowserSelect(function() {
+			onSelectingMouseMove();
+		}, function() {
+			onNonSelectingMouseMove();
+		});
+	}
+	browserEventListeners.mouseup = function() {
+		saveMouseUpTime();
+		checkBrowserSelect(onSelectingMouseUp, onNonSelectingMouseUp);
+	}
+	browserEventListeners.keydown = function(event) {
+		switch(event.keyCode) {
+			case(32):
+			case(37):
+			case(38):
+			case(39):
+			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
+		}
+		switch(event.keyCode) {
+			case(32): onSpace(event);			break;
+			case(37): onArrow(event, "left");	break;
+			case(38): onArrow(event, "up");		break;
+			case(39): onArrow(event, "right");	break;
+			case(40): onArrow(event, "down");	break;
+			case(27): stopReadingOrRevertHighlight(event); break;
+		}
+	}
+
+	function addBrowserEventListeners() {
+		for(var event in browserEventListeners) {
+			//last param: useCapture to have better chances that this listener executes first - so it can stop event propagation
+			window.addEventListener(event, browserEventListeners[event], true);
+		}
+	}
+
+	function removeBrowserEventListeners() {
+		for(var event in browserEventListeners) {
+			window.removeEventListener(event, browserEventListeners[event], true);
+		}
+	}
+
+	// ============================================= destroy =============================================
 	
+	function destroy() {
+		console.log("removing ClickToSpeech content script");
+		window.clickToSpeechContentScriptLoaded = false;
+		turnOff();
+		removeBrowserEventListeners();
+	}
+
+	backgroundCommunicationPort.onDisconnect.addListener(function() {
+		destroy();
+	});
+
 	// ============================================= init =============================================
-	chrome.runtime.sendMessage({action: "getSettings"}, function(storedSettings) {
-		settings.turnedOn = storedSettings.turnedOn;
-		settings.hoverSelect = storedSettings.hoverSelect;
-		settings.arrowSelect = storedSettings.arrowSelect;
-		settings.browserSelect = storedSettings.browserSelect;
-		digestSettings();
-		setBrowserEvents();
-	});
-	chrome.runtime.sendMessage({action: "getLastTtsEvent"}, function(event) {
-		lastTtsEventType = event ? event.type : null;
-	});
+	addBrowserEventListeners();
+	backgroundCommunicationPort.postMessage({action:"getSettings"});	//the response will call backgroundEventListeners.updateSettings
+
 })();
 

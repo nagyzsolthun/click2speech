@@ -15,10 +15,11 @@ angular.module('optionsApp')
 	}
 	
 	//initial setup
-	getSettings(function(settings) {
-		$scope.selectOptions.forEach(function(option) {
-			option.selected = settings[option.value];
-		});
+	var backgroundCommunicationPort = chrome.runtime.connect();
+	backgroundCommunicationPort.onMessage.addListener(function(message) {
+		if(message.action != "updateSettings") return;
+		$scope.selectOptions.forEach(function(option) {option.selected = message.settings[option.value];});
 		$scope.$digest();	//so angular recognizes the change
 	});
+	backgroundCommunicationPort.postMessage({action:"getSettings"});
 });

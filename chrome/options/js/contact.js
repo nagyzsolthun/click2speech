@@ -15,7 +15,8 @@ angular.module('optionsApp')
 	$scope.githubUrl = "https://github.com/nagyzsolthun/ClickToSpeech";
 	$scope.linkedinUrl = "https://hu.linkedin.com/in/nagyzsolthun";
 	
+	var backgroundCommunicationPort = chrome.runtime.connect();
 	$scope.onClick = function(clicked) {
-		chrome.runtime.sendMessage({action: "contactClick", contact: clicked});
+		backgroundCommunicationPort.postMessage({action: "contactClick", contact: clicked});
 	}
 });

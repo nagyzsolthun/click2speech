@@ -40,27 +40,37 @@ angular.module('optionsApp')
 		if($scope.speed.value) sendSet("speed", $scope.speed.value);
 	});
 
-	chrome.runtime.sendMessage({action: "getTtsProperties"}, function(ttsProperties) {
-		ttsProperties.forEach(function(tts) {
-			var ttsService = {name: tts.name, text: toMessage(tts.name), properties: tts.properties, selected: false, status: "loading"};
-			$scope.ttsArr.push(ttsService);
-			chrome.runtime.sendMessage({action: "testTtsService", tts:tts.name}, function(success) {
-				if(success) ttsService.status = "available";
-				else ttsService.status = "unavailable";
-				$scope.$digest();
-			});
-		});
-		$scope.$digest();	//so angular recognizes the change
+	//initial setup
+	var backgroundCommunicationPort = chrome.runtime.connect();
+	backgroundEventListeners = {};
+	backgroundCommunicationPort.onMessage.addListener(function(message) {
+		var listener = backgroundEventListeners[message.action];
+		if(listener) listener(message);
 	});
-	
-	getSettings(function(settings) {
+	backgroundEventListeners.updateSettings = function(message) {
 		$scope.ttsArr.forEach(function(service) {
-			service.selected = (service.name == settings.tts);
+			service.selected = (service.name == message.settings.tts);
 		});
 		$scope.genderArr.forEach(function(gender) {
-			gender.selected = (gender.value == settings.gender);
+			gender.selected = (gender.value == message.settings.gender);
 		});
-		$scope.speed.value = Number(settings.speed) || 1;	//string needs to be converted to number - angular otherwise throws numberFormatError
+		$scope.speed.value = Number(message.settings.speed) || 1;	//string needs to be converted to number - angular otherwise throws numberFormatError
 		$scope.$digest();	//so angular recognizes the change
-	});
+	}
+	backgroundEventListeners.updateTtsProperties = function(message) {
+		message.ttsProperties.forEach(function(tts) {
+			var ttsService = {name: tts.name, text: toMessage(tts.name), properties: tts.properties, selected: false, status: "loading"};
+			$scope.ttsArr.push(ttsService);
+			backgroundCommunicationPort.postMessage({action:"testTtsService",tts:tts.name});
+		});
+		$scope.$digest();
+	}
+	backgroundEventListeners.updateTtsAvailable = function(message) {
+		$scope.ttsArr.forEach(function(tts) {
+			if(tts.name == message.tts) tts.status = message.available ? "available":"unavailable";
+		});
+		$scope.$digest();
+	}
+	backgroundCommunicationPort.postMessage({action:"getSettings"});
+	backgroundCommunicationPort.postMessage({action:"getTtsProperties"});
 });
