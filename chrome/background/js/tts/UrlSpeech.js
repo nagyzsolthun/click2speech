@@ -10,7 +10,7 @@ define(function() {
 	function UrlSpeech(c) {
 		var audios = {};
 		var endListeners = {};	//end event listeners - to be able to remove them when manually stopped
-		var loadingTimes = {};	//time passed until canplaythrough event received (seconds) - to know when to start loading of the next audio
+		var loadingLengths = {};//time passed until canplaythrough event received (seconds) - to know when to start loading of the next audio
 		
 		var speed = c.speed || 1;	//store in a variable - it may change later
 		
@@ -29,15 +29,16 @@ define(function() {
 			}
 			
 			//audio is NOT the last one => prepare next when needed
-			//when to send the request for the next audio? end - (1 sec + loadingTime x 2) seems good (considering speed)
+			//when to send the request for the next audio? end - (1 sec + currentLoadingDuration x 2) seems good (considering speed)
 			audio.addEventListener("timeupdate", function() {
 				if(audios[i+1]) return;	//already prepared
-				var audioTimeForLoading = (1 + loadingTimes[i]*2)*speed;
-				if(audio.currentTime < audio.duration - (c.cutEnd || 0) - audioTimeForLoading) return;	//nothing to do yet
+				var currentLoadingDuration = loadingLengths[i] || 0;	//loading time is only available if loading of i is finished
+				var supposedNextLoadingDuration = (1 + currentLoadingDuration*2)*speed;
+				if(audio.currentTime < audio.duration - (c.cutEnd || 0) - supposedNextLoadingDuration) return;	//nothing to do yet
 				prepareAudio(i+1);
 			});
 			
-			//play next audio when this is over
+			//play next audio when this is over TODO what if its not available yet?
 			endListeners[i] = function() {play(i+1);}
 			audio.addEventListener("pause", endListeners[i]);
 		}
@@ -51,20 +52,36 @@ define(function() {
 			audio.defaultPlaybackRate = speed;
 			audio.src = c.urlArr[i];
 
-			//cutEnd			
-			if(c.cutEnd) audios[i].addEventListener("timeupdate", function() {
-				if(audios[i].currentTime > audios[i].duration - c.cutEnd) audios[i].pause();
-			});
+			scheduleCutEnd(audio);	//cutEnd - cut off promo text of iSpeech 
+			calcLoadingTime(audio,i);	//ladingTime - to know when to start loading of next audio
+			scheduleNext(i);	//schedule next audio
+		}
 
-			//ladingTime - to know when to start loading of next audio
+		/** schedules the pausing of the audio based on c.cutEnd and the speed of replaying */
+		function scheduleCutEnd(audio) {
+			if(!c.cutEnd) return;
+			
+			var scheduledCutEnd;
+
+			//frequently reschedule, so changes of speed are handled
+			audio.addEventListener("timeupdate", function() {
+				if(scheduledCutEnd) window.clearTimeout(scheduledCutEnd);
+				var audioSecondsTillEnd = audio.duration - audio.currentTime;
+				var audioSecondsTillCut = audioSecondsTillEnd - c.cutEnd;
+				var secondsTillCut = (audioSecondsTillCut / audio.playbackRate);
+				scheduledCutEnd = window.setTimeout(function() {
+					audio.pause();
+				}, secondsTillCut*1000);
+			});
+		}
+		
+		//sets loadingTime[i]
+		function calcLoadingTime(audio,i) {
 			var loadingStart = Date.now();
 			audio.addEventListener("canplaythrough", function() {
 				var loadingEnd = Date.now();
-				loadingTimes[i] = (loadingEnd - loadingStart) / 1000.0;
+				loadingLengths[i] = (loadingEnd - loadingStart) / 1000.0;
 			});
-			
-			//next
-			scheduleNext(i);
 		}
 		
 		/** starts audio in @param i index + sets up events (loading, start, error) */

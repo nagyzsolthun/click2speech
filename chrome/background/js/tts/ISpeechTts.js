@@ -84,24 +84,31 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
-		var voice = getISpeechVoice({lan:c.lan, gender:c.gender});
-		
 		var ttsurl = "http://www.ispeech.org/p/generic/getaudio";
-		var result = ttsurl + "?text=" + encodeURIComponent(c.text) + "&voice=" + voice + "&speed=-1&action=convert";
+		var result = ttsurl + "?text=" + encodeURIComponent(c.text) + "&voice=" + c.iSpeechVoice + "&speed=-1&action=convert";
 		return result;
 	}
 	
+	//length of promo texts - when requesting with standard playback speed
+	var voice2promoLength = {
+		auenglishfemale: 2.2
+		,caenglishfemale: 2.2
+		,eurcatalanfemale: 2.6
+		,eurspanishfemale: 2.6
+		,eurspanishmale: 2.4
+		,ukenglishfemale: 1.7
+		,ukenglishmale: 2.1
+		,usenglishfemale: 1.8
+		,usenglishmale: 1.8
+		,usspanishfemale: 2.3
+		,usspanishmale: 2.6
+	};
+	
 	/** @return length of "Powered by iSpeech" at the end of the returned audio
-	 * @param lan the language (some have the promo text, some don't)*/
-	function getCutEnd(lan) {
-		switch(lan.replace(/[_]/g,'-')) {	//replace: Google Analytics' page is en_US, but we need en-US
-			case("en-US"): return 2.3;
-			case("en-GB"): return 2.3;
-			case("en"): return 2.3;
-			case("us"): return 2.3;
-			case("gb"): return 2.3;
-			default: return null;
-		}
+	 * @param iSpeechVoice the iSpeechVoice (some have the promo text, some don't)*/
+	function getCutEnd(iSpeechVoice) {
+		var promoLength = voice2promoLength[iSpeechVoice];
+		if(promoLength) return promoLength*1.1;	//we request 10% lower speed (speed=-1) to match the speed of Google Tts
 	}
 
 	// =================================== public ===================================
@@ -123,15 +130,18 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 		});
 		
 		var lan = c.lan || navigator.language;
-		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan, gender:c.gender});});
+		var iSpeechVoice = getISpeechVoice({lan:lan, gender:c.gender});
+
+		var urlArr = textArr.map(function(text) {return buildUrl({text:text, iSpeechVoice:iSpeechVoice});});
 		
-		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(lan)});
+		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(iSpeechVoice)});
 	}
 	
 	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
 		var text = Math.round(Math.random() * 1000);
-		var url = buildUrl({text:text, lan:navigator.language});
+		var iSpeechVoice = getISpeechVoice({lan:navigator.language});
+		var url = buildUrl({text:text, iSpeechVoice:iSpeechVoice});
 		UrlAudioTester.test({url:url, callback:callback});
 	}
 	
