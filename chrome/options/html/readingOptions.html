@@ -1,26 +1,26 @@
 <div class="setting hoverable">
-	<div>{{ttsOptionsName}}</div>
+	<div>{{'ttsOptions' | translate}}</div>
 	<ul class="choiceList singleChoiceList">
 		<li	ng-repeat="tts in ttsArr"
 			class="{{tts.status}}"
 			ng-class="{selected: tts.selected}"
 			ng-click="onServiceOptionClick(tts)">
-			<span>{{tts.text}}</span>
+			<span>{{tts.name | translate}}</span>
 		</li>
 	</ul>
 </div>
 <div class="setting hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('speed')}">
-	<div>{{speedOptionsName}}</div>
+	<div>{{'speedOptions' | translate}}</div>
 	<input class="numberInput" type="number" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 	<input class="rangeInput" type="range" min="{{speed.min}}" max="{{speed.max}}" step="{{speed.step}}" ng-model="speed.value" />
 </div>
 <div class="setting hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('gender')}">
-	<div>{{genderOptionsName}}</div>
+	<div>{{'genderOptions' | translate}}</div>
 	<ul class="choiceList singleChoiceList">
 		<li	ng-repeat="gender in genderArr"
 			ng-class="{selected: gender.selected}"
 			ng-click="onGenderOptionClick(gender)">
-			<span>{{gender.text}}</span>
+			<span>{{gender.text | translate}}</span>
 		</li>
 	</ul>
 </div>

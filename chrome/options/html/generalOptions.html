@@ -1,8 +1,8 @@
 <div class="setting hoverable">
-	<div>{{selectionOptionsName}}</div>
+	<div>{{'selectionOptions' | translate}}</div>
 	<ul class="choiceList multipleChoiceList">
 		<li ng-repeat="option in selectOptions" ng-class="{selected: option.selected}" ng-click="onMultiSelectOptionClick(option)">
-			<span>{{option.text}}</span>
+			<span>{{option.value | translate}}</span>
 		</li>
 	</ul>
 </div>

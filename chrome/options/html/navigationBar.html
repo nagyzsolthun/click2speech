@@ -1,9 +1,9 @@
 <ul class="nav-bar" ng-controller="navigationBarController">
 	<li ng-class="{active:isActive('/general')}" ng-click="redirect('general')">
-		<span>{{generalOptionsPageName}}</span>
+		<span>{{'generalOptionsPage' | translate}}</span>
 	</li><li ng-class="{active:isActive('/reading')}" ng-click="redirect('reading')"><!-- 2 lis in the same line to remove space between-->
-		<span>{{readingOptionsPageName}}</span>
+		<span>{{'readingOptionsPage' | translate}}</span>
 	</li><li id="contactNavButton" ng-class="{active:isActive('/contact')}" ng-click="redirect('contact')"><!-- 2 lis in the same line to remove space between-->
-		<span>{{contactPageName}}</span>
+		<span>{{'contactPage' | translate}}</span>
 	</li>
 </ul>
