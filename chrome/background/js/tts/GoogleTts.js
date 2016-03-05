@@ -29,11 +29,16 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 		
 		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed});
 	}
+
+	//random common English word for testing
+	var commonEnglishWords = ['the','be','to','of','and','in','that','have','it','for','not','on','with','he','as','you','do','at'];
+	function randomCommonEnglishWord() {
+		return commonEnglishWords[Math.floor(Math.random()*commonEnglishWords.length)];
+	}
 	
 	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
-		var text = Math.round(Math.random() * 1000);
-		var url = buildUrl({text:text, lan:navigator.language});	//lan: maybe navigator.language?
+		var url = buildUrl({text:randomCommonEnglishWord(), lan:"en"});
 		UrlAudioTester.test({url:url, callback:callback});
 	}
 
