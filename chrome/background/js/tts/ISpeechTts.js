@@ -145,7 +145,6 @@ define(["tts/TextSplitter","tts/UrlSpeech"], function(TextSplitter, UrlSpeech) {
 	
 	/** @param callback called with true if the tts is available; with false if failed */
 	reader.test = function(callback) {
-		var text = Math.round(Math.random() * 1000);
 		var iSpeechVoice = getISpeechVoice({lan:"en"});
 		var url = buildUrl({text:randomCommonEnglishWord(), iSpeechVoice:iSpeechVoice});
 		UrlAudioTester.test({url:url, callback:callback});
