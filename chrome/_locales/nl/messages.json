@@ -14,9 +14,7 @@
 	,"maleReadingGender": {"message": "mannelijk"}
 	,"OsTts": {"message": "Besturingssysteem"}
 	,"reviewsUrl": {"message": "Recensies"}
-	,"supportUrl": {"message": "Ondersteuning"}
-	,"githubUrl": {"message": "GitHub"}
-	,"linkedinUrl": {"message": "Linkedin"}
+	,"support": {"message": "Ondersteuning"}
 	,"turnOff": {"message": "uitschakelen"}
 	,"turnOn": {"message": "aanzetten"}
 }

@@ -1,16 +1,8 @@
 <div class="setting hoverable">
 	<div>{{'reviewsUrl' | translate}}</div>
-	<a href="{{reviewsUrl}}" target="_blank" ng-click="onClick('reviews')">{{reviewsUrl}}</a>
+	<a href="{{reviewsUrl}}" target="_blank" ng-click="onContactClick('reviews')">{{reviewsUrl}}</a>
 </div>
 <div class="setting hoverable">
-	<div>{{'supportUrl' | translate}}</div>
-	<a href="{{supportUrl}}" target="_blank" ng-click="onClick('support')">{{supportUrl}}</a>
+	<div>{{'support' | translate}}</div>
+	<a href="mailto:{{supportEmail}}?subject=Click to Speech question" ng-click="onContactClick('support')">{{supportEmail}}</a>
 </div>
-<!-- <div class="setting hoverable">
-	<div>{{'githubUrl' | translate}}</div>
-	<a href="{{githubUrl}}" target="_blank" ng-click="onClick('github')">{{githubUrl}}</a>
-</div>
-<div class="setting hoverable">
-	<div>{{'linkedinUrl' | translate}}</div>
-	<a href="{{linkedinUrl}}" target="_blank" ng-click="onClick('linkedin')">{{linkedinUrl}}</a>
-</div> -->

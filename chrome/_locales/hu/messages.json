@@ -14,9 +14,7 @@
 	,"maleReadingGender": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}
 	,"reviewsUrl": {"message": "Vélemények"}
-	,"supportUrl": {"message": "Támogatás"}
-	,"githubUrl": {"message": "GitHub"}
-	,"linkedinUrl": {"message": "Linkedin"}
+	,"support": {"message": "Támogatás"}
 	,"turnOff": {"message": "kikapcsol"}
 	,"turnOn": {"message": "bekapcsol"}
 }

@@ -135,8 +135,8 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 			port.postMessage({action:"updateTtsAvailable", tts:message.tts, available:success});
 		});
 	}
-	messageListeners.contactClick = function(message) {
-		sendAnalytics('contact','click',message.contact);
+	messageListeners.contactInteraction = function(message) {
+		sendAnalytics('contact','interaction',message.interaction);
 	}
 
 	// ===================================== initial settings =====================================

@@ -14,9 +14,7 @@
 	,"maleReadingGender": {"message": "männlich"}
 	,"OsTts": {"message": "Betriebssystem"}
 	,"reviewsUrl": {"message": "Meinungen"}
-	,"supportUrl": {"message": "Support"}
-	,"githubUrl": {"message": "GitHub"}
-	,"linkedinUrl": {"message": "Linkedin"}
+	,"support": {"message": "Support"}
 	,"turnOff": {"message": "ausschalten"}
 	,"turnOn": {"message": "einschalten"}
 }
