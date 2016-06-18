@@ -111,16 +111,6 @@ define(["tts/TextSplitter","tts/UrlSpeech", "tts/iSpeech/WordPositionFinder"], f
 		if(promoLength) return promoLength*1.1;	//we request 10% lower speed (speed=-1) to match the speed of Google Tts
 	}
 
-	function isWordCountUnderLimit(startIndex,endIndex) {
-		var wordCounter = wordPositions.filter(function(wordPosition) {
-			return wordPosition.start < endIndex && wordPosition.end > startIndex;
-		}).length;
-		const WORD_COUNT_LIMIT = 31;
-		return wordCounter <= WORD_COUNT_LIMIT;
-	}
-
-	var wordPositions = WordPositionFinder.getPositions(c.text);
-
 	// =================================== public ===================================
 	var reader = {
 		get name() {return "iSpeech";}
@@ -133,11 +123,20 @@ define(["tts/TextSplitter","tts/UrlSpeech", "tts/iSpeech/WordPositionFinder"], f
 	 * @param c.speed the speed of reading
 	 * @param c.gender the preferred gender of reading*/
 	reader.prepare = function(c) {
+		var wordPositions = WordPositionFinder.getPositions(c.text);
+		function isWordCountUnderLimit(startIndex,endIndex) {
+			var wordCounter = wordPositions.filter(function(wordPosition) {
+				return wordPosition.start < endIndex && wordPosition.end > startIndex;
+			}).length;
+			const WORD_COUNT_LIMIT = 31;
+			return wordCounter <= WORD_COUNT_LIMIT;
+		}
+
 		var textArr = TextSplitter.split({text:c.text,testLength: isWordCountUnderLimit});
 		var lan = c.lan || navigator.language;
 		var iSpeechVoice = getISpeechVoice({lan:lan, gender:c.gender});
 
-		var urlArr = textArr.map(function(text) {return buildUrl({text:text, iSpeechVoice:iSpeechVoice});});
+		var urlArr = textArr.map(function(text) {return buildUrl({text:text, iSpeechVoice:iSpeechVoice})});
 		
 		return new UrlSpeech({tts:reader.name, textArr:textArr, urlArr:urlArr, speed: c.speed, cutEnd: getCutEnd(iSpeechVoice)});
 	}
