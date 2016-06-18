@@ -1,95 +1,90 @@
 //TODO rethink this code
 /** provides functions to split a text in a way that it ends at end of sentence, at comma, or end of word */
 define(function() {
-	/** @return index of last match (end of it) under given limit OR -1 if no match found under limit
-	 * @param text
-	 * @param re the regexp to be matched - must be global!
-	 * @param limit the index of last character under which we search for match
-	 */
-	function lastMatch(text, re, limit) {
-		var result = -1;
-		var regexpResult;
-		while(regexpResult = re.exec(text)) {
-			var index = regexpResult.index + regexpResult[0].length;
-			if(index > limit || index < 0) {
-				break;
-			} else {
-				result = index;
-			}
-		}
-		re.lastIndex = 0;	//to reset lastIdnex counter. Otherwise regexp would count matching from last matching index..
-		return result;
-	}
-	
-	/** @return index of last match (end of it) under given limit OR given limit if no match found
-	 * @param text
-	 * @param reArray the regexps to be matched: the first matching regexp under limit wins
-	 * @param limit the index of last character under which we search for match*/
-	function lastMatchArr(text, limit, reArray) {
-		for(var i=0; i<reArray.length; i++) {
-			var result = lastMatch(text, reArray[i], limit);
-			if(result > -1) return result;
-		}
-		return limit;
-	}
-	
-	/** @return the index of the end of given word
-	 @param c.text the text with no duplicate spaces
-	 @param c.index the index of word*/
-	function indexOfWordEnd(c) {
-		var result = 0;
-		var splitText = c.text.split(/[ ,.]/g);
-		for(var i=0; i<c.index && splitText[i] != null; i++) {
-			result += splitText[i].length + 1;
-		}
-		return result;
-	}
-	
-	//================================================= public =================================================
-	/** the object to be returned */
 	var splitter = {};
-	
-	/** @return array of strings - each string has a lower length then given limit in characters
-	 * splitting happens by given regexps
-	 * @param c.text the text to be split
-	 * @param c.limit maximum length of strings in result
-	 * @param c.reArray array of regexps to use for splitting - regexps must be global!
-	 */
-	splitter.splitToChar = function(c) {
+
+	/** @return array of strings, that match requreiments specified in @param c.testLength
+	 * @param c.text
+	 * @param c.testLength callback(startIndex,endIndex), returns true if text between given indecies matches tts requirements, returns false otherwise */
+	splitter.split = function(c) {
 		var result = [];
-		while(c.text.length > c.limit) {
-			var indexOfSplit = lastMatchArr(c.text, c.limit, c.reArray);
-			result.push(c.text.substr(0, indexOfSplit));
-			c.text = c.text.substr(indexOfSplit);
-		}
-		if(c.text.length > 0) {
-			result.push(c.text);
+		var splitIndecies = getSplitIndecies(c);
+		for(var i=0; i<splitIndecies.length-1; i++) {
+			result.push(c.text.substring(splitIndecies[i], splitIndecies[i+1]));
 		}
 		return result;
 	}
-	
-	/** @return array of strings - each string has a lower length then given limit in words
-	 * splitting happens by given regexps
-	 * @param c.text the text to be split
-	 * @param c.limit maximum number of words in the result
-	 * @param c.reArray array of regexps to use for splitting - regexps must be global!
-	 */
-	splitter.splitToWord = function(c) {
+
+	/** @return array of indexes marking begenning+end of substrings passing test, devided at reasonable points (sentence-end, comma, space)
+	 * @note contains 0 and end of text position, too */
+	function getSplitIndecies(c) {
 		var result = [];
-		
-		var clearText = c.text.replace(/\s{2,}/g,' ');	//removes duplicate spaces
-		
-		var limitChar = indexOfWordEnd({text:clearText,index:c.limit});
-		while(clearText.length > limitChar) {
-			var indexOfSplit = lastMatchArr(clearText, limitChar, c.reArray);
-			result.push(clearText.substr(0, indexOfSplit));
-			clearText = clearText.substr(indexOfSplit);
-			limitChar = indexOfWordEnd({text:clearText,index:c.limit});
+		var delimiterEndIndecies = getDelimiterEndIndecies(c.text);
+
+		var currentSplitIndex = 0;
+		result.push(currentSplitIndex);
+
+		while(currentSplitIndex != c.text.length) {
+			currentSplitIndex = getNextSplitIndex({delimiterEndIndecies:delimiterEndIndecies, currentSplitIndex:currentSplitIndex, testLength:c.testLength});
+			result.push(currentSplitIndex);
 		}
-		if(clearText.length > 0) {
-			result.push(clearText);
+		return result;
+	}
+
+	/** @return the next split index
+	 * @param c.delimiterEndIndecies
+	 * @param c.currentSplitIndex
+	 * @param c.testLength
+	 * @note returns end of string too */
+	function getNextSplitIndex(c) {
+		for(var i=0; i<DELIMITERS.length; i++) {
+			var delimiter = DELIMITERS[i];
+			var endIndecies = c.delimiterEndIndecies[delimiter];
+			var highestPassingIndex = getHighestPassingIndex({endIndecies:endIndecies,currentSplitIndex:c.currentSplitIndex,testLength:c.testLength});
+			if(highestPassingIndex > -1) return highestPassingIndex;
 		}
-		
+
+		//no passing result when split by regex - lets check character-by-character increased index
+		var index = currentSplitIndex+1;
+		while(c.testLength(currentSplitIndex,index)) {
+			index++;
+		}
+		return index;
+	}
+
+	/** @return the highest delimiter-end index higher than @param c.currentSplitIndex, that passes @param c.testLength, or -1 if none found
+	 * @param c.endIndecies */
+	function getHighestPassingIndex(c) {
+		var result = -1;
+		for(var i=0; i<c.endIndecies.length; i++) {
+			var endIndex = c.endIndecies[i];
+			if(endIndex <= c.currentSplitIndex) continue;
+			if(c.testLength(c.currentSplitIndex,endIndex)) result = endIndex;
+			else break;
+		}
+		return result;
+	}
+
+	const DELIMITERS = [/\.\s+/g,/\,\s+/g,/\s+/g];
+
+	/** @return map of delimiter->matchEnd */
+	function getDelimiterEndIndecies(text) {
+		var result = {};
+		DELIMITERS.forEach(function(delimiter) {
+			var delimiterEndIndecies = getEndIndecies(text,delimiter);
+			result[delimiter] = delimiterEndIndecies;
+		});
+		return result;
+	}
+
+	/** @return array of ends of @param delimiter matches in @param text*/
+	function getEndIndecies(text,delimiter) {
+		var result = [];
+		var match;
+		while(match = delimiter.exec(text)) {
+			result.push(delimiter.lastIndex);
+		}
+		result.push(text.length);	//note: otherwise end of text is not marked with delimiter, infinte loop..
 		return result;
 	}
 	
