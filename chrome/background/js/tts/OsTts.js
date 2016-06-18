@@ -16,6 +16,7 @@ define([], function() {
 			}
 			chrome.tts.speak(c.text,{
 				voiceName: "native"
+				,rate: c.speed
 				,onEvent: function(event) {
 					switch(event.type) {
 						case("start"):		onEvent({type:"start"}); break;
@@ -42,7 +43,7 @@ define([], function() {
 	// =================================== public ===================================
 	var reader = {
 		get name() {return "OsTts";}
-		,get properties() {return [];}
+		,get properties() {return ["speed"];}
 	}
 	
 	/** @return a speech object set up to read given text
