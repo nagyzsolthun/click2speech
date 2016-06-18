@@ -3,9 +3,13 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	 * @param c.text the text to read - length has to be max 100 characters
 	 * @param c.lan the language of reading*/
 	function buildUrl(c) {
-		var ttsurl = "http://translate.google.com/translate_tts?";
-		var result = ttsurl + "ie=UTF-8Ctotal=1&idx=0&client=a&prev=input&tl=" + c.lan + "&q=" + encodeURIComponent(c.text);
+		var ttsurl = "https://translate.google.com/translate_tts?";
+		var result = ttsurl + "ie=UTF-8Ctotal=1&idx=0&client=t&prev=input&tl=" + c.lan + "&q=" + encodeURIComponent(c.text);
 		return result;
+	}
+
+	function isCharCountUnderLimit(startIndex,endIndex) {
+		return (endIndex-endIndex) < 100;
 	}
 	
 	// =================================== public ===================================
@@ -19,11 +23,7 @@ define(["tts/TextSplitter","tts/UrlSpeech","tts/UrlAudioTester"], function(TextS
 	 * @param c.lan the language of the text
 	 * @param c.speed the speed of reading */
 	reader.prepare = function(c) {
-		var textArr = TextSplitter.splitToChar({
-			text: c.text
-			,limit: 100
-			,reArray: [/\.\s/g, /\,\s/g, /\s/g]
-		});
+		var textArr = TextSplitter.split({text:c.text,testLength: isCharCountUnderLimit});
 		var lan = c.lan || navigator.language;
 		var urlArr = textArr.map(function(text) {return buildUrl({text:text, lan:lan});});
 		
