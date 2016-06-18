@@ -119,6 +119,8 @@ define(["tts/TextSplitter","tts/UrlSpeech", "tts/iSpeech/WordPositionFinder"], f
 		return wordCounter <= WORD_COUNT_LIMIT;
 	}
 
+	var wordPositions = WordPositionFinder.getPositions(c.text);
+
 	// =================================== public ===================================
 	var reader = {
 		get name() {return "iSpeech";}
