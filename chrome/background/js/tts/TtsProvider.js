@@ -2,12 +2,12 @@
  * 1. provides the option to choose
  * 2. handles errors in them
  */
-define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], function(settingsHandler, googleTts, iSpechTts, OsTts) {
-	var ttsArray = [iSpechTts,googleTts, OsTts];
-	var preferredTts = null;
+define(["SettingsHandler","tts/iSpeech/tts","tts/Os/tts"], function(settingsHandler, iSpechTts, OsTts) {
+	var ttsArray = [iSpechTts, OsTts];
+	var preferredTts = iSpechTts;	//TODO maybe remove this. added here, because GoogleTts was removed
 	
 	//when any tts raises an error, it is put to this array
-	//{ttsName,errorType[,url]} array
+	//{ttsName,errorType} array
 	var errors = [];
 	
 	var lastEvent = null;
@@ -17,8 +17,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	
 	/** called when event occours its parameter is the event
 	 * @param event.type the type of the event [loading,start,end,error]
-		* 	@param event.errorType in case of error event, the type, typically URL_ERROR
-		* 	@param event.url in case of URL_ERROR, the url that caused the error*/
+		* 	@param event.errorType in case of error event, the type, typically URL_ERROR */
 	var onEvent = function() {};
 	
 	/** @return true if errors contains any error from given tts */
@@ -44,6 +43,7 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	
 	/** reads given text
 	 * if prefferred tts is not able to read it, uses another one
+	 * @param c.id
 	 * @param c.text
 	 * @param c.lan
 	 * @param c.speed
@@ -52,23 +52,27 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	function read(c) {
 		var tts = nextTts();	//errors must be prepared
 		if(! tts) {	//no more usable tts
-			onEvent({type:"error"});
+			onEvent({speechId:c.speechId, type:"error"});
 			return;
 		}
 		
-		if(speech) speech.stop();	//this will NOT fire any event
+		if(speech) speech.stop();
 
-		speech = tts.prepare({text:c.text, lan:c.lan, speed:c.speed, gender:c.gender});
+		speech = tts.prepare(c);
 		speech.onEvent = function(event) {
 			lastEvent = event;
 			switch(event.type) {
 				case("error"):
-					errors.push({ttsName:tts.name,type:event.errorType,url:event.url});
-					read({text:event.remaining,lan:c.lan,speed:c.speed,gender:c.gender});
+					speech = null;
+					errors.push({ttsName:tts.name,type:event.errorType});
+					read({speechId:c.speechId,text:c.text,startIndex:event.remainingStartIndex,lan:c.lan,speed:c.speed,gender:c.gender});
 					break;
 				case("loading"):
-				case("start"):
-				case("end"): onEvent({type:event.type}); break;
+				case("playing"): onEvent(event); break;
+				case("end"):
+					speech = null;
+					onEvent(event);
+					break;
 				default: console.log("unkown event type: " + event.type); break;
 			}
 		}
@@ -91,8 +95,10 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 	
 	/** reads text
 	 * if prefferred tts is not able to read it, uses another one
+	 * @param c.id
 	 * @param c.text
-	 * @param c.lan*/
+	 * @param c.lan
+	 * @param c.scheduleMarkers */
 	provider.read = function(c) {
 		settingsHandler.getAll(function(settings) {
 			//new reading => no error
@@ -103,8 +109,10 @@ define(["SettingsHandler", "tts/GoogleTts", "tts/ISpeechTts", "tts/OsTts"], func
 			
 			//read
 			read({
-				text:c.text
+				speechId: c.speechId
+				,text:c.text
 				,lan:c.lan
+				,scheduleMarkers:c.scheduleMarkers
 				,speed:settings.speed
 				,gender:settings.gender
 			});

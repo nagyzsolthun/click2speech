@@ -28,6 +28,7 @@
 3.4 double|triple click select reads
 3.5 ctrl+A on a big page and big CPU load then click => no reading
 3.6 space => browser-default behavior
+3.7 selection style disappears when ended
 
 4) hover + arrows
 4.2 browserSelect: hover behav
@@ -37,7 +38,9 @@
 5.1 click while browserSelect => read the highlighted paragraph
 
 6) arrows + browserSelect & hover + arrows + browserSelect
-nothing extra
+6.1 selection style disappears if reading starts
+6.2 highlight disappears if selecting
+6.3 requestedElement highlight disappears when reading starts
 
 7) input text behav
 7.1 space + arrows => default behav (check gmail new email too, its a special setup)
@@ -59,3 +62,12 @@ nothing extra
 11.1 install while tabs are opened => content injected to tab
 11.2 uninstall => content is removed
 11.3 install again => content is there again
+
+12) markers
+12.1 test with leading+closing spaces
+12.2 test with changing content (e.g. decreased length, or changed word) TODO
+12.3 test with error recovery TODO
+12.4 test with more spaces
+12.5 test with arrow select
+12.6 test with browserSelect -> markers should be off until selection disappears (test with arrow select)
+12.7 test with input fields/gmail new email -> markersh should not appear while cursor is active (test with arrow select)

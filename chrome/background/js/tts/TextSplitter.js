@@ -1,4 +1,3 @@
-//TODO rethink this code
 /** provides functions to split a text in a way that it ends at end of sentence, at comma, or end of word */
 define(function() {
 	var splitter = {};
@@ -15,7 +14,7 @@ define(function() {
 		return result;
 	}
 
-	/** @return array of indexes marking begenning+end of substrings passing test, devided at reasonable points (sentence-end, comma, space)
+	/** @return array of indecies marking begenning+end of substrings passing test, devided at reasonable points (sentence-end, comma, space)
 	 * @note contains 0 and end of text position, too */
 	function getSplitIndecies(c) {
 		var result = [];
@@ -67,7 +66,7 @@ define(function() {
 
 	const DELIMITERS = [/\.\s+/g,/\;\s+/g,/\,\s+/g,/\s+/g];
 
-	/** @return map of delimiter->matchEnd */
+	/** @return map of delimiter->matchEndArr */
 	function getDelimiterEndIndecies(text) {
 		var result = {};
 		DELIMITERS.forEach(function(delimiter) {

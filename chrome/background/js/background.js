@@ -12,8 +12,8 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 	
 	/** sends Google Analitics event - lifted up as a function so we dont send events while development */
 	function sendAnalytics(category,action,label) {
-		analytics('send', 'event', category, action, label);
-		//console.log("send event; category:" + category + " action:" + action + " label:" + label);
+		//analytics('send', 'event', category, action, label);
+		console.log("send event; category:" + category + " action:" + action + " label:" + label);
 	}
 	
 	/** some events occoure many times in a short period (e.g. changing speed occours every time the speed range changes in options)
@@ -54,7 +54,9 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 		settingsHandler.getAll(function(settings) {
 			if(!c.text && (!tts.lastEvent || tts.lastEvent.type == "end")) return;	//stop event received => do anything only if not stopped already
 			
-			tts.read({text:c.text,lan:c.lan,speed:settings.speed});
+			//markers are only shown by content oage in case of highlightedElement (and not in case of browserselect)
+			var scheduleMarkers = c.text && (c.source == "hoveredClick" || c.source == "space");
+			tts.read({speechId:c.speechId, text:c.text, lan:c.lan, speed:settings.speed, scheduleMarkers:scheduleMarkers});
 			var action = c.text?"read":"stop";
 			var label = c.source;
 			scheduleAnalytics('tts-read', 'tts', action, action+"-"+label);	//schedule so browserSelect double+triple click counts as one
@@ -62,10 +64,13 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 	}
 	
 	function onTtsEvent(event) {
+		if(event.type == "playing") {
+			console.log(event.text);
+		}
 		messageHandler.messageAll({action:"ttsEvent", event:event})
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
-			case("start"): iconDrawer.drawPlaying(); break;
+			case("playing"): iconDrawer.drawPlaying(); break;
 			case("end"): iconDrawer.drawTurnedOn(); break;
 			case("error"):
 				iconDrawer.drawError();
@@ -110,7 +115,7 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 		});
 	}
 	messageListeners.read = function(message) {
-		read({text: message.text,lan: message.lan || navigator.language,source:message.source});
+		read({speechId:message.speechId, text:message.text, lan:message.lan || navigator.language, source:message.source});
 	}
 	messageListeners.arrowPressed = function() {
 		settingsHandler.getAll(function(settings) {
