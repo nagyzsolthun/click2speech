@@ -75,12 +75,6 @@ return function(c) {
 	function sendHttpRequestOfSpeechPart(speechPartIndex) {
 		var speechPart = speechPartArr[speechPartIndex];
 		if(speechPart) speechPart.sendHttpRequests();
-
-		if(speechPartIndex == 1 && speechPart) {
-			speechPart.causeError()
-			return;
-		}
-		//if(speechPartIndex == 1) speechPart.causeError();	//TODO remove, only here for testing
 	}
 
 	function createEventListeners(speechPartIndex) {

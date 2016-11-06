@@ -20,7 +20,7 @@ return function(c) {
 		scheduleStartEvent();
 		scheduleEndEvent();
 		if(anyError()) sendErrorEvent();
-		else audio.play();
+		else playAudioWhenMarkersReceived();
 	}
 
 	this.stop = function() {
@@ -76,6 +76,14 @@ return function(c) {
 	}
 	function sendErrorEvent() {externalEventListener({type:"error"})};
 
+	function playAudioWhenMarkersReceived() {
+		if(markersReceived) audio.play();
+		else {
+			playWhenMarkersReceived = true;
+			externalEventListener({type:"loading"});
+		}
+	}
+
 	function pauseAudio() {audio.pause()}
 	function removeAudioEvenetListeners() {
 		audioEventListeners.forEach(function(eventListener) {audio.removeEventListener(eventListener.event,eventListener.listener)});
@@ -120,6 +128,9 @@ return function(c) {
 	}
 	
 	function onMarkersReceived(iSpeechMarkersXmlString) {
+		markersReceived = true;
+		if(playWhenMarkersReceived) audio.play();
+
 		var wordTimeMarkers = getWordTimeMarkers(iSpeechMarkersXmlString);
 		if(c.scheduleMarkers) scheduleMarkers(wordTimeMarkers);
 
@@ -127,6 +138,8 @@ return function(c) {
 		schedulePromoCutOff(lastWordEndTime);
 		//TODO start playing only when markers are ready
 	}
+	var markersReceived = false;
+	var playWhenMarkersReceived = false;
 
 	function scheduleMarkers(wordTimeMarkers) {
 		var wordPositions = getWordPositions();
