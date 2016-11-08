@@ -135,8 +135,7 @@ return function(c) {
 		if(c.scheduleMarkers) scheduleMarkers(wordTimeMarkers);
 
 		var lastWordEndTime = wordTimeMarkers[wordTimeMarkers.length-1].end;
-		schedulePromoCutOff(lastWordEndTime);
-		//TODO start playing only when markers are ready
+		schedulePromoCutOff(lastWordEndTime-50);	//some languages (Hungarian..) have sync issue, this fixes it
 	}
 	var markersReceived = false;
 	var playWhenMarkersReceived = false;
