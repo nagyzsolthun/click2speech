@@ -13,7 +13,12 @@ return function(c) {
 			return;
 		}
 
-		var text = c.text.substring(startIndex, c.length)
+		var text = c.text.substring(startIndex, c.length);
+		if(text === null || text === "") {
+			setTimeout(function() {externalEventListener({speechId:c.speechId, type:"end"})});
+			return;
+		}
+
 		wordPositions = WordPositionFinder.getPositions(text);
 		wordWordStartOffset2word = getWordStartOffset2word();
 
@@ -30,9 +35,7 @@ return function(c) {
 
 	/** stops playing */
 	this.stop = function() {
-		externalEventListener = function() {};
 		chrome.tts.stop();
-		externalEventListener({speechId:c.speechId, type:"end"});
 	}
 	
 	Object.defineProperty(this, 'tts', {get: function() {return reader.name;}});

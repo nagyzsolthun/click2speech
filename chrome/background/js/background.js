@@ -52,8 +52,6 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 	
 	function read(c) {
 		settingsHandler.getAll(function(settings) {
-			if(!c.text && (!tts.lastEvent || tts.lastEvent.type == "end")) return;	//stop event received => do anything only if not stopped already
-			
 			//markers are only shown by content oage in case of highlightedElement (and not in case of browserselect)
 			var scheduleMarkers = c.text && (c.source == "hoveredClick" || c.source == "space");
 			tts.read({speechId:c.speechId, text:c.text, lan:c.lan, speed:settings.speed, scheduleMarkers:scheduleMarkers});
