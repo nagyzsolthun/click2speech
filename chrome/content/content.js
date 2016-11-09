@@ -747,9 +747,10 @@
 
 	/** TODO this should go the background-page */
 	function removeSpecialCharacters(text) {
+		//replace newlines to spaces (for correct iSpeech marker behavior)
 		//Google Docs support (200B character)
 		//replace curly quotes to normal ones
-		return text.replace(/[\u200B]/g, " ").replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+		return text.replace(/\r?\n|\r/g, " ").replace(/[\u200B]/g, " ").replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
 	}
 
 	// ============================================= read =============================================

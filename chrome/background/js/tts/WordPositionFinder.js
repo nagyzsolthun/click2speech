@@ -1,10 +1,12 @@
 define([], function() {
-	const DELIMITER = /[,.;]?[\s\[\]()]/g;
+	const DELIMITER = /[.!?;,]*[\s\[\]()]/g;
 
 	var wordPositionFinder = {};
 
 	/** @return array of {start,end,word} positions of words. end is the first character not part of the word */
-	wordPositionFinder.getPositions = function(text) {
+	wordPositionFinder.getPositions = function(rawText) {
+		var text = rawText + " ";	//so the end punctuation is matched too
+
 		//end of each DELIMITER is start-of-word, start is end-of-word	
 		var result = [];
 		result[0] = {};

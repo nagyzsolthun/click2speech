@@ -161,10 +161,10 @@ return function(c) {
 			function() {return marker.startTime / 1000;}
 			,function() {externalEventListener({type:"playing",startOffset:marker.startOffset,endOffset:marker.endOffset,text:marker.text})}
 		);
-		addAudioTimeReachedListener(
+		/*addAudioTimeReachedListener(
 			function() {return marker.endTime / 1000}
 			,function() {externalEventListener({type:"playing"})}
-		);
+		);*/
 	}
 
 	function schedulePromoCutOff(lastWordEndTime) {
@@ -180,7 +180,7 @@ return function(c) {
 			var marker = {};
 			marker.start = parseInt(startEndTimeNodes[i].getElementsByTagName('start')[0].innerHTML);
 			marker.end = parseInt(startEndTimeNodes[i].getElementsByTagName('end')[0].innerHTML);
-			marker.word = startEndTimeNodes[i].getElementsByTagName('text')[0].innerHTML
+			marker.word = removePunctuations(startEndTimeNodes[i].getElementsByTagName('text')[0].innerHTML);
 			result.push(marker);
 		}
 		return result;
@@ -200,6 +200,11 @@ return function(c) {
 
 		if(index > -1) return wordPositions.splice(index, 1)[0];
 		else return {};	//TODO test this case somehow
+	}
+
+	/** in some languages (e.g. Hungarian) iSpeech words include the punctuations, whereas our logic does not include them */
+	function removePunctuations(word) {
+		return word.replace(/[.!?;,]*$/g, "");
 	}
 	
 	// =================================== general ===================================
