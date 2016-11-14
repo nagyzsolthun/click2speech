@@ -174,11 +174,11 @@
 	//browserEvent:eventHandler map
 	var browserEventListeners = {};
 	browserEventListeners.mousedown = function(event) {
-		if(event.button != 0) return;
+		if(!isLeftMouseButton(event)) return;
 		mouseDownTime = Date.now();
 	}
 	browserEventListeners.mouseup = function(event) {
-		if(event.button != 0) return;
+		if(!isLeftMouseButton(event)) return;
 		mouseUpTime = Date.now();
 		checkBrowserSelect(onSelectingMouseUp, onNonSelectingMouseUp);
 	}
@@ -204,6 +204,10 @@
 		}
 	}
 
+	function isLeftMouseButton(mouseEvent) {
+		return mouseEvent.button === 0;
+	}
+
 	/** @return true if the active element is an input area */
 	function isUserTyping() {
 		var activeElement = document.activeElement;
@@ -212,7 +216,7 @@
 
 	// ============================================= browserSelect decisions =============================================
 
-	//to know whether mouse button is pressed TODO check which button
+	//to know whether mouse button is pressed
 	var mouseDownTime = 0;
 	var mouseUpTime = 0;
 
