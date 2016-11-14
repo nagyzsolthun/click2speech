@@ -64,8 +64,7 @@ define(function() {
 		return result;
 	}
 
-	const DELIMITERS = [
-		/\.\s+/g, /\?\s+/g, /\!\s+/g, /\;\s+/g, /\,\s+/g, /\s+/g];
+	const DELIMITERS = [ /\.\s+/g, /\?\s+/g, /\!\s+/g, /\;\s+/g, /\,\s+/g, /\s+/g];
 
 	/** @return map of delimiter->matchEndArr */
 	function getDelimiterEndIndecies(text) {

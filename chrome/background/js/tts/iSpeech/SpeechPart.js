@@ -150,7 +150,7 @@ return function(c) {
 				,endTime:		wordTimeMarkers[i].end
 				,startOffset:	position.start
 				,endOffset:		position.end
-				,text:			word
+				,text:			position.word
 			});
 		}
 	}
@@ -180,7 +180,7 @@ return function(c) {
 			var marker = {};
 			marker.start = parseInt(startEndTimeNodes[i].getElementsByTagName('start')[0].innerHTML);
 			marker.end = parseInt(startEndTimeNodes[i].getElementsByTagName('end')[0].innerHTML);
-			marker.word = removePunctuations(startEndTimeNodes[i].getElementsByTagName('text')[0].innerHTML);
+			marker.word = startEndTimeNodes[i].getElementsByTagName('text')[0].innerHTML;
 			result.push(marker);
 		}
 		return result;
@@ -194,17 +194,13 @@ return function(c) {
 
 	/** @return the first wordPosition item from param wordPositions that matches @param word
 	 * also removes the element from wordPositions */
-	function popWordPositionItem(wordPositions, word) {
+	function popWordPositionItem(wordPositions, iSpeechWord) {
+		var word = WordPositionFinder.matchingPart(iSpeechWord);	//e.g. to remove punctuations from words in Hungarian speech
 		var index = wordPositions.findIndex(matchingPosition);
 		function matchingPosition(position) {return position.word == word}
 
 		if(index > -1) return wordPositions.splice(index, 1)[0];
 		else return {};	//TODO test this case somehow
-	}
-
-	/** in some languages (e.g. Hungarian) iSpeech words include the punctuations, whereas our logic does not include them */
-	function removePunctuations(word) {
-		return word.replace(/[.!?;,]*$/g, "");
 	}
 	
 	// =================================== general ===================================

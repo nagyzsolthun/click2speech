@@ -1,5 +1,7 @@
 define([], function() {
-	const DELIMITER = /[.!?;,]*[\s\[\]()]/g;
+	/* matching the word itslef would be nicer (than matching delimiters)
+	 * however characters of different languages are hard to match (a-z doesnt work in case of e.g. Hungarian letters) */
+	const DELIMITER = /[.!?;:,\-–]*[\s\[\]()]/g;
 
 	var wordPositionFinder = {};
 
@@ -31,6 +33,12 @@ define([], function() {
 		filteredResult.forEach(function(o) {o.word = text.substring(o.start,o.end)});
 
 		return filteredResult;
+	}
+
+	/** @return the part of @param text that matches the getPositions logic */
+	wordPositionFinder.matchingPart = function(text) {
+		var position = wordPositionFinder.getPositions(text)[0];
+		return position ? position.word : "";
 	}
 
 	return wordPositionFinder;
