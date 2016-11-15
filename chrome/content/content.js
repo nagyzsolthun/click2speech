@@ -289,6 +289,7 @@
 		if(element.getAttribute("type") == "button") return true;
 		if(element.hasAttribute("ng-click")) return true;	//angular
 		if(element.classList.contains("btn")) return true;	//boostrap
+		if(element.classList.contains("kix-page-content-wrapper")) return true;	//google docs
 		if(getComputedStyle(element).cursor == "pointer") return true;	//many pages, e.g. gmail
 		
 		if(window.location.hostname == "mail.google.com") {
