@@ -73,13 +73,12 @@
 	}
 
 	backgroundEventListeners.ttsEvent = function(message) {
-		lastTtsEventType = message.event ? message.event.type : null;
+		var eventType = message.event ? message.event.type : null;
 		console.log(message.event.speechId + " " + message.event.type);
 
-		var eventListener = ttsEventListeners[lastTtsEventType];
+		var eventListener = ttsEventListeners[eventType];
 		if(eventListener) eventListener(message.event);
 	}
-	var lastTtsEventType;
 	var element2ttsEvent = new Map();
 
 	// ============================================= tts events =============================================
@@ -750,6 +749,13 @@
 		return "";
 	}
 
+	function anyActiveRequest() {
+		for(var id in speechRequests) {
+			return true;
+		}
+		return false;
+	}
+
 	/** TODO this should go the background-page */
 	function removeSpecialCharacters(text) {
 		//replace newlines to spaces (for correct iSpeech marker behavior)
@@ -790,7 +796,7 @@
 	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
 	 * if no reading, neither highlight => nothing*/
 	function stopReadingOrRevertHighlight(keyEvent) {
-		if(["loading","playing","error"].indexOf(lastTtsEventType) > -1) {
+		if(anyActiveRequest()) {
 			requestSpeech({source:"esc"});
 			keyEvent.stopPropagation();
 			return;
