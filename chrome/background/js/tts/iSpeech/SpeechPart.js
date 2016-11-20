@@ -1,5 +1,5 @@
 /** speech for for text that fits in 1 tts request */
-define(["tts/iSpeech/UrlBuilder", "Http","tts/WordPositionFinder"], function(UrlBuilder,Http,WordPositionFinder) {
+define(["tts/iSpeech/UrlBuilder", "HttpRequest","tts/WordPositionFinder"], function(UrlBuilder,HttpRequest,WordPositionFinder) {
 /** @param c.text
  * @param c.iSpeechVoice
  * @param c.scheduleMarkers */
@@ -8,8 +8,9 @@ return function(c) {
 		setHttpRequestSentTime();
 		requestAudio();
 		requestMarkers();
+		scheduleOnAllDataAvailable();
 
-		//not in this.play() because the source events may happen before this.play() is called (canplaytrhrough, error)
+		//not in this.play() because the allDataAvailable event may happen before this.play() is called (canplaytrhrough, error)
 		scheduleRequestNextEvent();
 		scheduleErrorEvent();
 	}
@@ -20,7 +21,7 @@ return function(c) {
 		scheduleStartEvent();
 		scheduleEndEvent();
 		if(anyError()) sendErrorEvent();
-		else playAudioWhenMarkersReceived();
+		else playAudioWhenAllDataAvailable();
 	}
 
 	this.stop = function() {
@@ -48,13 +49,64 @@ return function(c) {
 		return c.text;
 	}});
 	
+	// =================================== allDataAvailable ===================================
+
+	function setHttpRequestSentTime() {httpRequestSentTime = Date.now()};
+	var httpRequestSentTime;
+
+	var audioCanPlayThrough = false;
+
+	/** schedules callback when both audio data and markers are available */
+	function scheduleOnAllDataAvailable() {
+		markersRequest.addEventListener("success", callAllDataAvailableIfSo);
+		addAudioEventListener("canplaythrough", function() {
+			audioCanPlayThrough = true;
+			callAllDataAvailableIfSo();
+		});
+	}
+
+	var allDataAvailable = false;
+	var allDataAvailableListeners = [];
+	function callAllDataAvailableIfSo() {
+		allDataAvailable = true;
+		if(audioCanPlayThrough && markersRequest.done) {
+			allDataAvailableListeners.forEach(call);
+		}
+	}
+
+	function call(fn) {
+		fn();
+	}
+
 	// =================================== audio events ===================================
 
 	function requestAudio() {
 		audio.src = UrlBuilder.build({text:c.text, iSpeechVoice:c.iSpeechVoice, action:"convert"});
 	}
 
-	function scheduleRequestNextEvent() {addAudioEventListener("canplaythrough", onAudioCanPlayThrough)}
+	function playAudioWhenAllDataAvailable() {
+		if(allDataAvailable) {
+			audio.play();
+		} else {
+			allDataAvailableListeners.push(function(){audio.play()});
+			externalEventListener({type:"loading"});
+		}
+	}
+
+	function pauseAudio() {audio.pause()};
+	function removeAudioSrc() {audio.src = ""}	//to make sure GC happens
+
+	function scheduleRequestNextEvent() {
+		allDataAvailableListeners.push(function() {
+			setLoadingSeconds();
+			addAudioTimeReachedListener(getRequestNextAudioTime, sendRequestNextEvent);
+		});
+	}
+	var loadingSeconds;
+	function setLoadingSeconds() {loadingSeconds = (Date.now() - httpRequestSentTime) / 1000.0};
+	function getRequestNextAudioTime() {return lastWordEndTime - 2*loadingSeconds*audio.playbackRate};
+	function sendRequestNextEvent() {externalEventListener({type:"requestNext"})};
+
 	function scheduleErrorEvent() {addAudioEventListener("error", onAudioError)}
 	function scheduleLoadingEvent() {addAudioEventListener("waiting", onAudioWaiting)}
 	function scheduleStartEvent() {addAudioEventListener("playing", onAudioPlaying)}	//must be added after audio.play called, otherwise audio.play will trigger it
@@ -63,33 +115,8 @@ return function(c) {
 		addAudioEventListener("pause", sendEndEvent);
 	}
 
-	/** add events through this function so we can remove eventListeners later - to make sure GC collects the audio */
-	function addAudioEventListener(event,listener) {
-		audioEventListeners.push({event:event, listener:listener});
-		audio.addEventListener(event,listener);
-	}
-
-	function removeExternalEventListener() {externalEventListener = function(event){}}	//so no error is raised
-
-	function anyError() {
-		return !audio.src || errorFlag;	//TODO chck if audio.src needed - it means the requestNext logic failed in the previous audio
-	}
+	function anyError() {return !audio.src || errorFlag}	//audio.src missing means the requestNext logic failed in the previous audio
 	function sendErrorEvent() {externalEventListener({type:"error"})};
-
-	function playAudioWhenMarkersReceived() {
-		if(markersReceived) audio.play();
-		else {
-			playWhenMarkersReceived = true;
-			externalEventListener({type:"loading"});
-		}
-	}
-
-	function pauseAudio() {audio.pause()}
-	function removeAudioEvenetListeners() {
-		audioEventListeners.forEach(function(eventListener) {audio.removeEventListener(eventListener.event,eventListener.listener)});
-		audioEventListeners = [];
-	}
-	function removeAudioSrc() {audio.src = ""}	//to make sure GC happens
 
 	function onAudioWaiting() {externalEventListener({type:"loading"})};
 	function onAudioPlaying() {externalEventListener({type:"playing"})};
@@ -98,16 +125,6 @@ return function(c) {
 		setErrorFlag();
 		if(playRequestedFlag) sendErrorEvent();
 	}
-	
-	function onAudioCanPlayThrough() {
-		setLoadingSeconds();
-		addAudioTimeReachedListener(getRequestNextAudioTime, sendRequestNextEvent);
-	}
-
-	function pauseAudio() {audio.pause()};
-
-	function getRequestNextAudioTime() {return audio.duration - 2*loadingSeconds*audio.playbackRate};	//TODO instead of audio.duration use lastWordEndTime
-	function sendRequestNextEvent() {externalEventListener({type:"requestNext"})};
 
 	function setErrorFlag() {errorFlag = true};
 	var errorFlag = false;
@@ -115,30 +132,39 @@ return function(c) {
 	function setPlayRequestedFlag() {playRequestedFlag = true};
 	var playRequestedFlag = false;
 
-	function setHttpRequestSentTime() {httpRequestSentTime = Date.now()};
-	var httpRequestSentTime;
+	var audioEventListeners = [];
 
-	function setLoadingSeconds() {loadingSeconds = (Date.now() - httpRequestSentTime) / 1000.0};
-	var loadingSeconds;
+	/** add events through this function so we can remove eventListeners later - to make sure GC collects the audio */
+	function addAudioEventListener(event,listener) {
+		audioEventListeners.push({event:event, listener:listener});
+		audio.addEventListener(event,listener);
+	}
+
+	function removeAudioEvenetListeners() {
+		audioEventListeners.forEach(function(eventListener) {audio.removeEventListener(eventListener.event,eventListener.listener)});
+		audioEventListeners = [];
+	}
+
+	function removeExternalEventListener() {
+		externalEventListener = function(event){}	//so no error is raised
+	}
 
 	// =================================== marker events ===================================
+
+	var markersRequest;
 	function requestMarkers() {
 		var url = UrlBuilder.build({text:c.text, iSpeechVoice:c.iSpeechVoice, action:"markers"});
-		Http.get({url:url, success:onMarkersReceived});
+		markersRequest = new HttpRequest(url);
+		markersRequest.addEventListener("success", onMarkersReceived);
 	}
 	
 	function onMarkersReceived(iSpeechMarkersXmlString) {
-		markersReceived = true;
-		if(playWhenMarkersReceived) audio.play();
-
 		var wordTimeMarkers = getWordTimeMarkers(iSpeechMarkersXmlString);
 		if(c.scheduleMarkers) scheduleMarkers(wordTimeMarkers);
 
-		var lastWordEndTime = wordTimeMarkers[wordTimeMarkers.length-1].end;
-		schedulePromoCutOff(lastWordEndTime-50);	//some languages (Hungarian..) have sync issue, this fixes it
+		lastWordEndTime = wordTimeMarkers[wordTimeMarkers.length-1].end/1000;
+		schedulePromoCutOff();
 	}
-	var markersReceived = false;
-	var playWhenMarkersReceived = false;
 
 	function scheduleMarkers(wordTimeMarkers) {
 		var wordPositions = getWordPositions();
@@ -161,14 +187,12 @@ return function(c) {
 			function() {return marker.startTime / 1000;}
 			,function() {externalEventListener({type:"playing",startOffset:marker.startOffset,endOffset:marker.endOffset,text:marker.text})}
 		);
-		/*addAudioTimeReachedListener(
-			function() {return marker.endTime / 1000}
-			,function() {externalEventListener({type:"playing"})}
-		);*/
+		//no marker sent when marker.endTime, it results in less flashing
 	}
 
-	function schedulePromoCutOff(lastWordEndTime) {
-		addAudioTimeReachedListener(function() {return lastWordEndTime/1000}, pauseAudio);
+	var lastWordEndTime;
+	function schedulePromoCutOff() {
+		addAudioTimeReachedListener(function() {return lastWordEndTime - 0.05}, pauseAudio);	//some languages (Hungarian..) have sync issues, -0.05 fixes it
 	}
 	
 	/** @return array of {start, end} objects with the starting/ending times of words */
@@ -204,6 +228,7 @@ return function(c) {
 	}
 	
 	// =================================== general ===================================
+
 	/** calls @param callback when audio reaches result of @param calcTime time (given relative to the audio's own time)
 	 * calcTime is a function so replaySpeed can change */
 	function addAudioTimeReachedListener(calcTime, callback) {
@@ -230,8 +255,7 @@ return function(c) {
 
 	// =================================== init ===================================
 	var audio = new Audio();
-	var externalEventListener = function(){};
 
-	var audioEventListeners = [];
+	var externalEventListener = function(){};
 }
 });
