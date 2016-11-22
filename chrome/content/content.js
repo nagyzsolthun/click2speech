@@ -133,6 +133,7 @@
 	}
 
 	function onSpace(keyEvent) {
+		if(anyActiveRequest()) stopReadingAndPreventScroll(keyEvent);
 		if(highlightedElement) readHighlightedAndPreventScroll(keyEvent);
 	}
 
@@ -143,6 +144,7 @@
 
 	function onNonSelectingMouseMove() {
 		if(settings.hoverSelect) highlightHoveredElement();
+		if(!settings.hoverSelect && !settings.arrowSelect) setHighlighted(null);	//turn off setting while highlight active
 	}
 
 	function onSelectingMouseUp() {
@@ -779,6 +781,12 @@
 	/** reads highlighted text + prevents scrolling */
 	function readHighlightedAndPreventScroll(event) {
 		requestSpeech({element:highlightedElement, source:"space"});
+		event.preventDefault();	//stop scrolling
+	}
+
+	/** stops reading + prevents scrolling */
+	function stopReadingAndPreventScroll(event) {
+		requestSpeech({source:"space"});
 		event.preventDefault();	//stop scrolling
 	}
 
