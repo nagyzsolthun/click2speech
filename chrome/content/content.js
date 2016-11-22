@@ -74,7 +74,6 @@
 
 	backgroundEventListeners.ttsEvent = function(message) {
 		var eventType = message.event ? message.event.type : null;
-		console.log(message.event.speechId + " " + message.event.type);
 
 		var eventListener = ttsEventListeners[eventType];
 		if(eventListener) eventListener(message.event);
@@ -139,7 +138,7 @@
 
 	function onSelectingMouseMove() {
 		setStyleOfFutureBrowserSelect(settings.browserSelect ? "selecting" : null);	//null: to remove style of markers
-		if(highlightedElement) setHighlighted(null);
+		if(settings.hoverSelect) setHighlighted(null);
 	}
 
 	function onNonSelectingMouseMove() {

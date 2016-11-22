@@ -62,9 +62,6 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 	}
 	
 	function onTtsEvent(event) {
-		if(event.type == "playing") {
-			console.log(event.text);
-		}
 		messageHandler.messageAll({action:"ttsEvent", event:event})
 		switch(event.type) {
 			case("loading"): iconDrawer.drawLoading(); break;
