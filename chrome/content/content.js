@@ -73,9 +73,10 @@
 	}
 
 	backgroundEventListeners.ttsEvent = function(message) {
-		var eventType = message.event ? message.event.type : null;
+		var speechId = message.event.speechId;
+		if(!speechRequestedHere(speechId)) return;
 
-		var eventListener = ttsEventListeners[eventType];
+		var eventListener = ttsEventListeners[message.event.type];
 		if(eventListener) eventListener(message.event);
 	}
 	var element2ttsEvent = new Map();
@@ -738,11 +739,10 @@
 	function requestSpeech(c) {
 		var text = textFromRequest(c);
 
-		++speechCounter;
-		backgroundCommunicationPort.postMessage({action:"read", speechId:speechCounter, text:removeSpecialCharacters(text), lan:document.documentElement.lang, source:c.source});
-		speechRequests[speechCounter] = c.selection ? {selection:c.selection} : {element:c.element, textNodes:getTextNodes(c.element)}
+		var speechId = Date.now();	//unique enough
+		backgroundCommunicationPort.postMessage({action:"read", speechId:speechId, text:removeSpecialCharacters(text), lan:document.documentElement.lang, source:c.source});
+		speechRequests[speechId] = c.selection ? {selection:c.selection} : {element:c.element, textNodes:getTextNodes(c.element)}
 	}
-	var speechCounter = 0;
 
 	function textFromRequest(c) {
 		if(c.selection) return getSelection().toString();
@@ -755,6 +755,11 @@
 			return true;
 		}
 		return false;
+	}
+
+	/** return whether speechId was requested within this content script */
+	function speechRequestedHere(speechId) {
+		return (speechId in speechRequests);
 	}
 
 	/** TODO this should go the background-page */
