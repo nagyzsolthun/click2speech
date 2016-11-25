@@ -40,6 +40,7 @@ return function(c) {
 	// =================================== private ===================================
 	/** @return array of SpeechParts that play @param c.text using @param c.iSpeechVoice */
 	function createSpeechPartArr() {
+		if(!wordPositions.length) return [];	//e.g. if the text is only a space character, we consider it empty
 		var textArr = TextSplitter.split({text:c.text,testLength: isWordCountUnderLimit});
 		var result = textArr.map(function(text) {
 			return new SpeechPart({text:text,iSpeechVoice:c.iSpeechVoice,scheduleMarkers:c.scheduleMarkers});
