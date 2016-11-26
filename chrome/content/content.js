@@ -135,7 +135,10 @@
 
 	function onSpace(keyEvent) {
 		if(anyActiveRequest()) stopReadingAndPreventScroll(keyEvent);
-		if(highlightedElement) readHighlightedAndPreventScroll(keyEvent);
+		if(highlightedElement) {
+			if(element2ttsEvent.has(highlightedElement)) return;	//arrow select: repeated space press stops reading
+			readHighlightedAndPreventScroll(keyEvent);
+		}
 	}
 
 	function onSelectingMouseMove() {
