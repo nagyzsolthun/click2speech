@@ -134,11 +134,21 @@
 	}
 
 	function onSpace(keyEvent) {
-		if(anyActiveRequest()) stopReadingAndPreventScroll(keyEvent);
-		if(highlightedElement) {
-			if(element2ttsEvent.has(highlightedElement)) return;	//arrow select: repeated space press stops reading
-			readHighlightedAndPreventScroll(keyEvent);
+		if(!settings.hoverSelect && !settings.arrowSelect) {
+			return;
 		}
+
+		if(!highlightedElement) {
+			if(anyActiveRequest()) stopReadingAndPreventScroll(keyEvent);
+			return;
+		}
+
+		if(element2ttsEvent.has(highlightedElement)) {
+			stopReadingAndPreventScroll(keyEvent);
+			return;
+		}
+
+		readHighlightedAndPreventScroll(keyEvent);
 	}
 
 	function onSelectingMouseMove() {
