@@ -753,6 +753,10 @@
 		var text = textFromRequest(c);
 
 		var speechId = Date.now();	//unique enough
+		while(speechRequests[speechId]) {
+			speechId *= 10;	//sometimes 2 requests are sent within 1 millisec - TODO understand why
+		}
+
 		backgroundCommunicationPort.postMessage({action:"read", speechId:speechId, text:removeSpecialCharacters(text), lan:document.documentElement.lang, source:c.source});
 		speechRequests[speechId] = c.selection ? {selection:c.selection} : {element:c.element, textNodes:getTextNodes(c.element)}
 	}
@@ -787,8 +791,6 @@
 	
 	/** reads text of hovered element */
 	function readHovered() {
-		markText(null);	//TODO needed?
-		highlightHoveredElement();
 		if(isClickable(highlightedElement)) {
 			requestSpeech({element:null, source:"hoveredClickableClick"});
 			return;
