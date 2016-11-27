@@ -1,5 +1,5 @@
 define([], function() {
-	/* matching the word itslef would be nicer (than matching DELIMITERSs)
+	/* matching the word itslef would be nicer (than matching delimiters)
 	 * however characters of different languages are hard to match (a-z doesnt work in case of e.g. Hungarian letters) */
 	const DELIMITERS = /[\s\[\]()]/g;
 	const START_SPECIAL_CHARATERS = /^[.!?;:,\-–\"\']+/g;
@@ -14,11 +14,11 @@ define([], function() {
 		result[0] = {};
 		var match;
  		while(match = DELIMITERS.exec(text)) {
-			var DELIMITERSStart = match.index;
-			var DELIMITERSEnd = DELIMITERS.lastIndex;
-			result[result.length-1].end = DELIMITERSStart;
+			var delimiterStart = match.index;
+			var delimiterEnd = DELIMITERS.lastIndex;
+			result[result.length-1].end = delimiterStart;
 			result[result.length] = {};	//new marker
-			result[result.length-1].start = DELIMITERSEnd;
+			result[result.length-1].start = delimiterEnd;
 		}
 		result[0].start = 0;
 		result[result.length-1].end = text.length;
