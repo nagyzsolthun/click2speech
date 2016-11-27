@@ -1,38 +1,52 @@
 define([], function() {
-	/* matching the word itslef would be nicer (than matching delimiters)
+	/* matching the word itslef would be nicer (than matching DELIMITERSs)
 	 * however characters of different languages are hard to match (a-z doesnt work in case of e.g. Hungarian letters) */
-	const DELIMITER = /[.!?;:,\-–]*[\s\[\]()]/g;
+	const DELIMITERS = /[\s\[\]()]/g;
+	const START_SPECIAL_CHARATERS = /^[.!?;:,\-–\"\']+/g;
+	const END_SPECIAL_CHARATERS = /[.!?;:,\-–\"\']+$/g;
 
 	var wordPositionFinder = {};
 
 	/** @return array of {start,end,word} positions of words. end is the first character not part of the word */
-	wordPositionFinder.getPositions = function(rawText) {
-		var text = rawText + " ";	//so the end punctuation is matched too
-
-		//end of each DELIMITER is start-of-word, start is end-of-word	
+	wordPositionFinder.getPositions = function(text) {
+		//end of each delimiter is start-of-word, start is end-of-word	
 		var result = [];
 		result[0] = {};
 		var match;
- 		while(match = DELIMITER.exec(text)) {
-			var delimiterStart = match.index;
-			var delimiterEnd = DELIMITER.lastIndex;
-			result[result.length-1].end = delimiterStart;
+ 		while(match = DELIMITERS.exec(text)) {
+			var DELIMITERSStart = match.index;
+			var DELIMITERSEnd = DELIMITERS.lastIndex;
+			result[result.length-1].end = DELIMITERSStart;
 			result[result.length] = {};	//new marker
-			result[result.length-1].start = delimiterEnd;
+			result[result.length-1].start = DELIMITERSEnd;
 		}
 		result[0].start = 0;
 		result[result.length-1].end = text.length;
 
-		//remove emty words
-		var filteredResult = result.filter(function(o) {
-			if(o.start === o.end) return false;
-			return true;
-		});
+		result.forEach(function(marker) {marker.word = text.substring(marker.start,marker.end)});	//set word field
 
-		//populate the word field
-		filteredResult.forEach(function(o) {o.word = text.substring(o.start,o.end)});
+		result.forEach(removeSorroundingSpecialCharacters)
+		return result.filter(nonEmptyWord);
+	}
 
-		return filteredResult;
+	function removeSorroundingSpecialCharacters(marker) {
+		var startMatchArr = marker.word.match(START_SPECIAL_CHARATERS);
+		if(startMatchArr) {
+			var match = startMatchArr[0];	//always 1 item, because only the begenning is matched
+			marker.word = marker.word.substring(match.length);
+			marker.start += match.length;
+		}
+		var endMatchArr = marker.word.match(END_SPECIAL_CHARATERS);
+		if(endMatchArr) {
+			var match = endMatchArr[0];	//always 1 item, because only the end is matched
+			marker.word = marker.word.substring(0, marker.word.length-match.length);
+			marker.end -= match.length;
+		}
+		return marker;
+	}
+
+	function nonEmptyWord(marker) {
+		return marker.word.length > 0;
 	}
 
 	/** @return the part of @param text that matches the getPositions logic */
