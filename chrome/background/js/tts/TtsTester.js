@@ -9,12 +9,19 @@ define(function() {
 		var audio = new Audio();
 		audio.src = encodeURI(c.url);
 
-		//TODO cleanup?
 		audio.oncanplay = function() {
 			c.callback(true);
+			cleanUp();
 		}
 		audio.onerror = function() {
 			c.callback(false);
+			cleanUp();
+		}
+
+		function cleanUp() {
+			audio.oncalplay = null;
+			audio.onerror = null;
+			audio.src = "";
 		}
 	}
 
