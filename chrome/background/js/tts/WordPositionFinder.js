@@ -25,8 +25,8 @@ define([], function() {
 
 		result.forEach(function(marker) {marker.word = text.substring(marker.start,marker.end)});	//set word field
 
-		result.forEach(removeSorroundingSpecialCharacters)
-		return result.filter(nonEmptyWord);
+		result.forEach(removeSorroundingSpecialCharacters);	//empty words may appear - we keep them because iSpeech counts them too
+		return result;
 	}
 
 	function removeSorroundingSpecialCharacters(marker) {
@@ -43,10 +43,6 @@ define([], function() {
 			marker.end -= match.length;
 		}
 		return marker;
-	}
-
-	function nonEmptyWord(marker) {
-		return marker.word.length > 0;
 	}
 
 	/** @return the part of @param text that matches the getPositions logic */
