@@ -3,15 +3,15 @@ define(["tts/iSpeech/SpeechPart", "tts/TextSplitter", "tts/WordPositionFinder"],
 
 /** @param c.text
  * @param c.speechId the global id of speech
- * @param c.startIndex optional parameter, reading starts from this index - used when speech is used for error recovery TODO
+ * @param c.startIndex optional parameter, reading starts from this index - used when speech is used for error recovery
  * @param c.iSpeechVoice
  * @param c.speed
  * @param c.scheduleMarkers */
 return function(c) {
 
 	// =================================== init ===================================
-
-	var wordPositions = WordPositionFinder.getPositions(c.text);
+	var text = c.text.substring(c.startIndex || 0, c.length);
+	var wordPositions = WordPositionFinder.getPositions(text);
 	var speechPartArr = createSpeechPartArr();
 
 	sendHttpRequestOfSpeechPart(0);
@@ -38,10 +38,10 @@ return function(c) {
 	};
 	
 	// =================================== private ===================================
-	/** @return array of SpeechParts that play @param c.text using @param c.iSpeechVoice */
+	/** @return array of SpeechParts that play text using c.iSpeechVoice */
 	function createSpeechPartArr() {
 		if(!wordPositions.length) return [];	//e.g. if the text is only a space character, we consider it empty
-		var textArr = TextSplitter.split({text:c.text,testLength: isWordCountUnderLimit});
+		var textArr = TextSplitter.split({text:text,testLength: isWordCountUnderLimit});
 		var result = textArr.map(function(text) {
 			return new SpeechPart({text:text,iSpeechVoice:c.iSpeechVoice,scheduleMarkers:c.scheduleMarkers});
 		});
@@ -97,11 +97,12 @@ return function(c) {
 
 	/** @return character position in speechPart relative to whole speech */
 	function getAbsoluteOffset(speechPartIndex, relativeOffset) {
+		var startIndex = c.startIndex || 0;
 		var result = 0;
 		for(var i=0; i<speechPartIndex; i++) {
 			result += speechPartArr[i].text.length;
 		}
-		return result+relativeOffset;
+		return startIndex+result+relativeOffset;
 	}
 
 	var externalEventListener = function(event) {};
