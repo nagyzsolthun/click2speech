@@ -12,8 +12,8 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 	
 	/** sends Google Analitics event - lifted up as a function so we dont send events while development */
 	function sendAnalytics(category,action,label) {
-		//analytics('send', 'event', category, action, label);
-		console.log("send event; category:" + category + " action:" + action + " label:" + label);
+		analytics('send', 'event', category, action, label);
+		//console.log("send event; category:" + category + " action:" + action + " label:" + label);
 	}
 	
 	/** some events occoure many times in a short period (e.g. changing speed occours every time the speed range changes in options)
