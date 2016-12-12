@@ -75,7 +75,7 @@ define(["tts/Os/tts","tts/iSpeech/tts"], function(OsTts,iSpeechTts) {
 			OsTts.test(function(result) {resolve(result ? OsTts.name : iSpeechTts.name)});
 		})
 		,gender: "female"
-		,speed: 1.2
+		,speed: 1.1
 	};
 
 	/** provides some metadata for a value */
