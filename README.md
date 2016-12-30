@@ -1,6 +1,6 @@
-Click to Speech
+click2speech
 ===============
 
-Chrome plugin that helps the visually impaired browsing the web.
+Chrome extension to help the visually imparied and those with dyslexia.
 
-Click on a paragraph and ClickToSpeech reads it out to you. You can also navigate using the arrow keys and start reading by pressing the spacebar.
+Click on a text and click2speech reads it out to you.
