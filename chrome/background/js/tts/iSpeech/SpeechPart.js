@@ -41,8 +41,8 @@ return function(c) {
 	}});
 
 	Object.defineProperty(this, 'speed', {set: function(speed) {
-		audio.defaultPlaybackRate = speed;	//effective when audio not yet started playing
-		audio.playbackRate = speed;	//effective if audio is playing
+		audio.defaultPlaybackRate = speed * SPEED_FACTOR;	//effective when audio not yet started playing
+		audio.playbackRate = speed * SPEED_FACTOR;	//effective if audio is playing
 	}});
 
 	Object.defineProperty(this, 'text', {get: function() {
@@ -255,6 +255,7 @@ return function(c) {
 
 	// =================================== init ===================================
 	var audio = new Audio();
+	var SPEED_FACTOR = 0.9;	//to match speed before removal of "speed" URL param
 
 	var externalEventListener = function(){};
 }
