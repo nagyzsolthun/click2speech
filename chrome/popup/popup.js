@@ -16,9 +16,9 @@ app.controller('popupController', function($scope) {
 		}
 	}
 	
-	$scope.openReadingOptions = function() {
-		var readingOptionsUrl = chrome.extension.getURL("options/html/options.html#/reading");
-		chrome.tabs.create({url: readingOptionsUrl});
+	$scope.openSpeechOptions = function() {
+		var speechOptionsUrl = chrome.extension.getURL("options/html/options.html#/speech");
+		chrome.tabs.create({url: speechOptionsUrl});
 	}
 	
 	function turnOn() {

@@ -8,7 +8,7 @@ angular.module('optionsApp').filter('translate', function() {
 
 angular.module('optionsApp').config(function($routeProvider) {
 	$routeProvider.when('/general', {templateUrl: 'generalOptions.html', controller: 'generalOptionsController'});
-	$routeProvider.when('/reading', {templateUrl: 'readingOptions.html', controller: 'readingOptionsController'});
+	$routeProvider.when('/speech', {templateUrl: 'speechOptions.html', controller: 'speechOptionsController'});
 	$routeProvider.when('/contact', {templateUrl: 'contact.html', controller: 'contactController'});
 	$routeProvider.otherwise({redirectTo: '/general'});
 });

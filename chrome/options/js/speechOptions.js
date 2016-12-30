@@ -1,9 +1,9 @@
-angular.module('optionsApp').controller('readingOptionsController', function($scope) {
+angular.module('optionsApp').controller('speechOptionsController', function($scope) {
 	var backgroundCommunicationPort = chrome.runtime.connect();
 	
 	$scope.ttsArr = [];
 	$scope.speed = {min: 0.5, max: 4, step: 0.1};
-	$scope.genderArr = [{value:"female",text:"femaleReadingGender"},{value:"male",text:"maleReadingGender"}];
+	$scope.genderArr = [{value:"female",text:"femaleSpeech"},{value:"male",text:"maleSpeech"}];
 	
 	$scope.onServiceOptionClick = function(clickedOption) {
 		if(clickedOption.status != "available") return;

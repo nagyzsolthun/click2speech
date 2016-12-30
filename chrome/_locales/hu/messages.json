@@ -1,17 +1,17 @@
 {
 	"extensionDescription": {"message": "Klikkelj az egérrel egy szövegre, és a click2speech felolvassa azt."}
 	,"generalOptionsPage": {"message": "Általános"}
-	,"readingOptionsPage": {"message": "Olvasás"}
+	,"speechOptionsPage": {"message": "Beszéd"}
 	,"contactPage": {"message": "Kapcsolat"}
 	,"selectionOptions": {"message": "Szöveg Kijelölése"}
-	,"ttsOptions": {"message": "Olvasó"}
+	,"ttsOptions": {"message": "Hang"}
 	,"speedOptions": {"message": "Sebesség"}
 	,"genderOptions": {"message": "Nem"}
 	,"hoverSelect": {"message": "egérrel mutatott"}
 	,"arrowSelect": {"message": "nyíl billentyűk"}
 	,"browserSelect": {"message": "böngészőbe épített kijelölés"}
-	,"femaleReadingGender": {"message": "női"}
-	,"maleReadingGender": {"message": "férfi"}
+	,"femaleSpeech": {"message": "női"}
+	,"maleSpeech": {"message": "férfi"}
 	,"OsTts": {"message": "Operációs Rendszer"}
 	,"reviewsUrl": {"message": "Vélemények"}
 	,"support": {"message": "Támogatás"}

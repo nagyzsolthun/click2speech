@@ -1,17 +1,17 @@
 {
 	"extensionDescription": {"message": "Click on a text and click2speech reads it out to you."}
 	,"generalOptionsPage": {"message": "General"}
-	,"readingOptionsPage": {"message": "Reading"}
+	,"speechOptionsPage": {"message": "Speech"}
 	,"contactPage": {"message": "Contact"}
 	,"selectionOptions": {"message": "Text Selection"}
-	,"ttsOptions": {"message": "Reader"}
+	,"ttsOptions": {"message": "Voice"}
 	,"speedOptions": {"message": "Speed"}
 	,"genderOptions": {"message": "Gender"}
 	,"hoverSelect": {"message": "mouse pointed"}
 	,"arrowSelect": {"message": "arrow keys"}
 	,"browserSelect": {"message": "built-in browser selection"}
-	,"femaleReadingGender": {"message": "female"}
-	,"maleReadingGender": {"message": "male"}
+	,"femaleSpeech": {"message": "female"}
+	,"maleSpeech": {"message": "male"}
 	,"OsTts": {"message": "Operating System"}
 	,"reviewsUrl": {"message": "Reviews"}
 	,"support": {"message": "Support"}

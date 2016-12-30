@@ -1,17 +1,17 @@
 {
 	"extensionDescription": {"message": "Klicken Sie auf einen Text und das click2speech liest den vor."}
 	,"generalOptionsPage": {"message": "Allgemein"}
-	,"readingOptionsPage": {"message": "Lesen"}
+	,"speechOptionsPage": {"message": "Sprechen"}
 	,"contactPage": {"message": "Kontakt"}
 	,"selectionOptions": {"message": "Text Markieren"}
-	,"ttsOptions": {"message": "Leser"}
+	,"ttsOptions": {"message": "Stimme"}
 	,"speedOptions": {"message": "Geschwindigkeit"}
 	,"genderOptions": {"message": "Geschlecht"}
 	,"hoverSelect": {"message": "mit der maus gewiesen"}
 	,"arrowSelect": {"message": "pfeiltasten"}
 	,"browserSelect": {"message": "browser eingebaute selektion"}
-	,"femaleReadingGender": {"message": "weiblich"}
-	,"maleReadingGender": {"message": "männlich"}
+	,"femaleSpeech": {"message": "weiblich"}
+	,"maleSpeech": {"message": "männlich"}
 	,"OsTts": {"message": "Betriebssystem"}
 	,"reviewsUrl": {"message": "Meinungen"}
 	,"support": {"message": "Support"}
