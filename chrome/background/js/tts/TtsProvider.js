@@ -46,6 +46,7 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Os/tts"], function(settingsHand
 	 * @param c.id
 	 * @param c.text
 	 * @param c.lan
+	 * @param c.scheduleMarkers
 	 * @param c.speed
 	 * @param c.gender
 	 */
@@ -65,7 +66,14 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Os/tts"], function(settingsHand
 				case("error"):
 					speech = null;
 					errors.push({ttsName:tts.name,type:event.errorType});
-					read({speechId:c.speechId,text:c.text,startIndex:event.remainingStartIndex,lan:c.lan,speed:c.speed,gender:c.gender});
+					read({
+						speechId:c.speechId
+						,text:c.text
+						,startIndex:event.remainingStartIndex
+						,lan:c.lan
+						,scheduleMarkers: c.scheduleMarkers
+						,speed:c.speed
+						,gender:c.gender});
 					break;
 				case("loading"):
 				case("playing"): onEvent(event); break;
