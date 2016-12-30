@@ -9,7 +9,7 @@ define([], function() {
 	 * @param c.iSpeechVoice
 	 * @param. c.action convert|markers */
 	result.build = function(c) {
-		return TTS_URL_BASE + "?text=" + encodeURIComponent(c.text) + "&voice=" + c.iSpeechVoice + "&speed=-1&action=" + c.action;
+		return TTS_URL_BASE + "?text=" + encodeURIComponent(c.text) + "&voice=" + c.iSpeechVoice + "&action=" + c.action;
 	}
 
 	return result;
