@@ -1,20 +1,5 @@
 body {display: inline-block;}	/* so the size of the popup matches the size of its content */
 
-#errorNotification {
-	display:none;
-	text-align: center;
-	color: darkred;
-	font-size: 200%;
-	white-space: nowrap;
-	border-bottom: 2px solid darkred;
-	margin: 0 0 1em 0;
-	padding: 0.2em;
-}
-
-#errorNotification > * {margin: .2em;}
-
-#errorNotification.active {display:inline-block;}
-
 .button {
 	text-align: center;
 	color: black;

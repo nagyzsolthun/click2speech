@@ -120,9 +120,6 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 		iconDrawer.drawInteraction();
 		scheduleAnalytics('arrowPressed', 'arrow', 'pressed');
 	}
-	messageListeners.getTtsErrors = function(message,port) {
-		port.postMessage({action:"updateTtsErrors",errors:tts.errors});
-	}
 	messageListeners.updateSetting = function(message,port) {
 		updateSetting(message.setting,message.value);
 		scheduleAnalytics('set' + message.setting, 'settings','set',message.setting+':'+message.value);	//schedule so speed changes count as one

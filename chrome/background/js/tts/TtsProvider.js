@@ -10,7 +10,6 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 				return {name:tts.name,properties:tts.properties};
 			});
 		}
-		,get errors() {return errors;}
 		,get lastEvent() {return lastEvent;}
 		,set speed(value) {if(speech) speech.speed = value;}	//in case speed changes while reading TODO, check if available
 		,set onEvent(callback) {onEvent = callback || function(){};}

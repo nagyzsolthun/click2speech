@@ -4,7 +4,6 @@ app.controller('popupController', function($scope) {
 	function toMessage(text) {return chrome.i18n.getMessage(text) || "*"+text+"*";}
 
 	$scope.button = {text: "?",ttsOn: false};
-	$scope.errors = [];
 
 	$scope.onOffButtonClick = function() {
 		if($scope.button.ttsOn) {
@@ -39,14 +38,6 @@ app.controller('popupController', function($scope) {
 	});
 
 	var backgroundEventListeners = {};
-	backgroundEventListeners.updateTtsErrors = function(message) {
-		$scope.errors = [];
-		message.errors.forEach(function(error) {
-			$scope.errors.push({ttsName:error.ttsName,type:error.type});
-		});
-		$scope.$digest();
-	}
-
 	backgroundEventListeners.updateSettings = function(message) {
 		if(message.settings.turnedOn) turnOn();
 		else turnOff();
@@ -54,5 +45,4 @@ app.controller('popupController', function($scope) {
 	}
 
 	backgroundCommunicationPort.postMessage({action:"getSettings"});	//the response will call backgroundEventListeners.updateSettings
-	backgroundCommunicationPort.postMessage({action:"getTtsErrors"});	//the response will call backgroundEventListeners.updateTtsErrors
 });
