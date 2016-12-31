@@ -27,6 +27,11 @@ define(["tts/Watson/Speech", "tts/Watson/UrlBuilder", "tts/TtsTester"], function
 		
 		TtsTester.testHtmlAudio({url:url, callback:callback});
 	}
+	
+	/** @return true if @param lan has any matching WatsonVoice */
+	tts.supportedLanguage = function(lan) {
+		return (getWatsonVoice({lan:lan}) != null);
+	}
 
 	// =================================== WatsonVoice ===================================
 	
@@ -53,9 +58,8 @@ define(["tts/Watson/Speech", "tts/Watson/UrlBuilder", "tts/TtsTester"], function
 		//lan match
 		result = voices.filter(function(voice) {return voice.lan == lan});
 		if(result[0]) return result[0].WatsonVoice;
-	   
-		//should never reach
-		return "en-US_AllisonVoice";	//TODO handle missing language
+		
+		return null;
 	}
 
 	//this list was generated based on https://www.ibm.com/watson/developercloud/doc/text-to-speech/http.shtml#voices

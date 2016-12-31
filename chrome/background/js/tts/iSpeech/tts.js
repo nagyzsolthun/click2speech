@@ -27,6 +27,11 @@ define(["tts/iSpeech/Speech", "tts/iSpeech/UrlBuilder", "tts/TtsTester"], functi
 		
 		TtsTester.testHtmlAudio({url:url, callback:callback});
 	}
+	
+	/** @return true if @param lan has any matching iSpeechVoice */
+	tts.supportedLanguage = function(lan) {
+		return (getISpeechVoice({lan:lan}) != null);
+	}
 
 	// =================================== iSpeechVoice ===================================
 	
@@ -54,9 +59,8 @@ define(["tts/iSpeech/Speech", "tts/iSpeech/UrlBuilder", "tts/TtsTester"], functi
 		//lan match
 		result = voices.filter(function(voice) {return voice.lan == lan});
 		if(result[0]) return result[0].iSpeechVoice;
-	   
-		//should never reach
-		return "usenglishfemale";	//TODO handle missing language
+		
+		return null;
 	}
 
 	//this list was generated based on http://www.ispeech.org/api -> voices

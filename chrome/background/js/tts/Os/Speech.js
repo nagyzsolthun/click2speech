@@ -6,13 +6,6 @@ define(["tts/WordPositionFinder"], function(WordPositionFinder) {
  * @param c.lan the language of reading*/
 return function(c) {
 	this.play = function() {
-		//tested on Windows7: only English is supported
-		//other voiceNames than "native" use GoogleTts in the background, and just stop playing after 100 characters are reached
-		if(! c.lan.match(/en.*/)) {
-			externalEventListener({speechId:c.speechId, type:"error",errorType:"LANGUAGE",remaining:c.text});
-			return;
-		}
-
 		var text = c.text.substring(startIndex, c.length);
 		if(text === null || text === "") {
 			setTimeout(function() {externalEventListener({speechId:c.speechId, type:"end"})});
@@ -60,7 +53,7 @@ return function(c) {
 	ttsEventListeners.start = function() {externalEventListener({speechId:c.speechId, type:"playing"});}
 	ttsEventListeners.end = function() {externalEventListener({speechId:c.speechId, type:"end"})}
 	ttsEventListeners.interrupted = function() {externalEventListener({speechId:c.speechId, type:"end"})}
-	ttsEventListeners.error = function() {externalEventListener({speechId:c.speechId, type:"error",errorType:"NOT_SUPPORTED",index:0})}
+	ttsEventListeners.error = function() {externalEventListener({speechId:c.speechId, type:"error", index:0})}
 	ttsEventListeners.word = function(event) {
 		var word = wordWordStartOffset2word[event.charIndex];
 		if(! word) return;	//in case our word recognition logic is different than the one in Chrome

@@ -86,7 +86,7 @@ return function(c) {
 		result.requestNext = function() {sendHttpRequestOfSpeechPart(speechPartIndex+1)}
 		result.error = function() {
 			var remainingStartIndex = getAbsoluteOffset(speechPartIndex, 0);
-			externalEventListener({speechId:c.speechId,type:"error", errorType: "URL_ERROR", remainingStartIndex: remainingStartIndex});
+			externalEventListener({speechId:c.speechId,type:"error", remainingStartIndex: remainingStartIndex});
 		}
 		return result;
 	}

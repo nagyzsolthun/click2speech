@@ -1,7 +1,7 @@
 define(["tts/Os/Speech"], function(Speech) {
 	
 	// =================================== public ===================================
-	var reader = {
+	var tts = {
 		get name() {return "OsTts";}
 		,get properties() {return ["speed"];}
 	}
@@ -10,12 +10,12 @@ define(["tts/Os/Speech"], function(Speech) {
 	 * @param c.text the text to read
 	 * @param c.startIndex optional parameter, reading starts from this index (error recovery)
 	 * @param c.lan the language of the text*/
-	reader.prepare = function(c) {
+	tts.prepare = function(c) {
 		return new Speech(c);
 	}
 	
 	/** @param callback called with a boolean flag indicating if the test passed */
-	reader.test = function(callback) {
+	tts.test = function(callback) {
 		var result;
 		chrome.tts.getVoices(function(voices) {
 			var nativeVoices = voices.filter(function(voice) {
@@ -24,6 +24,13 @@ define(["tts/Os/Speech"], function(Speech) {
 			callback(nativeVoices.length > 0);
 		});
 	}
+	
+	/** @return true if @param lan is any dialect of English
+	 * tested on Windows7: only English is supported
+	 * other voiceNames than "native" use GoogleTts in the background, and just stop playing after 100 characters are reached */
+	tts.supportedLanguage = function(lan) {
+		return lan.match(/en.*/);
+	}
 
-	return reader;
+	return tts;
 });

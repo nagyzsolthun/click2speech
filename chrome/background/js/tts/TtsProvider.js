@@ -2,34 +2,19 @@
  * 1. provides the option to choose
  * 2. handles errors in them
  */
-define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], function(settingsHandler, iSpechTts, WatsonTts, OsTts) {
+define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], function(settingsHandler, iSpeechTts, WatsonTts, OsTts) {
 	
 	var provider = {
-		get ttsProperties() {
-			return ttsArray.map(function(tts) {
-				return {name:tts.name,properties:tts.properties};
-			});
-		}
-		,get lastEvent() {return lastEvent;}
+		get ttsProperties() {return ttsArray.map(function(tts) {return {name:tts.name,properties:tts.properties}})}
 		,set speed(value) {if(speech) speech.speed = value;}	//in case speed changes while reading TODO, check if available
 		,set onEvent(callback) {onEvent = callback || function(){};}
 	};
 	
-	/** reads text
-	 * if prefered tts is not able to read it, uses another one
-	 * @param c.speechId
-	 * @param c.text
-	 * @param c.lan
-	 * @param c.scheduleMarkers */
+	/** reads text; if prefered tts is not able to read it, uses another one */
 	provider.read = function(c) {
+		if(speech) speech.stop();
 		settingsHandler.getAll(function(settings) {
-			//new reading => no error
-			errors = [];
-			
-			//set up prefered tts
-			ttsArray.forEach(function(tts) {if(tts.name == settings.tts) preferedTts = tts;});
-			
-			//read
+			var preferedTts = ttsArray.filter(function(tts) {return tts.name == settings.tts})[0] || iSpeechTts;
 			read({
 				speechId: c.speechId
 				,text:c.text
@@ -37,12 +22,14 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 				,scheduleMarkers:c.scheduleMarkers
 				,speed:settings.speed
 				,gender:settings.gender
+				,errors:[]
+				,preferedTts:preferedTts
 			});
 		});
 	}
 	
 	/** @param callback is called when a tts is tested
-	 * 		@param available true if test passed, false if failed */
+	 * 	@param available true if test passed, false if failed */
 	provider.test = function(name, callback) {
 		ttsArray.forEach(function(tts) {
 			if(tts.name == name) tts.test(callback);
@@ -59,32 +46,33 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 	 * @param c.scheduleMarkers
 	 * @param c.speed
 	 * @param c.gender
+	 * @param c.errors	the errors raised by previous trials
 	 */
 	function read(c) {
-		var tts = nextTts();	//errors must be prepared
-		if(! tts) {	//no more usable tts
+		var tts = getNoErrorTts(c.preferedTts, c.errors);
+		if(!tts) {	//no more usable tts
 			onEvent({speechId:c.speechId, type:"error"});
 			return;
 		}
 		
-		if(speech) speech.stop();
-
+		if(!tts.supportedLanguage(c.lan)) {
+			read({
+				speechId:c.speechId
+				,text:c.text
+				,lan:c.lan
+				,scheduleMarkers: c.scheduleMarkers
+				,speed:c.speed
+				,gender:c.gender
+				,startIndex:0
+				,errors:c.errors.concat(tts.name)
+			});
+			return;
+		}
+		
 		speech = tts.prepare(c);
 		speech.onEvent = function(event) {
 			lastEvent = event;
 			switch(event.type) {
-				case("error"):
-					speech = null;
-					errors.push({ttsName:tts.name,type:event.errorType});
-					read({
-						speechId:c.speechId
-						,text:c.text
-						,startIndex:event.remainingStartIndex
-						,lan:c.lan
-						,scheduleMarkers: c.scheduleMarkers
-						,speed:c.speed
-						,gender:c.gender});
-					break;
 				case("loading"):
 				case("playing"):
 					onEvent(event);
@@ -93,48 +81,32 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 					speech = null;
 					onEvent(event);
 					break;
+				case("error"):
+					read({
+						speechId:c.speechId
+						,text:c.text
+						,lan:c.lan
+						,scheduleMarkers: c.scheduleMarkers
+						,speed:c.speed
+						,gender:c.gender
+						,startIndex:event.remainingStartIndex
+						,errors:c.errors.concat(tts.name)
+					});
+					break;
 			}
 		}
-		speech.play();	//fires event
+		speech.play();
 	}
 	
-	/** @return a tts that has not yet raised an error*/
-	function nextTts() {
-		if(! hasRaisedError(preferedTts)) return preferedTts;
-		
-	   var result = null;
-		ttsArray.forEach(function(tts) {
-			if(result) return;	//we return the first match
-			if(! hasRaisedError(tts)) result = tts;
-		});
-		return result;
+	/** @return first TTS that raised NO error - preferedTts is priority */
+	function getNoErrorTts(preferedTts, errors) {
+		if(preferedTts && !errors.includes(preferedTts.name)) return preferedTts;
+		else return ttsArray.filter(function(tts) {return !errors.includes(tts.name)})[0];
 	}
 	
-	/** @return true if errors contains any error from given tts */
-	function hasRaisedError(tts) {
-		var result = false;
-		errors.forEach(function(error) {
-			if(error.ttsName == tts.name) result = true;
-		});
-		return result;
-	}
-	
-	var ttsArray = [iSpechTts, WatsonTts, OsTts];
-	var preferedTts = iSpechTts;	//TODO maybe remove this. added here, because GoogleTts was removed
-	
-	//when any tts raises an error, it is put to this array
-	//{ttsName,errorType} array
-	var errors = [];
-	
-	var lastEvent = null;
-	
-	//when any tts starts reading, it provides a speech object
-	var speech = null;
-	
-	/** called when event occours its parameter is the event
-	 * @param event.type the type of the event [loading,start,end,error]
-		* 	@param event.errorType in case of error event, the type, typically URL_ERROR */
-	var onEvent = function() {};
+	var ttsArray = [iSpeechTts, WatsonTts, OsTts];
+	var speech = null;	//when any tts starts reading, it provides a speech object
+	var onEvent = function() {};	//speech events @param event.type is loading|playing|end|error
 
 	return provider;
 });
