@@ -2,8 +2,8 @@
  * 1. provides the option to choose
  * 2. handles errors in them
  */
-define(["SettingsHandler","tts/iSpeech/tts","tts/Os/tts"], function(settingsHandler, iSpechTts, OsTts) {
-	var ttsArray = [iSpechTts, OsTts];
+define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], function(settingsHandler, iSpechTts, WatsonTts, OsTts) {
+	var ttsArray = [iSpechTts, WatsonTts, OsTts];
 	var preferredTts = iSpechTts;	//TODO maybe remove this. added here, because GoogleTts was removed
 	
 	//when any tts raises an error, it is put to this array

@@ -1,10 +1,10 @@
 /** speech for for text that fits in 1 tts request */
-define(["tts/iSpeech/SpeechPart", "tts/TextSplitter", "tts/WordPositionFinder"], function(SpeechPart,TextSplitter,WordPositionFinder) {
+define(["tts/Watson/SpeechPart", "tts/TextSplitter", "tts/WordPositionFinder"], function(SpeechPart,TextSplitter,WordPositionFinder) {
 
 /** @param c.text
  * @param c.speechId the global id of speech
- * @param c.startIndex optional parameter, reading starts from this index - used when speech is used for error recovery
- * @param c.iSpeechVoice
+ * @param c.startIndex optional parameter, reading starts from this index - used when error recovery
+ * @param c.WatsonVoice
  * @param c.speed
  * @param c.scheduleMarkers */
 return function(c) {
@@ -35,23 +35,19 @@ return function(c) {
 	};
 	
 	// =================================== private ===================================
-	/** @return array of SpeechParts that play text using c.iSpeechVoice */
+	/** @return array of SpeechParts that play text using c.WatsonVoice */
 	function createSpeechPartArr() {
 		if(!wordPositions.length) return [];	//e.g. if the text is only a space character, we consider it empty
-		var textArr = TextSplitter.split({text:text,testLength: isWordCountUnderLimit});
+		var textArr = TextSplitter.split({text:text,testLength: isCharCountUnderLimit});
 		var result = textArr.map(function(text) {
-			return new SpeechPart({text:text,iSpeechVoice:c.iSpeechVoice,scheduleMarkers:c.scheduleMarkers});
+			return new SpeechPart({text:text,WatsonVoice:c.WatsonVoice,scheduleMarkers:c.scheduleMarkers});
 		});
 		result.forEach(function(speechPart) {speechPart.speed = c.speed});
 		return result;
 	}
 
-	function isWordCountUnderLimit(startIndex,endIndex) {
-		var wordCounter = wordPositions.filter(function(wordPosition) {
-			return wordPosition.start < endIndex && wordPosition.end > startIndex;
-		}).length;
-		const WORD_COUNT_LIMIT = 30;
-		return wordCounter <= WORD_COUNT_LIMIT;
+	function isCharCountUnderLimit(startIndex,endIndex) {
+		return endIndex-startIndex < 400;	//TODO find info about limit
 	}
 
 	/** plays speechpart on @param index index and schedules the httpRequests + plays the next speechPart item */
