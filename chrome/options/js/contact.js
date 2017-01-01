@@ -1,5 +1,5 @@
 angular.module('optionsApp').controller('contactController', function($scope) {
-	var extensionurl = "https://chrome.google.com/webstore/detail/click-to-speech/djfpbemmcokhlllnafdmomgecdlicfhj";
+	var extensionurl = "https://chrome.google.com/webstore/detail/click2speech/djfpbemmcokhlllnafdmomgecdlicfhj";
 	function getStoreUrl(page, lan) {
 		return extensionurl + "/" + page + "?hl=" + lan;
 	}
