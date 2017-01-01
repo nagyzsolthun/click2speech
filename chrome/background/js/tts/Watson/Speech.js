@@ -47,7 +47,7 @@ return function(c) {
 	}
 
 	function isCharCountUnderLimit(startIndex,endIndex) {
-		return endIndex-startIndex < 400;	//TODO find info about limit
+		return endIndex-startIndex < 200;	//TODO find info about limit
 	}
 
 	/** plays speechpart on @param index index and schedules the httpRequests + plays the next speechPart item */

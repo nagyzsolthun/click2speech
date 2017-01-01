@@ -13,7 +13,8 @@ define(["tts/iSpeech/Speech", "tts/iSpeech/UrlBuilder", "tts/TtsTester"], functi
 	 * @param c.speed the speed of reading
 	 * @param c.scheduleMarkers */
 	tts.prepare = function(c) {
-		var iSpeechVoice = getISpeechVoice({lan: c.lan || navigator.language, gender:c.gender});
+		var iSpeechVoice = getISpeechVoice({lan: c.lan, gender:c.gender});
+		if(! iSpeechVoice) return null;
 		
 		var speech = new Speech({speechId:c.speechId, text:c.text, startIndex:c.startIndex, iSpeechVoice:iSpeechVoice, speed:c.speed, scheduleMarkers:c.scheduleMarkers});
 		return speech;
@@ -26,11 +27,6 @@ define(["tts/iSpeech/Speech", "tts/iSpeech/UrlBuilder", "tts/TtsTester"], functi
 		var url = UrlBuilder.build({text:text, iSpeechVoice:iSpeechVoice, action:"convert"});
 		
 		TtsTester.testHtmlAudio({url:url, callback:callback});
-	}
-	
-	/** @return true if @param lan has any matching iSpeechVoice */
-	tts.supportedLanguage = function(lan) {
-		return (getISpeechVoice({lan:lan}) != null);
 	}
 
 	// =================================== iSpeechVoice ===================================

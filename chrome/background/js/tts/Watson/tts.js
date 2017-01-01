@@ -13,7 +13,8 @@ define(["tts/Watson/Speech", "tts/Watson/UrlBuilder", "tts/TtsTester"], function
 	 * @param c.speed the speed of reading
 	 * @param c.scheduleMarkers */
 	tts.prepare = function(c) {
-		var voice = getWatsonVoice({lan: c.lan || navigator.language, gender:c.gender});
+		var voice = getWatsonVoice({lan: c.lan, gender:c.gender});
+		if(! voice) return null;
 		
 		var speech = new Speech({speechId:c.speechId, text:c.text, startIndex:c.startIndex, WatsonVoice:voice, speed:c.speed, scheduleMarkers:c.scheduleMarkers});
 		return speech;
@@ -26,11 +27,6 @@ define(["tts/Watson/Speech", "tts/Watson/UrlBuilder", "tts/TtsTester"], function
 		var url = UrlBuilder.build({text:text, WatsonVoice:voice});
 		
 		TtsTester.testHtmlAudio({url:url, callback:callback});
-	}
-	
-	/** @return true if @param lan has any matching WatsonVoice */
-	tts.supportedLanguage = function(lan) {
-		return (getWatsonVoice({lan:lan}) != null);
 	}
 
 	// =================================== WatsonVoice ===================================

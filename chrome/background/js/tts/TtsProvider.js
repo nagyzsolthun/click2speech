@@ -55,7 +55,8 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 			return;
 		}
 		
-		if(!tts.supportedLanguage(c.lan)) {
+		speech = tts.prepare(c);
+		if(!speech) {
 			read({
 				speechId:c.speechId
 				,text:c.text
@@ -68,8 +69,7 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 			});
 			return;
 		}
-		
-		speech = tts.prepare(c);
+
 		speech.onEvent = function(event) {
 			lastEvent = event;
 			switch(event.type) {
