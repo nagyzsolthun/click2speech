@@ -54,7 +54,7 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 		settingsHandler.getAll(function(settings) {
 			//markers are only shown by content oage in case of highlightedElement (and not in case of browserselect)
 			var scheduleMarkers = c.text && (c.source == "hoveredClick" || c.source == "space");
-			tts.read({speechId:c.speechId, text:c.text, lan:c.lan, speed:settings.speed, scheduleMarkers:scheduleMarkers});
+			tts.read({speechId:c.speechId, text:c.text, lan:c.lan || navigator.language, speed:settings.speed, scheduleMarkers:scheduleMarkers});
 			var action = c.text?"read":"stop";
 			var label = c.source;
 			scheduleAnalytics('tts-read', 'tts', action, action+"-"+label);	//schedule so browserSelect double+triple click counts as one
@@ -84,7 +84,7 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 				}
 				else {
 					tts.onEvent = null;	//so the 'end' event wont redraw the icon
-					tts.read({text:""});	//in case it is reading, we stop it
+					read({text:""});	//in case it is reading, we stop it
 					iconDrawer.drawTurnedOff();
 				}
 				messageHandler.messageAll({action:"updateSetting", setting:setting, value:value});
@@ -110,7 +110,7 @@ require(["SettingsHandler", "MessageHandler", "tts/TtsProvider","icon/drawer"], 
 		});
 	}
 	messageListeners.read = function(message) {
-		read({speechId:message.speechId, text:message.text, lan:message.lan || navigator.language, source:message.source});
+		read({speechId:message.speechId, text:message.text, lan:message.lan, source:message.source});
 	}
 	messageListeners.arrowPressed = function() {
 		settingsHandler.getAll(function(settings) {
