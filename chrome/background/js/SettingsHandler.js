@@ -1,5 +1,5 @@
 /** setters and getters for settings - persistence is also provided by chrome.storage.local*/
-define(["tts/Os/tts","tts/iSpeech/tts"], function(OsTts,iSpeechTts) {
+define(["tts/Os/tts","tts/Watson/tts"], function(OsTts,WatsonTts) {
 	
 	var settingsHandler = {};
 	
@@ -72,7 +72,7 @@ define(["tts/Os/tts","tts/iSpeech/tts"], function(OsTts,iSpeechTts) {
 		,arrowSelect: false
 		,browserSelect: false
 		,tts: new Promise(function(resolve,reject) {
-			OsTts.test(function(result) {resolve(result ? OsTts.name : iSpeechTts.name)});
+			OsTts.test(function(result) {resolve(result ? OsTts.name : WatsonTts.name)});
 		})
 		,gender: "female"
 		,speed: 1.2

@@ -14,7 +14,7 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 	provider.read = function(c) {
 		if(speech) speech.stop();
 		settingsHandler.getAll(function(settings) {
-			var preferedTts = ttsArray.filter(function(tts) {return tts.name == settings.tts})[0] || iSpeechTts;
+			var preferedTts = ttsArray.filter(function(tts) {return tts.name == settings.tts})[0] || OsTts;
 			read({
 				speechId: c.speechId
 				,text:c.text
@@ -104,7 +104,7 @@ define(["SettingsHandler","tts/iSpeech/tts","tts/Watson/tts","tts/Os/tts"], func
 		else return ttsArray.filter(function(tts) {return !errors.includes(tts.name)})[0];
 	}
 	
-	var ttsArray = [iSpeechTts, WatsonTts, OsTts];
+	var ttsArray = [WatsonTts, OsTts];
 	var speech = null;	//when any tts starts reading, it provides a speech object
 	var onEvent = function() {};	//speech events @param event.type is loading|playing|end|error
 
