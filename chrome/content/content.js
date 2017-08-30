@@ -23,6 +23,8 @@
 	}
 
 	// ============================================= turn on / off =============================================
+	var settings = {};	//current settings
+
 	function turnOnOff(newSettings) {
 		if(settings.turnedOn) turnOn();	//its OK if its called many times
 		else turnOff();
@@ -35,20 +37,17 @@
 	function turnOff() {
 		removeBrowserEventListeners();
 		setHighlighted(null);
-
 		element2ttsEvent.clear();
-		for(var id in speechRequests) {
-			var request = speechRequests[id];
+
+		speechRequests.forEach(request => {
+			if(request.selection) recolorBrowserSelection(null);
 			if(request.element) {
 				updateElementStyle(request.element);
 				markText(null);
 			}
-			if(request.selection) recolorBrowserSelection(null);
-		}
-		speechRequests = {};
+		});
+		speechRequests = [];
 	}
-
-	var settings = {};	//current settings
 
 	// ============================================= ClickToSpeech background events =============================================
 	function addClickToSpeechEventListeners() {
@@ -67,64 +66,40 @@
 		turnOnOff();
 	}
 
-	backgroundEventListeners.updateSetting = function(message) {
-		settings[message.setting] = message.value;
-		turnOnOff();
-	}
-
 	backgroundEventListeners.ttsEvent = function(message) {
-		var speechId = message.event.speechId;
-		if(!speechRequestedHere(speechId)) return;
-
-		var eventListener = ttsEventListeners[message.event.type];
-		if(eventListener) eventListener(message.event);
+		var eventListener = ttsEventListeners[message.eventType];
+		if(eventListener) eventListener(message);
 	}
 	var element2ttsEvent = new Map();
 
 	// ============================================= tts events =============================================
 	var ttsEventListeners = {};
-	ttsEventListeners.end = function(event) {
-		var request = speechRequests[event.speechId];
-		delete speechRequests[event.speechId];
-
-		if(request.selection) recolorBrowserSelection(null);
-		if(request.element) {
-			element2ttsEvent.delete(request.element);
-			updateElementStyle(request.element);
-			markText(null);
+	ttsEventListeners.playing = function(message) {
+		if(activeRequest().selection) recolorBrowserSelection("reading");
+		if(activeRequest().element) {
+			element2ttsEvent.set(activeRequest().element,"playing");
+			updateElementStyle(activeRequest().element);
+			markText(message);
 		}
 	}
-	ttsEventListeners.loading = function(event) {
-		var request = speechRequests[event.speechId];
-		if(request.selection) recolorBrowserSelection("loading");
-		if(request.element) {
-			element2ttsEvent.set(request.element,"loading");
-			updateElementStyle(request.element);
+	ttsEventListeners.end = function(message) {
+		if(activeRequest().selection) recolorBrowserSelection(null);
+		if(activeRequest().element) {
+			element2ttsEvent.delete(activeRequest().element);
+			updateElementStyle(activeRequest().element);
 			markText(null);
 		}
+		deleteActiveRequest();
 	}
-	ttsEventListeners.playing = function(event) {
-		var request = speechRequests[event.speechId];
-		if(request.selection) recolorBrowserSelection("reading");
-		if(request.element) {
-			element2ttsEvent.set(request.element,"playing");
-			updateElementStyle(request.element);
-			markText(event);
-		}
-	}
-	ttsEventListeners.error = function(event) {
-		var request = speechRequests[event.speechId];
-		delete speechRequests[event.speechId];
-
-		if(request.selection) {
-			recolorBrowserSelection("error");
-		}
-		if(request.element) {
-			element2ttsEvent.set(request.element,"error");
-			updateElementStyle(request.element);
+	ttsEventListeners.error = function(message) {
+		if(activeRequest().selection) recolorBrowserSelection("error");
+		if(activeRequest().element) {
+			element2ttsEvent.set(activeRequest().element,"error");
+			updateElementStyle(activeRequest().element);
 			markText(null);
-			element2ttsEvent.delete(request.element);	//when user hovers over the element, the style will disappear
+			element2ttsEvent.delete(activeRequest().element);	// when pointer leaves the element, the revert style logic applies
 		}
+		deleteActiveRequest();
 	}
 
 	// ============================================= ClickToSpeech content events =============================================
@@ -139,7 +114,7 @@
 		}
 
 		if(!highlightedElement) {
-			if(anyActiveRequest()) stopReadingAndPreventScroll(keyEvent);
+			if(activeRequest()) stopReadingAndPreventScroll(keyEvent);
 			return;
 		}
 
@@ -275,7 +250,7 @@
 		//if no clickable element is hovered, return the top readable
 		return getTopReadableElement(hoveredNodes);
 	}
-	
+
 	/** @return the deepest clickable element from @param nodes */
 	function getDeepestClickableElement(nodes) {
 		for(var i=nodes.length-1; i>-1; i--) {
@@ -284,7 +259,7 @@
 		}
 		return null;
 	}
-	
+
 	function getTopReadableElement(nodes) {
 		for(var i=0; i<nodes.length; i++) {
 			var element = nodes[i];
@@ -305,11 +280,11 @@
 		if(element.classList.contains("btn")) return true;	//boostrap
 		if(element.classList.contains("kix-page-content-wrapper")) return true;	//google docs
 		if(getComputedStyle(element).cursor == "pointer") return true;	//many pages, e.g. gmail
-		
+
 		if(window.location.hostname == "mail.google.com") {
 			if(element.getAttribute("role") == "button") return true;	//gmail compose button
 		}
- 
+
 		return false;
 	}
 
@@ -327,7 +302,7 @@
 		scrollIntoView(closestReadable);
 
 		backgroundCommunicationPort.postMessage({action: "arrowPressed"});
-		
+
 		//createDivOnBoundingClientRect(closestReadable);
 	}
 
@@ -361,7 +336,7 @@
 		var result; //element,edgeOffset,onPath,relWidth,axisDist
 		var pathWidth = getPathWidth(fromRect,direction);
 		var viewRect = {top: 0,bottom: window.innerHeight,left:0,right: window.innerWidth};
-		
+
 		/** recursive function to update the result with given element (if needed) */
 		function updateResult(element) {
 			if(highlightedElement === element) return;	//already highlighted
@@ -370,7 +345,7 @@
 				for(var i=0; i<element.childNodes.length; i++) updateResult(element.childNodes[i]);
 				return;
 			}
-			
+
 			//contains text directly => compare to current result
 			var range = document.createRange();
 			range.selectNodeContents(element);
@@ -378,11 +353,11 @@
 
 			if(!isOnPage(textRect)) return;	//e.g. top left element on google for screen-readers
 			if(!isOnPath(viewRect,textRect,direction)) return;	//when stepping left|right we don't want to search elements under|above the view
-			
+
 			var edgeOffset = getEdgeOffset(fromRect,textRect,direction);
 			if(edgeOffset < 0) return;
-			
-			var onPath = isOnPath(fromRect,textRect,direction);	
+
+			var onPath = isOnPath(fromRect,textRect,direction);
 			var axisDist = getAxisDist(fromRect,textRect,direction);
 			result = closer(result,{element:element,edgeOffset:edgeOffset,onPath:onPath,axisDist:axisDist},pathWidth);
 		}
@@ -416,7 +391,7 @@
 	function hasVisibleContent(element) {
 		if(!element) return false;
 		if(!element.getBoundingClientRect) return false; //no getBoundingClientRect function: no content
- 
+
 		var style = window.getComputedStyle(element);
 		if(style["display"] === "none") return false;
 		if(style["visibility"] === "hidden") return false;
@@ -424,8 +399,8 @@
 
 		return true;
 	}
-	
-	
+
+
 	/** @return true if element is part of the page (its all edges are inside the page */
 	function isOnPage(rect) {
 		if(!rect.width || !rect.height) return false;	//e.g. google noscript element
@@ -435,7 +410,7 @@
 		if(rect.right > document.body.scrollWidth-window.pageXOffset) return false;
 		return true;
 	}
-	
+
 	/** @param direction marks a path from @param fromRect: right|left: horizontal, up|down: vertical
 	 * @return whether @param rect has any part on the selected path */
 	function isOnPath(fromRect,rect,direction) {
@@ -454,7 +429,7 @@
 		}
 		return true;
 	}
-	
+
 	/** @return offset of closest edges from @param rect1 to @param rect2 in @param direction */
 	function getEdgeOffset(rect1,rect2,direction) {
 		switch(direction) {
@@ -464,7 +439,7 @@
 			case("right"): return rect2.left - rect1.right;
 		}
 	}
-	
+
 	/** @return distance between rect1.mid->direction and rect2.mid */
 	function getAxisDist(rect1,rect2,direction) {
 		var m1 = {x:(rect1.left + rect1.right)/2, y:(rect1.top + rect1.bottom)/2};
@@ -477,23 +452,23 @@
 		}
 	}
 
-	/** @return the object considered closer 
+	/** @return the object considered closer
 	 * @param o1 o2 {element,edgeOffset,onPath,relWidth,axisDist}
 	 * priority: onPath>edgeOffset>axisDist*/
 	function closer(o1,o2,pathWidth) {
 		if(!o1) return o2;
 		if(!o2) return o1;
-		
+
 		//pathWidth: the wider the element (perpendicular to direction) is, the more weight onPath has
 		var weightedDist1 = o1.edgeOffset/100 + o1.axisDist/1000 - (o1.onPath?pathWidth:0);
 		var weightedDist2 = o2.edgeOffset/100 + o2.axisDist/1000 - (o2.onPath?pathWidth:0);
-		
+
 		return (weightedDist1 < weightedDist2)?o1:o2;
 	}
-	
+
 	function scrollIntoView(element) {
 		var scroll = {x:0,y:0};
-		
+
 		var rect = element.getBoundingClientRect();
 		if(rect.top < 0) scroll.y += rect.top;
 		if(rect.bottom > window.innerHeight) scroll.y += rect.bottom-window.innerHeight;
@@ -506,13 +481,13 @@
 		}
 	}
 	var lastScroll = 0;	//time of last scrolling caused by stepping (to prevent unnecessary onMouseMove event)
-	
+
 	/** when using the arrow keys and we step out of the view, there is an automatic scrolling, which fires a mousemove event
 	 * @return true if the mouseMove event is beause of the automatic scrolling */
 	function isAutomaticScrollingRecent() {
 		return (Date.now() - lastScroll) < 500;	//the usual value is around 100ms
 	}
-	
+
 	//created for debugging
 	var div = null;
 	function createDivOnBoundingClientRect(rect) {
@@ -541,7 +516,7 @@
 		updateElementStyle(highlightedElement);
 	}
 	var highlightedElement;
-	
+
 	/** @return true if @param element is an input area*/
 	function isInputElement(element) {
 		if(element) {
@@ -555,12 +530,12 @@
 	/** @return true if element has any textNode direct children */
 	function containsReadableTextDirectly(element) {
 		if(isInputElement(element)) return false;	//not readable element
-	
+
 		//check all nodes of the element - if any node is text + contains actual text (not only whitespaces or brackets) we return true
 		for(var i=0; i<element.childNodes.length; i++) {
 			var child = element.childNodes[i];
 			if(child.nodeType != Node.TEXT_NODE) continue;	//this is not a text node, continue searching
-			
+
 			var text = child.nodeValue;
 			if(! /\S/.test(text)) continue;	//text doesn't contain non-white space character
 			if(! /[^\[\]]/.test(text)) continue; //this is quite usual on wikipedia
@@ -568,11 +543,11 @@
 		}
 		return false;
 	}
-	
+
 	/** @return true if elements contains anything else then text nodes (even indirectly) */
 	function containsNonText(element) {
 		if(!element.childNodes.length) return true;
-		
+
 		if(window.location.hostname == "www.facebook.com") {
 			if(element.classList.contains("jewelButton")) return true;	//fb friend requests, messages, notifications
 		}
@@ -596,17 +571,17 @@
 	function updateElementStyle(element) {
 		if(!element) return;
 		saveOriginal(element);
-		
+
 		var status = getElementStatus(element);
 		if(!status) {
 			revertStyle(element);
 			return;
 		}
-		
+
 		element.style["-webkit-transition"] = "background .2s, background-color .2s, color .2s";	//'background' transition doesn't seem to work
 		element.style["background"] = "none";
 		element.style["color"] = "black";
-		
+
 		var backgroundColor;
 		switch(status) {
 			case("highlighted-nonclickable"):
@@ -643,7 +618,7 @@
 			result.push("highlighted");
 			result.push(isClickable(element)?"clickable":"nonclickable");
 		}
-		
+
 		var ttsEvent = element2ttsEvent.get(element);
 		if(ttsEvent) result.push(ttsEvent);
 		return result.join("-");
@@ -658,7 +633,7 @@
 		window.setTimeout(function() {
 			//if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
 			if(getElementStatus(element)) return;
-			
+
 			//otherwise we do, and also remove the original for given element
 			element.style["-webkit-transition"] = original.transition;
 			element2original.delete(element);
@@ -682,12 +657,13 @@
 	/** changes the color of the selections in future
 	 * @param state loading|reading|error defines the color to use */
 	function setStyleOfFutureBrowserSelect(state) {
+		console.log("set selection style: " + state);
 		var cssToSet = browserSelectCss[state] || "";
 		if(cssToSet) getStyleElement().innerHTML = cssToSet;
 		else removeStyleElement();
 	}
 
-	/** changes the color of the current selection 
+	/** changes the color of the current selection
 	 * @param state loading|reading|error defines the color to use */
 	function recolorBrowserSelection(state) {
 		var cssToSet = browserSelectCss[state];
@@ -742,23 +718,31 @@
 	browserSelectCss.error = "*::selection {background-color:#fbb !important; color:black !important;}";
 	browserSelectCss.marker = "*::selection {background-color:#88f !important; color:black !important;}";
 
-	// ============================================= speechRequests NEEEEEEEW =============================================
-	// id: {element,textNodes | selection}
-	var speechRequests = {};
+	// ============================================= speechRequests =============================================
+
+	/* there may be any number of speech requests from 1 content script
+	 * the 2+th requests are acive until the previous requests end is received
+	 * techincally its always 2 requests, 1 active, and the 2nd active until end event received from background */
+
+	var speechRequests = [];	// array of {element,textNodes | selection}
 
 	/** sends read message with content of element or selection
-	 * @param c.element | c.selection added to speechRequests
+	 * @param c.element | c.selection is added to speechRequests
 	 * @param c.source is used for analytics */
 	function requestSpeech(c) {
 		var text = textFromRequest(c);
+		backgroundCommunicationPort.postMessage({action:"read", text:text, lan:document.documentElement.lang, source:c.source});
 
-		var speechId = Date.now();	//unique enough
-		while(speechRequests[speechId]) {
-			speechId *= 10;	//sometimes 2 requests are sent within 1 millisec - TODO understand why
+		var request = c.selection ? {selection:c.selection} : {element:c.element, textNodes:getTextNodes(c.element)}
+		speechRequests.push(request);
+
+		// loading animations
+		if(request.selection) recolorBrowserSelection("loading");
+		if(request.element) {
+			element2ttsEvent.set(request.element,"loading");
+			updateElementStyle(request.element);
+			markText(null);
 		}
-
-		backgroundCommunicationPort.postMessage({action:"read", speechId:speechId, text:removeSpecialCharacters(text), lan:document.documentElement.lang, source:c.source});
-		speechRequests[speechId] = c.selection ? {selection:c.selection} : {element:c.element, textNodes:getTextNodes(c.element)}
 	}
 
 	function textFromRequest(c) {
@@ -767,35 +751,21 @@
 		return "";
 	}
 
-	function anyActiveRequest() {
-		for(var id in speechRequests) {
-			return true;
-		}
-		return false;
+	// returns the first submitted request
+	function activeRequest() {
+		return speechRequests[0];
 	}
 
-	/** return whether speechId was requested within this content script */
-	function speechRequestedHere(speechId) {
-		return (speechId in speechRequests);
-	}
-
-	/** TODO this should go the background-page */
-	function removeSpecialCharacters(text) {
-		//replace newlines to spaces (for correct iSpeech marker behavior)
-		//Google Docs support (200B character)
-		//replace curly quotes to normal ones
-		return text.replace(/\r?\n|\r/g, " ").replace(/[\u200B]/g, " ").replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+	function deleteActiveRequest() {
+		speechRequests.shift();
 	}
 
 	// ============================================= read =============================================
-	
+
 	/** reads text of hovered element */
 	function readHovered() {
-		if(isClickable(highlightedElement)) {
-			requestSpeech({element:null, source:"hoveredClickableClick"});
-			return;
-		}
-		requestSpeech({element:highlightedElement, source:"hoveredClick"});
+		if(isClickable(highlightedElement)) requestSpeech({element:null, source:"hoveredClickableClick"})
+		else requestSpeech({element:highlightedElement, source:"hoveredClick"});
 	}
 
 	/** reads highlighted text + prevents scrolling */
@@ -823,7 +793,7 @@
 	/** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
 	 * if no reading, neither highlight => nothing*/
 	function stopReadingOrRevertHighlight(keyEvent) {
-		if(anyActiveRequest()) {
+		if(activeRequest()) {
 			requestSpeech({source:"esc"});
 			keyEvent.stopPropagation();
 			return;
@@ -922,7 +892,7 @@
 
 	/** @return range between @param c.startOffset and @param c.endOffset */
 	function getRangeForMarker(c) {
-		var textNodes = speechRequests[c.speechId].textNodes;
+		var textNodes = activeRequest().textNodes;
 
 		var start = getNodeAndOffsetOfAbsoluteOffset(textNodes, c.startOffset);
 		var end = getNodeAndOffsetOfAbsoluteOffset(textNodes, c.endOffset);
@@ -975,7 +945,7 @@
 	}
 
 	// ============================================= destroy =============================================
-	
+
 	function destroy() {
 		console.log("removing ClickToSpeech content script");
 		window.clickToSpeechContentScriptLoaded = false;

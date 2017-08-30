@@ -9,15 +9,12 @@ body {display: inline-block;}	/* so the size of the popup matches the size of it
 	border: 2px solid black;
 	-webkit-border-radius: 0.4em;
 	padding:.1em .2em;
+	font-size: 400%;
 }
 
 .button:hover {
 	background-color:#00ff00;
 }
 
-#onOffButton {
-	font-size: 400%;
-}
-
-#onOffButton.ttsOn {background-color:#fff;}
-#onOffButton.ttsOn:hover {background-color:#f00;}
+.button.ttsOn {background-color:#fff;}
+.button.ttsOn:hover {background-color:#f00;}

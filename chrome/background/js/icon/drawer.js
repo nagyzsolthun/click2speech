@@ -1,79 +1,77 @@
-/**draws the icon - the look depends on the volume of playing and the status (on/off) */
-define(['icon/mainLayerDrawer', 'icon/loadingLayerDrawer', 'icon/pointerLayerDrawer']
-,function(mainLayerDrawer, loadingLayerDrawer, pointerLayerDrawer) {
-	var canvas;
-	var animating = false;
+import * as mainLayerDrawer from "./mainLayerDrawer";
+import * as loadingLayerDrawer from "./loadingLayerDrawer";
+import * as pointerLayerDrawer from "./pointerLayerDrawer";
 
-	/** calls the layers render() function with the current time until they all finish */
-	function render() {
-		animating = true;
-		canvas.width = canvas.width;
-		var finished = true;
-		finished &= mainLayerDrawer.render(Date.now());
-		finished &= loadingLayerDrawer.render(Date.now());
-		finished &= pointerLayerDrawer.render(Date.now());
-		onRenderFinished();
-		if(! finished) window.setTimeout(function() {render()}, 10)
-		else animating = false;
-	}
+var onRenderFinished;
+function setOnRenderFinished(callback) {
+    onRenderFinished = callback;
+}
+function setCanvas(canv) {
+    canvas = canv;
+    mainLayerDrawer.setCanvas(canvas);
+    loadingLayerDrawer.setCanvas(canvas);
+    pointerLayerDrawer.setCanvas(canvas);
+}
+function drawTurnedOn() {
+    mainLayerDrawer.setOn();
+    loadingLayerDrawer.setOff();
+    pointerLayerDrawer.setOn();
+    animate();
+}
+function drawTurnedOff() {
+    mainLayerDrawer.setOff();
+    loadingLayerDrawer.setOff();
+    pointerLayerDrawer.setOn();
+    animate();
+}
+function drawPlaying() {
+    mainLayerDrawer.setPlaying();
+    loadingLayerDrawer.setOff();
+    pointerLayerDrawer.setOn();
+    animate();
+}
+function drawLoading() {
+    mainLayerDrawer.setLoading();
+    loadingLayerDrawer.setOn();
+    pointerLayerDrawer.setOff();
+    animate();
+}
+function drawError() {
+    loadingLayerDrawer.setOff();
+    mainLayerDrawer.setError();
+    mainLayerDrawer.animateError();
+    pointerLayerDrawer.setOn();
+    animate();
+}
+function drawInteraction() {
+    mainLayerDrawer.animateInteraction();
+    animate();
+}
 
-	/* starts iteration of rendering - if not already started */
-	function animate() {
-		if(! animating) render();
-	}
-	
-	//================================================= public =================================================
-	/** the object to be returned */
-	var drawer = {
-		set canvas(cnv) {
-			canvas = cnv;
-			mainLayerDrawer.canvas = canvas;
-			loadingLayerDrawer.canvas = canvas;
-			pointerLayerDrawer.canvas = canvas;
-		}
-		,set onRenderFinished(callback) {onRenderFinished = callback;}
-	}
-	
-	drawer.drawTurnedOn = function() {
-		mainLayerDrawer.setOn();
-		loadingLayerDrawer.setOff();
-		pointerLayerDrawer.setOn();
-		animate();
-	}
-	
-	drawer.drawTurnedOff = function() {
-		mainLayerDrawer.setOff();
-		loadingLayerDrawer.setOff();
-		pointerLayerDrawer.setOn();
-		animate();
-	}
-	
-	drawer.drawPlaying = function() {
-		mainLayerDrawer.setPlaying();
-		loadingLayerDrawer.setOff();
-		pointerLayerDrawer.setOn();
-		animate();
-	}
-	
-	drawer.drawLoading = function() {
-		mainLayerDrawer.setLoading();
-		loadingLayerDrawer.setOn();
-		pointerLayerDrawer.setOff();
-		animate();
-	}
-	
-	drawer.drawError = function() {
-		loadingLayerDrawer.setOff();
-		mainLayerDrawer.setError();
-		mainLayerDrawer.animateError();
-		pointerLayerDrawer.setOn();
-		animate();
-	}
-	
-	drawer.drawInteraction = function() {
-		mainLayerDrawer.animateInteraction();
-		animate();
-	}
+export { setOnRenderFinished, setCanvas, drawTurnedOn, drawTurnedOff, drawPlaying, drawLoading, drawError, drawInteraction }
 
-	return drawer;
-});
+var canvas;
+var animating = false;
+var onRenderFinished = () => {};
+
+// calls render() on each layer, repeats until all layers finsihed animation
+function render() {
+    animating = true;
+    canvas.width = canvas.width;
+    var now = Date.now();
+    var mainLayerFinished = mainLayerDrawer.render(now);
+    var loadingLayerFinished = loadingLayerDrawer.render(now);
+    var pointerLayerFinished = pointerLayerDrawer.render(now);
+    var allLayersFinished = mainLayerFinished && loadingLayerFinished && pointerLayerFinished;
+    if(allLayersFinished) {
+        animating = false;
+    } else {
+        window.setTimeout(() => render(), 10);
+    }
+    onRenderFinished();
+}
+
+// starts iteration of rendering - if not already started
+function animate() {
+    if(!animating) render();
+}

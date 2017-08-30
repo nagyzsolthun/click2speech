@@ -1,91 +1,121 @@
-/** provides functions to split a text in a way that it ends at end of sentence, at comma, or end of word */
-define(function() {
-	var splitter = {};
+const SENTENCE_DELMITERS = [ /\.\s+/, /\?\s+/, /\!\s+/ ];
+const INSENTENCE_DELMITERS = [ /\;\s+/, /\,\s+/, /\s+/ ];
 
-	/** @return array of strings, that match requreiments specified in @param c.testLength
-	 * @param c.text
-	 * @param c.testLength callback(startIndex,endIndex), returns true if text between given indecies matches tts requirements, returns false otherwise */
-	splitter.split = function(c) {
-		var result = [];
-		var splitIndecies = getSplitIndecies(c);
-		for(var i=0; i<splitIndecies.length-1; i++) {
-			result.push(c.text.substring(splitIndecies[i], splitIndecies[i+1]));
-		}
-		return result;
+/** @return array of strings, that match requreiments specified in @param testLength
+ * @param {string} text - the text to split
+ * @param {function(string):boolean} testLength - test whether text matches tts restrictions on length */
+function split(text, testLength) {
+	var result = [];
+	splitToSentences(text)
+		.map(sentence => splitSentence(sentence, testLength))
+		.forEach(part => result = result.concat(part));
+	return result;
+}
+
+/** @return whether given text is one array or not */
+function isSentence(text) {
+    var splitIndecies = sentenceSplitIndecies(text+" ");    // sentnece may end with .
+    if(splitIndecies.length > 1) {
+        return false;
+    }
+    if(splitIndecies[0] != text.length+1) { // comensate extra space
+        return false;
+    }
+    return true;
+}
+
+function nextSentenceEnd(text, position) {
+    var splitIndecies = sentenceSplitIndecies(text);
+    for(var i=0; i<splitIndecies.length; i++) {
+        var splitInex = splitIndecies[i];
+        if(splitInex > position) {
+            return splitInex;
+        }
+    }
+    return text.length;
+}
+
+function splitToSentences(text) {
+	var splitIndecies = sentenceSplitIndecies(text);
+	return splitText(text, splitIndecies);
+}
+
+function sentenceSplitIndecies(text) {
+	var splitIndecies = [];
+	SENTENCE_DELMITERS
+		.map(delimiter => calcSplitIndecies(text, delimiter))
+		.forEach(indecies => splitIndecies = splitIndecies.concat(indecies));
+	splitIndecies.sort((a,b) => a-b);
+	return splitIndecies;
+}
+
+function splitText(text, splitIndecies) {
+	var result = [];
+	var indeciesWithStartEnd = [0].concat(splitIndecies);
+	indeciesWithStartEnd.push(text.length);
+	for(var i=0; i<indeciesWithStartEnd.length-1; i++) {
+		var start = indeciesWithStartEnd[i];
+		var end = indeciesWithStartEnd[i+1];
+		result.push(text.substring(start,end));
+	}
+	return result;
+}
+
+function splitSentence(sentence, testLength) {
+	if(testLength(sentence)) {
+		return [sentence];
 	}
 
-	/** @return array of indecies marking begenning+end of substrings passing test, devided at reasonable points (sentence-end, comma, space)
-	 * @note contains 0 and end of text position, too */
-	function getSplitIndecies(c) {
-		var result = [];
-		var delimiterEndIndecies = getDelimiterEndIndecies(c.text);
+	var result = [];
+	var remaining = sentence;
+	while(remaining.length) {
+		var splitIndex = calcHighestValueSplitIndex(remaining, testLength);
+		result.push(remaining.substring(0,splitIndex));
+		remaining = remaining.substring(splitIndex);
+	}
+	return result;
+}
 
-		var currentSplitIndex = 0;
-		result.push(currentSplitIndex);
-
-		while(currentSplitIndex != c.text.length) {
-			currentSplitIndex = getNextSplitIndex({delimiterEndIndecies:delimiterEndIndecies, currentSplitIndex:currentSplitIndex, testLength:c.testLength});
-			result.push(currentSplitIndex);
+// find first delimiter that can be used (the highest value delimiter)
+function calcHighestValueSplitIndex(text, testLength) {
+	for(var i=0; i<INSENTENCE_DELMITERS.length; i++) {
+		var splitIndex = calcHighestSplitIndex(text, INSENTENCE_DELMITERS[i], testLength);
+		if(splitIndex) {
+			return splitIndex;
 		}
-		return result;
 	}
 
-	/** @return the next split index
-	 * @param c.delimiterEndIndecies
-	 * @param c.currentSplitIndex
-	 * @param c.testLength
-	 * @note returns end of string too */
-	function getNextSplitIndex(c) {
-		for(var i=0; i<DELIMITERS.length; i++) {
-			var delimiter = DELIMITERS[i];
-			var endIndecies = c.delimiterEndIndecies[delimiter];
-			var highestPassingIndex = getHighestPassingIndex({endIndecies:endIndecies,currentSplitIndex:c.currentSplitIndex,testLength:c.testLength});
-			if(highestPassingIndex > -1) return highestPassingIndex;
+	// no match (aka very long word)
+	for(var i=text.length-1; i>=0; i--) {
+		var part = text.substring(0,i);
+		if(testLength(part)) {
+			return i;
 		}
-
-		//no passing result when split by regex - lets check character-by-character increased index
-		var index = currentSplitIndex+1;
-		while(c.testLength(currentSplitIndex,index)) {
-			index++;
-		}
-		return index;
 	}
 
-	/** @return the highest delimiter-end index higher than @param c.currentSplitIndex, that passes @param c.testLength, or -1 if none found
-	 * @param c.endIndecies */
-	function getHighestPassingIndex(c) {
-		var result = -1;
-		for(var i=0; i<c.endIndecies.length; i++) {
-			var endIndex = c.endIndecies[i];
-			if(endIndex <= c.currentSplitIndex) continue;
-			if(c.testLength(c.currentSplitIndex,endIndex)) result = endIndex;
-			else break;
+	return -1;	// TODO throw exception
+}
+
+function calcHighestSplitIndex(text, delimiter, testLength) {
+	var indecies = calcSplitIndecies(text, delimiter);
+	indecies.push(text.length);
+	for(var i=indecies.length-1; i>=0; i--) {
+		var index = indecies[i];
+		if(testLength(text.substring(0,index))) {
+			return index;
 		}
-		return result;
 	}
+	return 0;
+}
 
-	const DELIMITERS = [ /\.\s+/g, /\?\s+/g, /\!\s+/g, /\;\s+/g, /\,\s+/g, /\s+/g];
-
-	/** @return map of delimiter->matchEndArr */
-	function getDelimiterEndIndecies(text) {
-		var result = {};
-		DELIMITERS.forEach(function(delimiter) {
-			var delimiterEndIndecies = getEndIndecies(text,delimiter);
-			result[delimiter] = delimiterEndIndecies;
-		});
-		return result;
+function calcSplitIndecies(text, delimiter) {
+	var splitIndecies = [];
+    var regex = new RegExp(delimiter.source, "g");  // directly using delimiters would modify their state (lastIndex)
+    var match;
+	while(match = regex.exec(text)) {
+		splitIndecies.push(regex.lastIndex);
 	}
+	return splitIndecies;
+}
 
-	/** @return array of ends of @param delimiter matches in @param text*/
-	function getEndIndecies(text,delimiter) {
-		var result = [];
-		var match;
-		while(match = delimiter.exec(text)) {
-			result.push(delimiter.lastIndex);
-		}
-		result.push(text.length);	//note: otherwise end of text is not marked with delimiter, infinte loop..
-		return result;
-	}
-	
-	return splitter;
-});
+export { split, isSentence, nextSentenceEnd };

@@ -1,1 +1,5 @@
 *.directory
+build-extension/*
+build-test/*
+chrome/node_modules/*
+npm-debug.log
