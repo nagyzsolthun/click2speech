@@ -39,7 +39,8 @@ var manifest = {
 		"16": "img/iconOn32.png",
 		"128": "img/icon64.png"
 	},
-	"content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'"
+	"minimum_chrome_version": "47",	// i18n.detectLanguage
+	"content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'"	// Google Anyltics
 }
 
 console.log(JSON.stringify(manifest,null,2))
