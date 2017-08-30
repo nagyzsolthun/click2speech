@@ -34,7 +34,7 @@ function HttpSpeech(text,buildUrl,testLength,speed) {
 		return this;
 	}
 	this.onError = function(callback) {
-		errorCallback = () => {cleanUp(); callback();};
+		errorCallback = (startIndex) => {cleanUp(); callback(startIndex);};
 		return this;
 	}
 
@@ -61,6 +61,8 @@ function HttpSpeech(text,buildUrl,testLength,speed) {
         else addAudioEventListener(audioIndex, "playing", () => prepareAudio(audioIndex+1));	// TODO loading time?
 
 		if(!isFirstAudio(audioIndex)) addAudioEventListener(audioIndex-1, "ended", () => audio.play());
+
+        addAudioEventListener(audioIndex, "error", () => errorCallback(startIndex(audioIndex)));
 	}
 
 	// add listener to audio and to internal collection for cleanUp
@@ -120,8 +122,9 @@ function HttpSpeech(text,buildUrl,testLength,speed) {
                 var listeners = eventToListeners[event];
                 listeners.forEach(listener => audio.removeEventListener(event,listener));
             }
-			audio.src = "";
+			audio.pause();   // audio.src = "" => errorCallback when ended
 		});
+        audioArr = [];
 	}
 }
 

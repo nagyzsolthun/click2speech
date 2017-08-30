@@ -28,6 +28,7 @@ function MockAudio(url) {
 			eventListeners.forEach(listener => listener());
 		}
 	}
+	this.pause = function() {};
 }
 MockAudio.clearInstances = function() {
     MockAudio.instances = [];

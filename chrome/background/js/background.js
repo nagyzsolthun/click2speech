@@ -24,7 +24,7 @@ messageListeners.read = (request,port) => {
 	if(!request.text) {
 		iconDrawer.drawTurnedOn();	// show on-status after interaction animation (removes error color)
 		chrome.tts.stop();
-		notifyContent({type:"end"}, port);	// empty speech request ends right away
+		notifyContent(port, {type:"end"});	// empty speech request ends right away
 		scheduleAnalytics('tts-read', 'tts', 'stop', 'stop-'+request.source);	//schedule so browserSelect double+triple click counts as one
 		return;
 	}
@@ -44,7 +44,7 @@ messageListeners.read = (request,port) => {
 		if(event.type == "error") rejectVoice(voiceName);
 	};
 	const onNoMatchingVoice = () => {
-		notifyContent({type:"error"}, port);
+		notifyContent(port, {type:"error"});
 		iconDrawer.drawError();
 	};
 
@@ -76,7 +76,7 @@ function pauseResume() {
 }
 
 // ===================================== outgoing messages to content =====================================
-function notifyContent(port,chromeTtsEvent,text) {
+function notifyContent(port, chromeTtsEvent, text) {
 	const contentNofifier = ttsEventToContentNotifier[chromeTtsEvent.type];
 	if(contentNofifier) contentNofifier(port, chromeTtsEvent, text);
 }

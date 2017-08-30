@@ -8,6 +8,7 @@ function speakListener(utterance, options, sendTtsEvent) {
         .onStart(() => sendTtsEvent({'type':'start', 'charIndex': 0}))
         .onSentence((charIndex) => sendTtsEvent({'type':'sentence', 'charIndex': charIndex}))
         .onEnd(() => sendTtsEvent({'type': 'end', 'charIndex': utterance.length}))
+        .onError(charIndex => sendTtsEvent({'type': 'error', 'charIndex': charIndex}));
     speech.play();
 }
 
