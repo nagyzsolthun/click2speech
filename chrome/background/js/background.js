@@ -97,16 +97,15 @@ ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", e
 // ===================================== settings =====================================
 
 chrome.storage.local.get(null, items => {
-	//if(items.version) drawIcon(items.turnedOn);
-	populateDefaultSettings();
+	if(items.hasOwnProperty("turnedOn")) drawIcon(items.turnedOn);
+	else populateDefaultSettings();
 });
 
 function populateDefaultSettings() {
 	getDefaultVoiceName().then((voice) => {
 		sendAnalytics('settings','setup','defaults-' + chrome.app.getDetails().version);
 		chrome.storage.local.set({
-			version: chrome.app.getDetails().version
-			,turnedOn: true
+			turnedOn: true
 			,preferredVoice: voice
 			,speed: 1.2
 			,hoverSelect: true
@@ -117,18 +116,24 @@ function populateDefaultSettings() {
 }
 
 chrome.storage.onChanged.addListener(changes => {
-	var turnedOnChange = changes.turnedOn;
-	if(changes.turnedOn && changes.turnedOn.newValue) {
-		iconDrawer.drawTurnedOn()
+	for(var setting in changes) {
+		if(setting == "turnedOn") handleOnOffEvent(changes.turnedOn.newValue);
+		if(changes[setting].oldValue !== undefined) scheduleAnalytics('set'+setting, 'settings','set', setting+':'+changes[setting].newValue);	// no analytics when default
 	}
-	if(changes.turnedOn && !changes.turnedOn.newValue) {
+	chrome.storage.local.get(null, settings =>
+		ports.forEach(port =>
+			port.postMessage({action:"updateSettings", settings:settings})
+	));
+});
+
+function handleOnOffEvent(turnedOn) {
+	if(turnedOn) {
+		iconDrawer.drawTurnedOn()
+	} else {
 		chrome.tts.stop();
 		iconDrawer.drawTurnedOff();
 	}
-	for(var setting in changes) {
-		scheduleAnalytics('set'+setting, 'settings','set',setting+':'+changes[setting].newValue);
-	}
-});
+}
 
 // ===================================== icon =====================================
 
