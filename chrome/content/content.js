@@ -25,7 +25,8 @@
 	// ============================================= turn on / off =============================================
 	var settings = {};	//current settings
 
-	function turnOnOff(newSettings) {
+	function refresh(newSettings) {
+		if(!settings.hoverSelect && !settings.arrowSelect) setHighlighted(null);
 		if(settings.turnedOn) turnOn();	//its OK if its called many times
 		else turnOff();
 	}
@@ -62,8 +63,10 @@
 	var backgroundEventListeners = {};
 
 	backgroundEventListeners.updateSettings = function(message) {
-		for(var setting in message.settings) settings[setting] = message.settings[setting];
-		turnOnOff();
+		for(var setting in message.settings) {
+			settings[setting] = message.settings[setting];
+		}
+		refresh();
 	}
 
 	backgroundEventListeners.ttsEvent = function(message) {
@@ -75,7 +78,7 @@
 	// ============================================= tts events =============================================
 	var ttsEventListeners = {};
 	ttsEventListeners.playing = function(message) {
-		if(activeRequest().selection) recolorBrowserSelection("reading");
+		if(browserSelectionRequested()) recolorBrowserSelection("reading");
 		if(activeRequest().element) {
 			element2ttsEvent.set(activeRequest().element,"playing");
 			updateElementStyle(activeRequest().element);
@@ -83,7 +86,7 @@
 		}
 	}
 	ttsEventListeners.end = function(message) {
-		if(activeRequest().selection) recolorBrowserSelection(null);
+		if(browserSelectionRequested()) recolorBrowserSelection(null);
 		if(activeRequest().element) {
 			element2ttsEvent.delete(activeRequest().element);
 			updateElementStyle(activeRequest().element);
@@ -92,7 +95,7 @@
 		deleteActiveRequest();
 	}
 	ttsEventListeners.error = function(message) {
-		if(activeRequest().selection) recolorBrowserSelection("error");
+		if(browserSelectionRequested()) recolorBrowserSelection("error");
 		if(activeRequest().element) {
 			element2ttsEvent.set(activeRequest().element,"error");
 			updateElementStyle(activeRequest().element);
@@ -100,6 +103,13 @@
 			element2ttsEvent.delete(activeRequest().element);	// when pointer leaves the element, the revert style logic applies
 		}
 		deleteActiveRequest();
+	}
+
+	// return if the current selection is the one that has been requested
+	function browserSelectionRequested() {
+		const requestSelectionRanges = activeRequest().selection;
+		const browserSelectionRanges = getSelectionRanges();
+		return areSameRanges(requestSelectionRanges, browserSelectionRanges);
 	}
 
 	// ============================================= ClickToSpeech content events =============================================
@@ -127,13 +137,13 @@
 	}
 
 	function onSelectingMouseMove() {
+		if(!isUserTyping()) return;
 		setStyleOfFutureBrowserSelect(settings.browserSelect ? "selecting" : null);	//null: to remove style of markers
 		if(settings.hoverSelect) setHighlighted(null);
 	}
 
 	function onNonSelectingMouseMove() {
-		if(settings.hoverSelect) highlightHoveredElement();
-		if(!settings.hoverSelect && !settings.arrowSelect) setHighlighted(null);	//turn off setting while highlight active
+		if(settings.hoverSelect) setHighlighted(recentMouseUp() ? null : getHoveredElement());	// recentMouseUp checked to wait after browserSelect
 	}
 
 	function onSelectingMouseUp() {
@@ -173,7 +183,8 @@
 	}
 	browserEventListeners.mousemove = function() {
 		if(isAutomaticScrollingRecent()) return;
-		checkBrowserSelect(onSelectingMouseMove, onNonSelectingMouseMove);
+		if(isMouseButtonBeingPressed()) onSelectingMouseMove();
+		else onNonSelectingMouseMove();
 	}
 	browserEventListeners.keydown = function(event) {
 		switch(event.keyCode) {
@@ -211,33 +222,44 @@
 
 	/** @param selectingCallback is called in case selecting is happening
 	 * @param nonSelectingCallback is called in case selecting is NOT happening
-	 * we use callbacks because result of getSelection() is only consistent if the check is shceduled*/
-	function checkBrowserSelect(selectingCallback, nonSelectingCallback) {
-		window.setTimeout(function() {
-			if(isBrowserSelecting()) selectingCallback();
-			else nonSelectingCallback();
-		},0);
+	 * we use callbacks because result of getSelection() is only consistent if the check is shceduled */
+	function checkBrowserSelect(onSelect, onNoSelect) {
+		window.setTimeout(() => {
+			if(isBrowserSelect()) onSelect();
+			else onNoSelect();
+		});
 	}
 
-	/** selecting means: getSelection() returns something (thats not the marked text) + mouse button being pressed or mouseUp happened recently */
-	function isBrowserSelecting() {
-		if(!getSelection().toString()) return false;	//no text is selected => user is not selecting anything
-		if(isSelectionTheMarkedRange()) return false;	//selection is just the marked text
-		if(isMouseButtonBeingPressed()) return true;	//this is important when checking on mouseMove
-		if(recentMouseUp()) return true;	//checking isSelecting on mouseUp + no hover right after selecting is over
-		return false;
+	// selected means: selection contains something + selection is not the marked text0
+	function isBrowserSelect() {
+		if(isSelectionEmpty()) return false;
+
+		// markers - selection same as marker is not considered browserSelect
+		if(isSelectionMoreRanges()) return true;	// marker is always 1 range
+		return ! isSameRange(getSelectionRange(), markedRange);
+	}
+
+
+	function isSelectionEmpty() {
+		var selection = window.getSelection();
+		if(selection.rangeCount == 0) return true;
+
+		var range = selection.getRangeAt(0);
+		return isRangeEmpty(range);
+	}
+
+	function isSelectionMoreRanges() {
+		return window.getSelection().rangeCount > 1;
+	}
+
+	function isRangeEmpty(range) {
+		return (range.startContainer == range.endContainer && range.startOffset == range.endOffset);
 	}
 
 	function isMouseButtonBeingPressed() {return mouseUpTime < mouseDownTime;}
 	function recentMouseUp() {return Date.now() - 300 < mouseUpTime;}
 
 	// ============================================= hovered =============================================
-
-	/** highlights the element under mouse pointer */
-	function highlightHoveredElement() {
-		var element = getHoveredElement();
-		setHighlighted(element);
-	}
 
 	/** @return the element to highlight when hovered paragraph is set */
 	function getHoveredElement() {
@@ -657,7 +679,6 @@
 	/** changes the color of the selections in future
 	 * @param state loading|reading|error defines the color to use */
 	function setStyleOfFutureBrowserSelect(state) {
-		console.log("set selection style: " + state);
 		var cssToSet = browserSelectCss[state] || "";
 		if(cssToSet) getStyleElement().innerHTML = cssToSet;
 		else removeStyleElement();
@@ -678,11 +699,33 @@
 		var selection = window.getSelection();
 		if(selection.rangeCount < 1) return;	//when clicking on empty area while loading
 
-		var range = selection.getRangeAt(0);
-		selection.removeAllRanges();
+		const ranges = getSelectionRanges();
 		window.setTimeout(function() {
-			if(selection.toString() === "") selection.addRange(range);	//make sure that no selection happened in this 50 millisec
+			if(areSameRanges(ranges, getSelectionRanges())) {	// check if selection changed while schedule
+				selection.removeAllRanges();
+				ranges.forEach(range => selection.addRange(range));
+			}
 		}, 50);	//css changes take effect later
+	}
+
+	function getSelectionRanges() {
+		const selection = window.getSelection();
+		if(!selection) return null;
+
+		const result = [];
+		for(var i=0; i<selection.rangeCount; i++) {
+			result.push(selection.getRangeAt(i));
+		}
+		return result;
+	}
+
+	function areSameRanges(ranges1,ranges2) {
+		if(!ranges1 || !ranges2) return false;
+		if(ranges1.length != ranges2.length) return false;
+		for(var i=0; i<ranges1.length; i++) {
+			if(!isSameRange(ranges1[i], ranges2[i])) return false;
+		}
+		return true;
 	}
 
 	function getStyleElement() {
@@ -727,14 +770,18 @@
 	var speechRequests = [];	// array of {element,textNodes | selection}
 
 	/** sends read message with content of element or selection
-	 * @param c.element | c.selection is added to speechRequests
+	 * @param c.element | c.selection:Array<Range> is added to speechRequests
 	 * @param c.source is used for analytics */
 	function requestSpeech(c) {
-		var text = textFromRequest(c);
+		const text = textFromRequest(c);
 		backgroundCommunicationPort.postMessage({action:"read", text:text, lan:document.documentElement.lang, source:c.source});
 
-		var request = c.selection ? {selection:c.selection} : {element:c.element, textNodes:getTextNodes(c.element)}
+		const request = c.selection ? {selection:c.selection} : {element:c.element};
+		if(c.element) request.textNodes = getTextNodes(c.element);
 		speechRequests.push(request);
+
+		// remove browserSelect style if stop
+		if(!text) setStyleOfFutureBrowserSelect(null);
 
 		// loading animations
 		if(request.selection) recolorBrowserSelection("loading");
@@ -745,9 +792,9 @@
 		}
 	}
 
-	function textFromRequest(c) {
-		if(c.selection) return getSelection().toString();
-		if(c.element) return c.element.textContent;
+	function textFromRequest(request) {
+		if(request.selection) return request.selection.join('');
+		if(request.element) return request.element.textContent;
 		return "";
 	}
 
@@ -782,7 +829,7 @@
 
 	/** reads the text provided by browserSelect */
 	function readBrowserSelected() {
-		requestSpeech({selection:true, source:"browserSelect"});
+		requestSpeech({selection:getSelectionRanges(), source:"browserSelect"});
 	}
 
 	/** stops reading + sets source as "browserSelected" */
@@ -805,6 +852,9 @@
 	}
 
 	// ============================================= marker event =============================================
+
+	var markedRange = null;
+
 	/** selects text between @param c.startOffset and @param c.endOffset indecies if matches @param c.text */
 	function markText(c) {
 
@@ -815,7 +865,7 @@
 		}
 
 		//check if no selection happened since
-		if(!isSelectionTheMarkedRange()) {
+		if(isBrowserSelect()) {
 			markedRange = null;
 			return;	//browserSelect style not set - I assume it was set by onSelectingMouseMouve|Up TODO what if JS selects text?
 		}
@@ -844,43 +894,21 @@
 		setStyleOfFutureBrowserSelect("marker");
 		selectRange(range);	//check if the textNodes didnt change since read request TODO test
 	}
-	var markedRange = null;
-
-	function isSelectionTheMarkedRange() {
-		if(isSelectionEmpty()) return markedRange == null;
-		if(isSelectionMoreRanges()) return false;	//marker is always 1 range
-		return compareRanges(getFirstSelectionRange(), markedRange);
-	}
 
 	function removeSelection() {
 		var selection = window.getSelection();
 		selection.removeAllRanges();
 	}
 
-	function isSelectionEmpty() {
-		var selection = window.getSelection();
-		if(selection.rangeCount == 0) return true;
-
-		var range = selection.getRangeAt(0);
-		return isRangeEmpty(range);
-	}
-
-	function isSelectionMoreRanges() {
-		return window.getSelection().rangeCount > 1;
-	}
-
-	function isRangeEmpty(range) {
-		return (range.startContainer == range.endContainer && range.startOffset == range.endOffset);
-	}
-
-	function getFirstSelectionRange() {
+	// provides the only selection range, if there is only one
+	function getSelectionRange() {
 		var selection = window.getSelection();
 		var rangeCount = selection.rangeCount;
-		return rangeCount < 1 ? null : selection.getRangeAt(0);
+		return rangeCount == 1 ? selection.getRangeAt(0) : null;
 	}
 
 	/** @return true if @param range1 matches @param range2. Simple == doesnt work */
-	function compareRanges(range1,range2) {
+	function isSameRange(range1,range2) {
 		if(range1 == null && range2 == null) return true;
 		if(range1 == null || range2 == null) return false;
 		if(range1.startContainer != range2.startContainer) return false;

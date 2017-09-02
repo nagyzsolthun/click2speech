@@ -1,14 +1,12 @@
 1) hover
 1.1 click text on nonclickable => read
-1.2 click empty or nonclickable => stop
+1.2 click empty |  clickable | nonclickable => stop
 1.3 space (both clickable and nonclickable) => start
 1.4 space when read text is highlighted => stop
 1.5 esc => stop / revert highlight
 1.6 browserSelect => no highlight
 1.7 end browserSelect => no highlight for 0.3 sec
 1.8 end browserSelect => no reading start for 0.3 sec
-	this doesn't work -> isSelecting decision is true only if there is selected text
-	there is no selected text in the moment of the second mouseUp
 1.9 browserSelect while reading => reading goes on
 1.10 space while read + no highlight => stop reading
 1.11 space while no read + no highlight => browser default
@@ -30,7 +28,7 @@
 3.5 ctrl+A on a big page and big CPU load then click => no reading
 3.6 space => browser-default behavior
 3.7 selection style disappears when ended
-3.8 select " " should not cause error TODO OSTTS
+3.8 select " " should not cause error
 
 4) hover + arrows
 4.2 browserSelect: hover behav
@@ -48,12 +46,11 @@
 7.2 click => default behav (check gmail new email)
 
 8) reading settings
-8.1 speed should change reading, also when starting a new one
+8.1 settings should be refected without content reload
 
 9) error handling
-9.1 make error (by using wrong url) => tts should change while rading + popup should show it
-9.2 all fails => red highlight + icon
-9.3 esc should remove error highlight
+9.1 make error (by using wrong url) => error style should be applied + icon animation
+9.2 esc should remove error highlight
 
 10) turnOff behavior
 10.1 space + arrows + esc => default behav
