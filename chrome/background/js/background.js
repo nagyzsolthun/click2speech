@@ -45,7 +45,7 @@ messageListeners.read = (request,port) => {
 	);
 	const onTtsEvent = (event,voiceName,speed) => {
 		updateIcon(event.type);
-		notifyContent(port, event, request.text);
+		if(ports.has(port)) notifyContent(port, event, request.text);
 		if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
 		if(event.type == "error") rejectVoice(voiceName);
 	};
