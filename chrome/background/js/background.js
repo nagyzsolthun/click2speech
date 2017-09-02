@@ -20,8 +20,14 @@ messageListeners.getSettings = (message,port) => {
 	chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings:settings}));
 };
 
+function isEmpty(text) {
+	if(!text) return true;
+	if(! /\S/.test(text)) return true;	// contains only whitespace
+	return false;
+}
+
 messageListeners.read = (request,port) => {
-	if(!request.text) {
+	if(isEmpty(request.text)) {
 		iconDrawer.drawTurnedOn();	// show on-status after interaction animation (removes error color)
 		chrome.tts.stop();
 		notifyContent(port, {type:"end"});	// empty speech request ends right away
