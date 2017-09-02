@@ -168,10 +168,8 @@ function drawIcon(turnedOn) {
 
 // ===================================== others =====================================
 
-// const audioUrl = require("../pop.wav");
-const audioUrl = "nah"; // TODO fix wav import...
-var userInteractionAudio = new Audio(audioUrl);
-userInteractionAudio.volume = 0.6;
+const userInteractionAudio = new Audio(require("../pop.wav"));
+userInteractionAudio.volume = 0.5;
 
 // register IBM TTS
 chrome.ttsEngine.onSpeak.addListener(ibmTts.speakListener);

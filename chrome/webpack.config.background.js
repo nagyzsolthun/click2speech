@@ -11,5 +11,5 @@ const audioLoaderRule = {test: /\.wav$/,loader: 'file-loader'};
 module.exports = {
 	entry: './background/js/background.js'
 	,output: output
-	,module: {rules: [jsLoaderRule]}
+	,module: {rules: [jsLoaderRule,audioLoaderRule]}
 }
