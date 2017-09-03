@@ -8,34 +8,49 @@ describe("textSplitter.split", () => {
 	it("doesn't split short texts", () => {
 		var result = textSplitter.split("short text", testLengthShorterThan40);
 		var expected = ["short text"];
-		expect(result).toEqual(expected)
+		expect(result).toEqual(expected);
 	});
 	it("splits by sentence end", () => {
 		var result = textSplitter.split("This is the first sentence. This is the second sentence.", testLengthShorterThan40);
 		var expected = ["This is the first sentence. ","This is the second sentence."];
-		expect(result).toEqual(expected)
+		expect(result).toEqual(expected);
 	});
 	it("splits by sentence end - short sentence", () => {
 		var result = textSplitter.split("This. Is. Quite. A. Few. Sentences.", testLengthShorterThan40);
 		var expected = ["This. ", "Is. ", "Quite. ", "A. ", "Few. ", "Sentences."];
-		expect(result).toEqual(expected)
+		expect(result).toEqual(expected);
 	});
 	it("splits by comma", () => {
 		var result = textSplitter.split("This is the first part, this is the second part, this is the third part.", testLengthShorterThan40);
 		var expected = ["This is the first part, ","this is the second part, ", "this is the third part."];
-		expect(result).toEqual(expected)
+		expect(result).toEqual(expected);
 	});
     it("splits by comma only where split is necessary", () => {
 		var result = textSplitter.split("This is the first part of the text, this isn't, to include comma, this part is quite long again.", testLengthShorterThan40);
 		var expected = ["This is the first part of the text, ","this isn't, to include comma, ", "this part is quite long again."];
-		expect(result).toEqual(expected)
+		expect(result).toEqual(expected);
 	});
 	it("splits by character in case of long word", () => {
 		var result = textSplitter.split("ThisIsAVeryLongWordDefinitelyMoreThan40Letters", testLengthShorterThan40);
 		var expected = ["ThisIsAVeryLongWordDefinitelyMoreThan40", "Letters"];
-		expect(result).toEqual(expected)
+		expect(result).toEqual(expected);
 	});
-    // TODO many space characters?
+	it("splits senetence correctly in case of trailing space", () => {
+		var result = textSplitter.split("Sentence. ", testLengthShorterThan40);
+		var expected = ["Sentence. "];
+		expect(result).toEqual(expected);
+	});
+	it("splits sentences correctly in case of several spaces", () => {
+		var result = textSplitter.split("   First sentence.   Second one.  Third one.  ", testLengthShorterThan40);
+		var expected = ["   First sentence.   ", "Second one.  ", "Third one.  "];
+		expect(result).toEqual(expected);
+	});
+	it("splits correctly in case of several questions", () => {
+		var result = textSplitter.split("First sentence? Second one. Third one!", testLengthShorterThan40);
+		var expected = ["First sentence? ", "Second one. ", "Third one!"];
+		expect(result).toEqual(expected);
+	});
+
 });
 
 describe("textSplitter.isSentence", () => {

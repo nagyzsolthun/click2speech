@@ -14,11 +14,11 @@ function split(text, testLength) {
 
 /** @return whether given text is one array or not */
 function isSentence(text) {
-    var splitIndecies = sentenceSplitIndecies(text+" ");    // sentnece may end with .
+    var splitIndecies = sentenceSplitIndecies(text+" ");	// sentence may end with .
     if(splitIndecies.length > 1) {
         return false;
     }
-    if(splitIndecies[0] != text.length+1) { // comensate extra space
+    if(splitIndecies[0] != text.length+1) { // compensate for extra space
         return false;
     }
     return true;
@@ -43,7 +43,7 @@ function splitToSentences(text) {
 function sentenceSplitIndecies(text) {
 	var splitIndecies = [];
 	SENTENCE_DELMITERS
-		.map(delimiter => calcSplitIndecies(text, delimiter))
+		.map(delimiter => endIndecies(text, delimiter))
 		.forEach(indecies => splitIndecies = splitIndecies.concat(indecies));
 	splitIndecies.sort((a,b) => a-b);
 	return splitIndecies;
@@ -61,13 +61,8 @@ function splitText(text, splitIndecies) {
 	return result;
 }
 
-function splitSentence(sentence, testLength) {
-	if(testLength(sentence)) {
-		return [sentence];
-	}
-
+function splitSentence(remaining, testLength) {
 	var result = [];
-	var remaining = sentence;
 	while(remaining.length) {
 		var splitIndex = calcHighestValueSplitIndex(remaining, testLength);
 		result.push(remaining.substring(0,splitIndex));
@@ -78,8 +73,11 @@ function splitSentence(sentence, testLength) {
 
 // find first delimiter that can be used (the highest value delimiter)
 function calcHighestValueSplitIndex(text, testLength) {
+	if(testLength(text)) {
+		return text.length;
+	}
 	for(var i=0; i<INSENTENCE_DELMITERS.length; i++) {
-		var splitIndex = calcHighestSplitIndex(text, INSENTENCE_DELMITERS[i], testLength);
+		var splitIndex = highestEndIndex(text, INSENTENCE_DELMITERS[i], testLength);
 		if(splitIndex) {
 			return splitIndex;
 		}
@@ -96,8 +94,8 @@ function calcHighestValueSplitIndex(text, testLength) {
 	return -1;	// TODO throw exception
 }
 
-function calcHighestSplitIndex(text, delimiter, testLength) {
-	var indecies = calcSplitIndecies(text, delimiter);
+function highestEndIndex(text, delimiter, testLength) {
+	var indecies = endIndecies(text, delimiter);
 	indecies.push(text.length);
 	for(var i=indecies.length-1; i>=0; i--) {
 		var index = indecies[i];
@@ -108,14 +106,14 @@ function calcHighestSplitIndex(text, delimiter, testLength) {
 	return 0;
 }
 
-function calcSplitIndecies(text, delimiter) {
-	var splitIndecies = [];
+function endIndecies(text, delimiter) {
+	var result = [];
     var regex = new RegExp(delimiter.source, "g");  // directly using delimiters would modify their state (lastIndex)
     var match;
 	while(match = regex.exec(text)) {
-		splitIndecies.push(regex.lastIndex);
+		result.push(regex.lastIndex);
 	}
-	return splitIndecies;
+	return result;
 }
 
 export { split, isSentence, nextSentenceEnd };
