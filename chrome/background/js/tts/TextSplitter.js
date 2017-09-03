@@ -35,6 +35,15 @@ function nextSentenceEnd(text, position) {
     return text.length;
 }
 
+function nextWordEnd(text, position) {
+	var regex = /([.?!,;]\s+|\s+)/g
+	var match;
+	while(match = regex.exec(text))
+		if(match.index > position)
+			return match.index;
+	return text.length;
+}
+
 function splitToSentences(text) {
 	var splitIndecies = sentenceSplitIndecies(text);
 	return splitText(text, splitIndecies);
@@ -116,4 +125,4 @@ function endIndecies(text, delimiter) {
 	return result;
 }
 
-export { split, isSentence, nextSentenceEnd };
+export { split, isSentence, nextSentenceEnd, nextWordEnd };

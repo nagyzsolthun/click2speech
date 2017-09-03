@@ -94,6 +94,12 @@ ttsEventToContentNotifier.sentence = (port,chromeTtsEvent,text) => {
 	const textToSend = text.substring(startOffset,endOffset);
 	port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
 }
+ttsEventToContentNotifier.word = (port,chromeTtsEvent,text) => {
+	const startOffset = chromeTtsEvent.charIndex;
+	const endOffset = textSplitter.nextWordEnd(text, startOffset);
+	const textToSend = text.substring(startOffset,endOffset);
+	port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
+}
 ttsEventToContentNotifier.start = port => port.postMessage({action:"ttsEvent", eventType:"playing"});
 ttsEventToContentNotifier.interrupted =
 ttsEventToContentNotifier.stop =
