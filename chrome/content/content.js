@@ -26,21 +26,20 @@
 	var settings = {};	//current settings
 
 	function refresh(newSettings) {
+		if(!settings.turnedOn) {
+			turnOff();
+			return;
+		}
+		addBrowserEventListeners();	//its OK if its called many times
 		if(!settings.hoverSelect && !settings.arrowSelect) setHighlighted(null);
-		if(settings.turnedOn) turnOn();	//its OK if its called many times
-		else turnOff();
-	}
-
-	function turnOn() {
-		addBrowserEventListeners();
 	}
 
 	function turnOff() {
 		removeBrowserEventListeners();
 		setHighlighted(null);
-		element2ttsEvent.clear();
 
 		speechRequests.forEach(request => {
+			request.status = null;	// in case extension is removed, end event is never received
 			if(request.selection) recolorBrowserSelection(null);
 			if(request.element) {
 				updateElementStyle(request.element);
@@ -70,46 +69,38 @@
 	}
 
 	backgroundEventListeners.ttsEvent = function(message) {
+		activeRequest().status = message.eventType;
 		var eventListener = ttsEventListeners[message.eventType];
 		if(eventListener) eventListener(message);
 	}
-	var element2ttsEvent = new Map();
 
 	// ============================================= tts events =============================================
 	var ttsEventListeners = {};
 	ttsEventListeners.playing = function(message) {
 		if(browserSelectionRequested()) recolorBrowserSelection("reading");
-		if(activeRequest().element) {
-			element2ttsEvent.set(activeRequest().element,"playing");
-			updateElementStyle(activeRequest().element);
+		if(requestedElement()) {
+			updateElementStyle(requestedElement());
 			markText(message);
 		}
 	}
 	ttsEventListeners.end = function(message) {
 		if(browserSelectionRequested()) recolorBrowserSelection(null);
-		if(activeRequest().element) {
-			element2ttsEvent.delete(activeRequest().element);
-			updateElementStyle(activeRequest().element);
+		if(requestedElement()) {
+			const element = requestedElement();
+			setTimeout(() => updateElementStyle(element));	// remove style after deleteActiveRequest called
 			markText(null);
 		}
 		deleteActiveRequest();
 	}
 	ttsEventListeners.error = function(message) {
 		if(browserSelectionRequested()) recolorBrowserSelection("error");
-		if(activeRequest().element) {
-			element2ttsEvent.set(activeRequest().element,"error");
-			updateElementStyle(activeRequest().element);
+		if(requestedElement()) {
 			markText(null);
-			element2ttsEvent.delete(activeRequest().element);	// when pointer leaves the element, the revert style logic applies
+			const element = requestedElement();
+			updateElementStyle(element);	// error style
+			setTimeout(() => updateElementStyle(element),2000);	// remove style after 2 sec (highlight may override anyways)
 		}
 		deleteActiveRequest();
-	}
-
-	// return if the current selection is the one that has been requested
-	function browserSelectionRequested() {
-		const requestSelectionRanges = activeRequest().selection;
-		const browserSelectionRanges = getSelectionRanges();
-		return areSameRanges(requestSelectionRanges, browserSelectionRanges);
 	}
 
 	// ============================================= ClickToSpeech content events =============================================
@@ -119,31 +110,24 @@
 	}
 
 	function onSpace(keyEvent) {
-		if(!settings.hoverSelect && !settings.arrowSelect) {
+		if(requestedElement()) stopReadingAndPreventScroll(keyEvent);
+
+		const hoveredElement = settings.hoverSelect ? getHoveredElement() : null;	// important when clickable hovered
+		var element = highlightedElement || hoveredElement;
+		if(element) {
+			readElementAndPreventScroll(element,keyEvent);
 			return;
 		}
-
-		if(!highlightedElement) {
-			if(activeRequest()) stopReadingAndPreventScroll(keyEvent);
-			return;
-		}
-
-		if(element2ttsEvent.has(highlightedElement)) {
-			stopReadingAndPreventScroll(keyEvent);
-			return;
-		}
-
-		readHighlightedAndPreventScroll(keyEvent);
 	}
 
 	function onSelectingMouseMove() {
-		if(!isUserTyping()) return;
+		if(isUserTyping()) return;
 		setStyleOfFutureBrowserSelect(settings.browserSelect ? "selecting" : null);	//null: to remove style of markers
 		if(settings.hoverSelect) setHighlighted(null);
 	}
 
 	function onNonSelectingMouseMove() {
-		if(settings.hoverSelect) setHighlighted(recentMouseUp() ? null : getHoveredElement());	// recentMouseUp checked to wait after browserSelect
+		if(settings.hoverSelect) highlightHovered();
 	}
 
 	function onSelectingMouseUp() {
@@ -200,7 +184,7 @@
 			case(38): onArrow(event, "up");		break;
 			case(39): onArrow(event, "right");	break;
 			case(40): onArrow(event, "down");	break;
-			case(27): stopReadingOrRevertHighlight(event); break;
+			case(27): stopReadingOrRevertHighlight(event); break;	// esc
 		}
 	}
 
@@ -257,9 +241,17 @@
 	}
 
 	function isMouseButtonBeingPressed() {return mouseUpTime < mouseDownTime;}
-	function recentMouseUp() {return Date.now() - 300 < mouseUpTime;}
 
 	// ============================================= hovered =============================================
+
+	function highlightHovered() {
+		const hovered = getHoveredElement();
+		if(isClickable(hovered)) {
+			setHighlighted(null);
+			return;
+		}
+		setHighlighted(hovered);
+	}
 
 	/** @return the element to highlight when hovered paragraph is set */
 	function getHoveredElement() {
@@ -606,22 +598,17 @@
 
 		var backgroundColor;
 		switch(status) {
-			case("highlighted-nonclickable"):
+			case("highlighted"):
 				backgroundColor = "#4f4"; break;
-			case("highlighted-clickable"):
-				backgroundColor = "#ccc"; break;
 			case("loading"):
 			case("playing"):
 				backgroundColor = "#bbf"; break;
-			case("highlighted-nonclickable-loading"):
-			case("highlighted-nonclickable-playing"):
-			case("highlighted-clickable-loading"):
-			case("highlighted-clickable-playing"):
+			case("highlighted-loading"):
+			case("highlighted-playing"):
 				backgroundColor = "#88f"; break;
 			case("error"):
 				backgroundColor = "#fbb"; break;
-			case("highlighted-nonclickable-error"):
-			case("highlighted-clickable-error"):
+			case("highlighted-error"):
 				backgroundColor = "#f88"; break;
 			default:
 				backgroundColor = element2original.get(element).backgroundColor; break;	//TODO is this needed?
@@ -631,18 +618,21 @@
 
 	/** @return the status of @param element
 	 * status can be:
-	 * 1) highlighted-(clickable|nonclickable)
-	 * 2) (loading|reading|error)
-	 * 3) highlighted-(clickable|nonclickable)-(loading|reading|error)*/
+	 * 1) highlighted
+	 * 2) (loading|playing|error)
+	 * 3) highlighted-(loading|playing|error)*/
 	function getElementStatus(element) {
 		var result = [];
 		if(element === highlightedElement) {
 			result.push("highlighted");
-			result.push(isClickable(element)?"clickable":"nonclickable");
 		}
 
-		var ttsEvent = element2ttsEvent.get(element);
-		if(ttsEvent) result.push(ttsEvent);
+		// add request status - it will be always 1 or 0 requests
+		speechRequests
+			.filter(request => request.element === element)
+			.map(request => request.status)
+			.filter(status => status)	// status is set to null when turnOff
+			.forEach(status => result.push(status));
 		return result.join("-");
 	}
 
@@ -773,23 +763,23 @@
 	 * @param c.element | c.selection:Array<Range> is added to speechRequests
 	 * @param c.source is used for analytics */
 	function requestSpeech(c) {
-		const text = textFromRequest(c);
-		backgroundCommunicationPort.postMessage({action:"read", text:text, lan:document.documentElement.lang, source:c.source});
-
 		const request = c.selection ? {selection:c.selection} : {element:c.element};
 		if(c.element) request.textNodes = getTextNodes(c.element);
 		speechRequests.push(request);
+		request.status = "loading";
 
 		// remove browserSelect style if stop
+		const text = textFromRequest(c);
 		if(!text) setStyleOfFutureBrowserSelect(null);
 
 		// loading animations
 		if(request.selection) recolorBrowserSelection("loading");
 		if(request.element) {
-			element2ttsEvent.set(request.element,"loading");
 			updateElementStyle(request.element);
 			markText(null);
 		}
+
+		backgroundCommunicationPort.postMessage({action:"read", text:text, lan:document.documentElement.lang, source:c.source});
 	}
 
 	function textFromRequest(request) {
@@ -807,17 +797,35 @@
 		speechRequests.shift();
 	}
 
+	// return if the current selection is the one that has been requested
+	function browserSelectionRequested() {
+		const request = activeRequest();
+		if(!request) return false;
+
+		const requestSelectionRanges = request.selection;
+		const browserSelectionRanges = getSelectionRanges();
+		return areSameRanges(requestSelectionRanges, browserSelectionRanges);
+	}
+
+	// return the requested element if any
+	function requestedElement() {
+		const request = activeRequest();
+		if(!request) return null;
+
+		return request.element;
+	}
+
 	// ============================================= read =============================================
 
-	/** reads text of hovered element */
+	/** reads text of highlighted element */
 	function readHovered() {
-		if(isClickable(highlightedElement)) requestSpeech({element:null, source:"hoveredClickableClick"})
-		else requestSpeech({element:highlightedElement, source:"hoveredClick"});
+		highlightHovered();
+		requestSpeech({element:highlightedElement, source:"hoveredClick"});
 	}
 
 	/** reads highlighted text + prevents scrolling */
-	function readHighlightedAndPreventScroll(event) {
-		requestSpeech({element:highlightedElement, source:"space"});
+	function readElementAndPreventScroll(element,event) {
+		requestSpeech({element:element, source:"space"});
 		event.preventDefault();	//stop scrolling
 	}
 
@@ -976,12 +984,9 @@
 
 	function destroy() {
 		console.log("removing ClickToSpeech content script");
-		window.clickToSpeechContentScriptLoaded = false;
 		turnOff();
-		removeBrowserEventListeners();
+		window.clickToSpeechContentScriptLoaded = false;
 	}
 
-	backgroundCommunicationPort.onDisconnect.addListener(function() {
-		destroy();
-	});
+	backgroundCommunicationPort.onDisconnect.addListener(destroy);
 })();
