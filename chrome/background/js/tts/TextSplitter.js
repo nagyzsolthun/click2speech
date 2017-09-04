@@ -1,5 +1,6 @@
-const SENTENCE_DELMITERS = [ /\.\s+/, /\?\s+/, /\!\s+/ ];
-const INSENTENCE_DELMITERS = [ /\;\s+/, /\,\s+/, /\s+/ ];
+const DELMITERS = [ /\;\s+/, /\,\s+/, /\s+/ ];
+const SENTENCE_DELMITER = /[.?!]\s+/;
+const WORD_DELMITER = /([.?!,;]\s+|\s+)/;
 
 /** @return array of strings, that match requreiments specified in @param testLength
  * @param {string} text - the text to split
@@ -25,41 +26,20 @@ function isSentence(text) {
 }
 
 function nextSentenceEnd(text, position) {
-    var splitIndecies = sentenceSplitIndecies(text);
-    for(var i=0; i<splitIndecies.length; i++) {
-        var splitInex = splitIndecies[i];
-        if(splitInex > position) {
-            return splitInex;
-        }
-    }
-    return text.length;
+	var textBehind = text.substring(position);
+	var match = SENTENCE_DELMITER.exec(textBehind);
+	return match ? position + match.index + match[0].length : text.length;
 }
 
 function nextWordEnd(text, position) {
-	var regex = /([.?!,;]\s+|\s+)/g
-	var match;
-	while(match = regex.exec(text))
-		if(match.index > position)
-			return match.index;
-	return text.length;
+	var textBehind = text.substring(position);
+	var match = WORD_DELMITER.exec(textBehind);
+	return match ? position + match.index : text.length;
 }
 
 function splitToSentences(text) {
-	var splitIndecies = sentenceSplitIndecies(text);
-	return splitText(text, splitIndecies);
-}
-
-function sentenceSplitIndecies(text) {
-	var splitIndecies = [];
-	SENTENCE_DELMITERS
-		.map(delimiter => endIndecies(text, delimiter))
-		.forEach(indecies => splitIndecies = splitIndecies.concat(indecies));
-	splitIndecies.sort((a,b) => a-b);
-	return splitIndecies;
-}
-
-function splitText(text, splitIndecies) {
 	var result = [];
+	var splitIndecies = sentenceSplitIndecies(text);
 	var indeciesWithStartEnd = [0].concat(splitIndecies);
 	indeciesWithStartEnd.push(text.length);
 	for(var i=0; i<indeciesWithStartEnd.length-1; i++) {
@@ -68,6 +48,10 @@ function splitText(text, splitIndecies) {
 		result.push(text.substring(start,end));
 	}
 	return result;
+}
+
+function sentenceSplitIndecies(text) {
+	return endIndecies(text, SENTENCE_DELMITER)
 }
 
 function splitSentence(remaining, testLength) {
@@ -85,8 +69,8 @@ function calcHighestValueSplitIndex(text, testLength) {
 	if(testLength(text)) {
 		return text.length;
 	}
-	for(var i=0; i<INSENTENCE_DELMITERS.length; i++) {
-		var splitIndex = highestEndIndex(text, INSENTENCE_DELMITERS[i], testLength);
+	for(var i=0; i<DELMITERS.length; i++) {
+		var splitIndex = highestEndIndex(text, DELMITERS[i], testLength);
 		if(splitIndex) {
 			return splitIndex;
 		}
@@ -117,11 +101,10 @@ function highestEndIndex(text, delimiter, testLength) {
 
 function endIndecies(text, delimiter) {
 	var result = [];
-    var regex = new RegExp(delimiter.source, "g");  // directly using delimiters would modify their state (lastIndex)
     var match;
-	while(match = regex.exec(text)) {
+	var regex = new RegExp(delimiter.source, "g");
+	while(match = regex.exec(text))
 		result.push(regex.lastIndex);
-	}
 	return result;
 }
 

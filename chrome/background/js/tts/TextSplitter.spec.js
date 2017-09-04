@@ -83,3 +83,37 @@ describe("textSplitter.isSentence", () => {
 		expect(result).toBe(false);
 	});
 });
+
+describe("textSplitter.nextSentenceEnd", () => {
+	it("returns end of sentence for one word", () => {
+		var result = textSplitter.nextSentenceEnd("Short sentence.", 0);
+		expect(result).toBe(15);
+	});
+	it("returns end of first sentence when position is less than sentenceEnd", () => {
+		var result = textSplitter.nextSentenceEnd("First Sentence? Second setnence.", 13);
+		expect(result).toBe(16);
+	});
+	it("returns end of second sentence when position is in it", () => {
+		var result = textSplitter.nextSentenceEnd("First Sentence. Second setnence.", 16);
+		expect(result).toBe(32);
+	});
+});
+
+describe("textSplitter.nextWordEnd", () => {
+	it("returns end of word for one word", () => {
+		var result = textSplitter.nextWordEnd("word", 0);
+		expect(result).toBe(4);
+	});
+	it("returns end of word for two words", () => {
+		var result = textSplitter.nextWordEnd("word another", 0);
+		expect(result).toBe(4);
+	});
+	it("returns end of second word for two words with offset", () => {
+		var result = textSplitter.nextWordEnd("word another", 5);
+		expect(result).toBe(12);
+	});
+	it("returns end of word for one word with sentence end", () => {
+		var result = textSplitter.nextWordEnd("word. ", 0);
+		expect(result).toBe(4);
+	});
+});
