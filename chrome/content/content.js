@@ -779,7 +779,7 @@
 			markText(null);
 		}
 
-		backgroundCommunicationPort.postMessage({action:"read", text:text, lan:document.documentElement.lang, source:c.source});
+		backgroundCommunicationPort.postMessage({action:"read", text:text, source:c.source});
 	}
 
 	function textFromRequest(request) {

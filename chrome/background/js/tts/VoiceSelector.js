@@ -1,24 +1,52 @@
 var voiceNameToRejectTime = {};
 
-function getVoiceName(text, pageLanguage) {
+function getVoiceName(text) {
 	return new Promise( (resolve,reject) => {
 		var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
 		var voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
-		var lanPromise = calcLanPromise(text,pageLanguage);
+		var lanPromise = calcLanPromise(text);
 		Promise.all([settingsPromise,voicesPromise,lanPromise]).then( ([settings,voices,lan]) => {
-			var voicesMatchingLan = voices.filter(voice => voice.lang.startsWith(lan));	// tss lanuage is given like en-US, lan is like en
-			if(voicesMatchingLan.some(voice => voice.voiceName == settings.preferredVoice)) {
-				resolve(settings.preferredVoice);
-				return;
-			}
-			var firstVoice = voicesMatchingLan[0];
-			if(!firstVoice) {
-				reject("invalid language: ''" + lan + "''");
-				return;
-			}
-			resolve(firstVoice.voiceName);
+			const voiceName = calcVoiceName(settings,voices,lan);
+			if(voiceName) resolve(voiceName);
+			else reject();
 		});
 	});
+}
+
+function calcVoiceName(settings,voices,lan) {
+	// no language detected, just return preferred voice
+	if(!lan) return settings.preferredVoice;
+
+	const voicesMatchingLan = voices.filter(voice => voice.lang.startsWith(lan));	// tss lanuage is given like en-US, lan is like en
+	if(!voicesMatchingLan.length) return null;
+
+	// check if preferredVoice matches lan
+	if(voicesMatchingLan.some(voice => voice.voiceName == settings.preferredVoice)) {
+		return settings.preferredVoice;
+	}
+
+	// find voice with same gender as preferredVoice, or OsTts
+	const preferredVoice = voices.filter(voice => voice.voiceName == settings.preferredVoice)[0];
+	const voice = voicesMatchingLan.reduce((result,voice) => {
+		if(!result) return voice;
+
+		// matching gender wins
+		if(voice.gender != result.gender) {
+			if(result.gender == preferredVoice.gender) return result;
+			if(voice.gender == preferredVoice.gender) return voice;
+		}
+
+		// OS tts wins
+		if(!result.extensionId) return result;
+		if(!voice.extensionId) return voice;
+
+		// Google tts wins
+		if(result.voiceName.startsWith("Google")) return result;
+		if(voice.voiceName.startsWith("Google")) return voice;
+
+		return result;
+	});
+	return voice.voiceName;
 }
 
 function getDefaultVoiceName() {
@@ -46,13 +74,11 @@ function getRejectedVoices() {
 	return result;
 }
 
-function calcLanPromise(text, pageLanguage) {
-	return new Promise(resolve => {
-		chrome.i18n.detectLanguage(text, result => {
-			if(!result.isReliable) resolve(pageLanguage || navigator.language);
-			else resolve(result.languages.reduce(getHigherPercentage).language);
-		});
-	});
+function calcLanPromise(text) {
+	return new Promise(resolve =>
+		chrome.i18n.detectLanguage(text, result =>
+			resolve(result.isReliable ? result.languages.reduce(getHigherPercentage).language : null)
+	));
 }
 
 function getHigherPercentage(a,b) {

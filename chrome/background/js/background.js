@@ -38,7 +38,7 @@ messageListeners.read = (request,port) => {
 	iconDrawer.drawLoading();
 
 	var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-	var voiceNamePromise = getVoiceName(request.text, request.lan);
+	var voiceNamePromise = getVoiceName(request.text);
 	Promise.all([settingsPromise,voiceNamePromise]).then(
 		([settings,voiceName]) => chrome.tts.speak(request.text, {voiceName:voiceName, rate:settings.speed, onEvent:event=>onTtsEvent(event, voiceName, settings.speed)} )
 		,() => onNoMatchingVoice()
