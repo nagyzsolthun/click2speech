@@ -28,12 +28,15 @@
 
 <script>
 import translate from "./translate.js";
+import compareVoices from "./compareVoices.js"
 
 const voices = [];
 
 const settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
 const chromeVoicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
 Promise.all([settingsPromise,chromeVoicesPromise]).then( ([settings,chromeVoices]) => {
+    chromeVoices.sort(compareVoices);
+    chromeVoices.reverse();
     chromeVoices.forEach(voice => voices.push({
         name:voice.voiceName
         ,lan:voice.lang
