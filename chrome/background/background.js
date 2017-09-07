@@ -1,5 +1,5 @@
 import * as iconDrawer from "./icon/drawer.js";
-import { sendAnalytics, scheduleAnalytics } from "./analytics.js";
+import { scheduleAnalytics } from "./analytics.js";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 import * as textSplitter from "./tts/TextSplitter.js";
 import { getVoiceName, getDefaultVoiceName } from "./tts/VoiceSelector.js";
@@ -31,7 +31,7 @@ messageListeners.read = (request,port) => {
 		iconDrawer.drawTurnedOn();	// show on-status after interaction animation (removes error color)
 		chrome.tts.stop();
 		notifyContent(port, {type:"end"});	// empty speech request ends right away
-		scheduleAnalytics('tts-read', 'tts', 'stop', 'stop-'+request.source);	//schedule so browserSelect double+triple click counts as one
+		scheduleAnalytics('tts', 'stop', request.source);	//schedule so browserSelect double+triple click counts as one
 		return;
 	}
 
@@ -54,13 +54,16 @@ messageListeners.read = (request,port) => {
 	};
 
 	// anyltics
-	scheduleAnalytics('tts-read', 'tts', 'read', 'read'+request.source);	//schedule so browserSelect double+triple click counts as one
+	scheduleAnalytics('tts', 'read', request.source);
 };
 messageListeners.arrowPressed = (message,port) => {
 	userInteractionAudio.currentTime = 0;
 	userInteractionAudio.play();
 	iconDrawer.drawInteraction();
-	scheduleAnalytics('arrowPressed', 'arrow', 'pressed', null);
+	scheduleAnalytics('interaction', 'arrow', 'press');
+};
+messageListeners.contactInteraction = (message,port) => {
+	scheduleAnalytics('interaction', 'contacts', message.interaction);
 };
 
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
@@ -114,7 +117,7 @@ chrome.storage.local.get(null, items => {
 
 function populateDefaultSettings() {
 	getDefaultVoiceName().then((voice) => {
-		sendAnalytics('settings','setup','defaults-' + chrome.app.getDetails().version);
+		scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
 		chrome.storage.local.set({
 			turnedOn: true
 			,preferredVoice: voice
@@ -129,7 +132,7 @@ function populateDefaultSettings() {
 chrome.storage.onChanged.addListener(changes => {
 	for(var setting in changes) {
 		if(setting == "turnedOn") handleOnOffEvent(changes.turnedOn.newValue);
-		if(changes[setting].oldValue !== undefined) scheduleAnalytics('set'+setting, 'settings','set', setting+':'+changes[setting].newValue);	// no analytics when default
+		if(changes[setting].oldValue !== undefined) scheduleAnalytics('storage',setting,changes[setting].newValue);	// undefined: no analytics when default
 	}
 	chrome.storage.local.get(null, settings =>
 		ports.forEach(port =>
