@@ -2,7 +2,7 @@ import * as iconDrawer from "./icon/drawer.js";
 import { sendAnalytics, scheduleAnalytics } from "./analytics.js";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 import * as textSplitter from "./tts/TextSplitter.js";
-import { getVoiceName, getDefaultVoiceName, rejectVoice } from "./tts/VoiceSelector.js";
+import { getVoiceName, getDefaultVoiceName } from "./tts/VoiceSelector.js";
 
 var ports = new Set();
 chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
@@ -47,7 +47,6 @@ messageListeners.read = (request,port) => {
 		updateIcon(event.type);
 		if(ports.has(port)) notifyContent(port, event, request.text);
 		if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
-		if(event.type == "error") rejectVoice(voiceName);
 	};
 	const onNoMatchingVoice = () => {
 		notifyContent(port, {type:"error"});

@@ -1,5 +1,3 @@
-var voiceNameToRejectTime = {};
-
 function getVoiceName(text) {
 	return new Promise( (resolve,reject) => {
 		var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
@@ -61,19 +59,6 @@ function getDefaultVoiceName() {
 	});
 }
 
-function rejectVoice(voiceName) {
-	voiceNameToRejectTime[voiceName] = Date.now();
-}
-
-function getRejectedVoices() {
-	const result = [];
-	const halfHourAgo = Date.now() - 30*60*1000;
-	for(voiceName in voiceNameToRejectTime) {
-		if(voiceNameToRejectTime[voiceName] > halfHourAgo) result.push(voiceName);	// TODO test
-	}
-	return result;
-}
-
 function calcLanPromise(text) {
 	return new Promise(resolve =>
 		chrome.i18n.detectLanguage(text, result =>
@@ -87,4 +72,4 @@ function getHigherPercentage(a,b) {
 	return a.percentage > b.percentage ? a : b;
 }
 
-export { getVoiceName, getDefaultVoiceName, rejectVoice, getRejectedVoices }
+export { getVoiceName, getDefaultVoiceName }
