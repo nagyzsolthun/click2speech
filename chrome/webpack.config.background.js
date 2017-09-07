@@ -9,7 +9,7 @@ const jsLoaderRule = {test: /\.js$/,loader: 'babel-loader'};
 const audioLoaderRule = {test: /\.wav$/,loader: 'file-loader'};
 
 module.exports = {
-	entry: './background/js/background.js'
+	entry: './background/background.js'
 	,output: output
 	,module: {rules: [jsLoaderRule,audioLoaderRule]}
 }

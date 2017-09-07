@@ -174,7 +174,7 @@ function drawIcon(turnedOn) {
 
 // ===================================== others =====================================
 
-const url = require("../pop.wav");
+const url = require("./pop.wav");
 const userInteractionAudio = new Audio("background/" + url);	// TODO why "background/" needed?
 userInteractionAudio.volume = 0.5;
 
