@@ -19,19 +19,9 @@ var messageListeners = {};
 messageListeners.getSettings = (message,port) => {
 	chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings:settings}));
 };
-
-function isEmpty(text) {
-	if(!text) return true;
-	if(! /\S/.test(text)) return true;	// contains only whitespace
-	return false;
-}
-
 messageListeners.read = (request,port) => {
 	if(isEmpty(request.text)) {
-		iconDrawer.drawTurnedOn();	// show on-status after interaction animation (removes error color)
-		chrome.tts.stop();
-		notifyContent(port, {type:"end"});	// empty speech request ends right away
-		scheduleAnalytics('tts', 'stop', request.source);	//schedule so browserSelect double+triple click counts as one
+		stop(request,port);
 		return;
 	}
 
@@ -45,6 +35,7 @@ messageListeners.read = (request,port) => {
 	);
 	const onTtsEvent = (event,voiceName,speed) => {
 		updateIcon(event.type);
+		updateSpeakingFlag(event.type);
 		if(ports.has(port)) notifyContent(port, event, request.text);
 		if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
 	};
@@ -66,6 +57,20 @@ messageListeners.contactInteraction = (message,port) => {
 	scheduleAnalytics('interaction', 'contacts', message.interaction);
 };
 
+function isEmpty(text) {
+	if(!text) return true;
+	if(! /\S/.test(text)) return true;	// contains only whitespace
+	return false;
+}
+
+function stop(request,port) {
+	iconDrawer.drawTurnedOn();	// show on-status after interaction animation (removes error color)
+	chrome.tts.stop();
+	notifyContent(port, {type:"end"});	// empty speech request ends right away
+	if(speaking) scheduleAnalytics('tts', 'stop', request.source);
+	speaking = false;
+}
+
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPuseResume;
 function applyGoogleTtsBugWorkaround(eventType,speed) {
@@ -81,6 +86,16 @@ function applyGoogleTtsBugWorkaround(eventType,speed) {
 function pauseResume() {
 	chrome.tts.pause();
 	chrome.tts.resume();
+}
+
+var speaking;
+function updateSpeakingFlag(ttsEventType) {
+	switch(ttsEventType) {
+		case "end":
+		case "interrupted":
+		case "error": speaking = false; break;
+		default: speaking = true; break;
+	}
 }
 
 // ===================================== outgoing messages to content =====================================

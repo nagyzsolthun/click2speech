@@ -110,14 +110,15 @@
 	}
 
 	function onSpace(keyEvent) {
-		if(requestedElement()) stopReadingAndPreventScroll(keyEvent);
-
 		const hoveredElement = settings.hoverSelect ? getHoveredElement() : null;	// important when clickable hovered
 		var element = highlightedElement || hoveredElement;
-		if(element) {
-			readElementAndPreventScroll(element,keyEvent);
-			return;
-		}
+
+		if(!element || element == requestedElement()) stopReadingAndPreventScroll(keyEvent);
+		else readElementAndPreventScroll(element,keyEvent);
+	}
+
+	function onEsc(keyEvent) {
+		stopReadingOrRevertHighlight(keyEvent);
 	}
 
 	function onSelectingMouseMove() {
@@ -179,12 +180,12 @@
 			case(40): if(isUserTyping()) return; break;	//space | left | up | right | down
 		}
 		switch(event.keyCode) {
+			case(27): onEsc(event);				break;
 			case(32): onSpace(event);			break;
 			case(37): onArrow(event, "left");	break;
 			case(38): onArrow(event, "up");		break;
 			case(39): onArrow(event, "right");	break;
 			case(40): onArrow(event, "down");	break;
-			case(27): stopReadingOrRevertHighlight(event); break;	// esc
 		}
 	}
 

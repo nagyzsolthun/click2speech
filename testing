@@ -7,8 +7,10 @@
 1.6 browserSelect => no highlight
 1.7 browserSelect while reading => reading goes on
 1.8 space while read + no highlight => stop reading
-1.9 space while no read + no highlight => browser default
-1.10 space while input text => default space behav (gmail, google, some other..)
+1.9 space while read + hovered read element => stop reading
+1.10 space while read + hovered other element => stop and read hovered
+1.11 space while no read + no highlight => browser default
+1.12 space while input text => default space behav (gmail, google, some other..)
 
 2) arrows
 2.1 arrow on new page => start from top|bottom|left|right of view
