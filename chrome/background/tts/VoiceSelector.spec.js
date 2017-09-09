@@ -1,4 +1,4 @@
-import { getVoiceName, getDefaultVoiceName, rejectVoice } from "./VoiceSelector.js";
+import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./VoiceSelector.js";
 
 const tts = {
 	getVoices: callback => callback([
@@ -94,6 +94,33 @@ describe("getVoiceName", () => {
 	it("rejects if detected language is not supported", done => {
 		localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
 		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"fr",percentage:100}] });
+		getVoiceName(SOME_TEXT).then(null, () => done());
+	});
+
+	it("gives enVoice1 if OsVoice is disabled", done => {
+		localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
+		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
+		updateDisabledVoices(["osVoice"]);
+		getVoiceName(SOME_TEXT).then((voiceName) => {
+			expect(voiceName).toEqual("enVoice1");
+			done();
+		});
+	});
+
+	it("gives enVoice2 if enVoice1 and OsVoice are disabled", done => {
+		localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
+		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
+		updateDisabledVoices(["osVoice","enVoice1"]);
+		getVoiceName(SOME_TEXT).then((voiceName) => {
+			expect(voiceName).toEqual("enVoice2");
+			done();
+		});
+	});
+
+	it("rejects if all voices matching language are disabled", done => {
+		localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
+		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
+		updateDisabledVoices(["osVoice","enVoice1","enVoice2"]);
 		getVoiceName(SOME_TEXT).then(null, () => done());
 	});
 });

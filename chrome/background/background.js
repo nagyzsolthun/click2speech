@@ -2,7 +2,7 @@ import * as iconDrawer from "./icon/drawer.js";
 import { scheduleAnalytics } from "./analytics.js";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 import * as textSplitter from "./tts/TextSplitter.js";
-import { getVoiceName, getDefaultVoiceName } from "./tts/VoiceSelector.js";
+import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
 
 var ports = new Set();
 chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
@@ -38,6 +38,7 @@ messageListeners.read = (request,port) => {
 		updateSpeakingFlag(event.type);
 		if(ports.has(port)) notifyContent(port, event, request.text);
 		if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
+		if(event.type == "error") errorVoice(voiceName);
 	};
 	const onNoMatchingVoice = () => {
 		notifyContent(port, {type:"error"});
@@ -56,6 +57,9 @@ messageListeners.arrowPressed = (message,port) => {
 messageListeners.contactInteraction = (message,port) => {
 	scheduleAnalytics('interaction', 'contacts', message.interaction);
 };
+messageListeners.getDisabledVoices = (message,port) => {
+	port.postMessage({action:"updateDisabledVoices", disabledVoices:getDisabledVoices()})
+};
 
 function isEmpty(text) {
 	if(!text) return true;
@@ -71,6 +75,30 @@ function stop(request,port) {
 	speaking = false;
 }
 
+// ===================================== error handling =====================================
+const voiceNameToErrorTime = {};
+const voiceNameToEnable = {};
+function errorVoice(voiceName) {
+	voiceNameToErrorTime[voiceName] = Date.now();
+	updateDisabledVoices(getDisabledVoices());
+
+	var enableId = voiceNameToEnable[voiceName];
+	if(enableId) clearTimeout(enableId);
+
+	enableId = setTimeout(() => {
+		delete voiceNameToErrorTime[voiceName];
+		delete voiceNameToEnable[voiceName];
+		updateDisabledVoices(getDisabledVoices());
+	}, 5*60*1000);	// 5 minutes
+	voiceNameToEnable[voiceName] = enableId;
+}
+
+function getDisabledVoices() {
+	return Object.keys(voiceNameToErrorTime);
+}
+
+// ===================================== Google TTS bug workaround =====================================
+
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPuseResume;
 function applyGoogleTtsBugWorkaround(eventType,speed) {
@@ -80,7 +108,11 @@ function applyGoogleTtsBugWorkaround(eventType,speed) {
 		case("start"): scheduledPuseResume = scheduledPuseResume || setInterval(pauseResume, repeateInterval); break;
 		case("end"):
 		case("interrupted"):
-		case("error"): scheduledPuseResume = clearInterval(scheduledPuseResume);
+		case("error"): {
+			if(scheduledPuseResume) clearInterval(scheduledPuseResume);
+			scheduledPuseResume = null;
+			break;
+		}
 	}
 }
 function pauseResume() {
@@ -88,13 +120,15 @@ function pauseResume() {
 	chrome.tts.resume();
 }
 
+// ===================================== spaking flag for anyltics =====================================
+
 var speaking;
 function updateSpeakingFlag(ttsEventType) {
 	switch(ttsEventType) {
-		case "end":
-		case "interrupted":
-		case "error": speaking = false; break;
-		default: speaking = true; break;
+		case "start":
+		case "sentence":
+		case "word": speaking = true; break;
+		default: speaking = false; break;
 	}
 }
 

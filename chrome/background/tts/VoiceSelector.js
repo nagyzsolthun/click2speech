@@ -15,7 +15,9 @@ function calcVoiceName(settings,voices,lan) {
 	// no language detected, just return preferred voice
 	if(!lan) return settings.preferredVoice;
 
-	const voicesMatchingLan = voices.filter(voice => voice.lang.startsWith(lan));	// tss lanuage is given like en-US, lan is like en
+	const voicesMatchingLan = voices
+		.filter(voice => isEnabled(voice))
+		.filter(voice => voice.lang.startsWith(lan));	// tss lanuage is given like en-US, lan is like en
 	if(!voicesMatchingLan.length) return null;
 
 	// check if preferredVoice matches lan
@@ -59,6 +61,15 @@ function getDefaultVoiceName() {
 	});
 }
 
+var disabledVoices = [];
+function updateDisabledVoices(voices) {
+	disabledVoices = voices;
+}
+
+function isEnabled(voice) {
+	return !disabledVoices.some(disabledVoice => disabledVoice == voice.voiceName);
+}
+
 function calcLanPromise(text) {
 	return new Promise(resolve =>
 		chrome.i18n.detectLanguage(text, result =>
@@ -72,4 +83,4 @@ function getHigherPercentage(a,b) {
 	return a.percentage > b.percentage ? a : b;
 }
 
-export { getVoiceName, getDefaultVoiceName }
+export { getVoiceName, getDefaultVoiceName, updateDisabledVoices }
