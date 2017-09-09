@@ -160,13 +160,27 @@ ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", e
 // ===================================== settings =====================================
 
 chrome.storage.local.get(null, items => {
-	if(items.hasOwnProperty("turnedOn")) drawIcon(items.turnedOn);
-	else populateDefaultSettings();
+
+	// old version of click2speech uses different settings structure
+	if(isOldVersion(items)) {
+		console.log("persist settings from old version");
+		scheduleAnalytics('storage','clear', chrome.app.getDetails().version);
+		chrome.storage.local.clear(() => populateFromOldSettings(items));
+		return;
+	}
+
+	if(settingsPopulated(items)) {
+		drawIcon(items.turnedOn);
+		return;
+	}
+
+	console.log("persist default settings");
+	scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
+	populateDefaultSettings();
 });
 
 function populateDefaultSettings() {
 	getDefaultVoiceName().then((voice) => {
-		scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
 		chrome.storage.local.set({
 			turnedOn: true
 			,preferredVoice: voice
@@ -178,10 +192,34 @@ function populateDefaultSettings() {
 	});
 }
 
+function populateFromOldSettings(oldSettings) {
+	getDefaultVoiceName().then((voice) => {
+		chrome.storage.local.set({
+			turnedOn: oldSettings.turnedOn.value
+			,preferredVoice: voice
+			,speed: oldSettings.speed.value
+			,hoverSelect: oldSettings.hoverSelect.value
+			,arrowSelect: oldSettings.arrowSelect.value
+			,browserSelect: oldSettings.browserSelect.value
+		}, () => drawIcon(true));
+	});
+}
+
+function isOldVersion(storage) {
+	if(!settingsPopulated(storage)) return false;
+	return storage.turnedOn.version ? true : false;
+}
+
+function settingsPopulated(storage) {
+	return storage.hasOwnProperty("turnedOn");
+}
+
 chrome.storage.onChanged.addListener(changes => {
 	for(var setting in changes) {
-		if(setting == "turnedOn") handleOnOffEvent(changes.turnedOn.newValue);
-		if(changes[setting].oldValue !== undefined) scheduleAnalytics('storage',setting,changes[setting].newValue);	// undefined: no analytics when default
+		if(setting == "turnedOn")
+			handleOnOffEvent(changes.turnedOn.newValue);
+		if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined)
+			scheduleAnalytics('storage',setting,changes[setting].newValue);	// undefined: no analytics when default or clearing
 	}
 	chrome.storage.local.get(null, settings =>
 		ports.forEach(port =>
