@@ -21,6 +21,11 @@ GLOBAL.navigator = navigator;
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 100;
 
 describe("getVoiceName", () => {
+	beforeEach(() => {
+		navigator.language = "en-US";	// used when no preferredVoice is given
+		updateDisabledVoices([]);
+	});
+
 	it("gives OS voice if preferred and supports language", done => {
 		localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
 		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
@@ -124,6 +129,15 @@ describe("getVoiceName", () => {
 		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
 		updateDisabledVoices(["osVoice","enVoice1","enVoice2"]);
 		getVoiceName(SOME_TEXT).then(null, () => done());
+	});
+
+	it("gives OS voice if matching language but no valid preferredVoice", done => {
+		localStorage.get = (settings,callback) => callback({preferredVoice:"non-existent"});
+		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
+		getVoiceName(SOME_TEXT).then((voiceName) => {
+			expect(voiceName).toEqual("osVoice");
+			done();
+		});
 	});
 });
 
