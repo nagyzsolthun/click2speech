@@ -43,6 +43,7 @@ messageListeners.read = (request,port) => {
 	const onNoMatchingVoice = () => {
 		notifyContent(port, {type:"error"});
 		iconDrawer.drawError();
+		scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
 	};
 
 	// anyltics
@@ -92,7 +93,7 @@ function errorVoice(voiceName) {
 	}, 5*60*1000);	// 5 minutes
 	voiceNameToEnable[voiceName] = enableId;
 
-	scheduleAnalytics('tts', 'error', voiceName)
+	scheduleAnalytics('tts', 'error', voiceName);
 }
 
 function getDisabledVoices() {
