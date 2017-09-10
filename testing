@@ -30,6 +30,7 @@
 3.6 space => browser-default behavior
 3.7 selection style disappears when ended
 3.8 select " " should not cause error
+3.9 error animation should disappear after 2 secs TODO
 
 4) hover + arrows
 4.2 browserSelect: hover behav
@@ -74,8 +75,7 @@
 12.7 test with input fields/gmail new email -> markersh should not appear while cursor is active (test with arrow select)
 12.8 test with words ending to ":", test the following characters: "?!;,-"
 12.9 test with special characters as words in text
-12.10 test a sequence of number 1-30 with a special-character word inside - iSpeech should not throw exception
-12.11 test with OS tts too
+12.10 test a sequence of number 1-30 with a special-character word inside
 
 13) performance
 13.1 check for memoryLeaks: speechRequests

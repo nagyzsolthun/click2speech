@@ -113,8 +113,15 @@
 		const hoveredElement = settings.hoverSelect ? getHoveredElement() : null;	// important when clickable hovered
 		var element = highlightedElement || hoveredElement;
 
-		if(!element || element == requestedElement()) stopReadingAndPreventScroll(keyEvent);
-		else readElementAndPreventScroll(element,keyEvent);
+		// something to read + its not already being read
+		if(element && element != requestedElement()) {
+			readElementAndPreventScroll(element,keyEvent);
+			return;
+		}
+
+		if(requestedElement()) {
+			stopReadingAndPreventScroll(keyEvent);
+		}
 	}
 
 	function onEsc(keyEvent) {
