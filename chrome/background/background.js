@@ -91,6 +91,8 @@ function errorVoice(voiceName) {
 		updateDisabledVoices(getDisabledVoices());
 	}, 5*60*1000);	// 5 minutes
 	voiceNameToEnable[voiceName] = enableId;
+
+	scheduleAnalytics('tts', 'error', voiceName)
 }
 
 function getDisabledVoices() {
