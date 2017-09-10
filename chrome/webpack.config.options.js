@@ -12,10 +12,11 @@ const vueLoaderRule = {test: /\.vue$/, loader: 'vue-loader'}
 const imgLoaderRule = {test: /\.(png|svg)$/, loader: 'file-loader'}
 
 const optionsHtmlPlugin = new HtmlWebpackPlugin({title: "click2speech", filename: "options.html"});
+const productionDefinePlugin = new webpack.DefinePlugin({'process.env': {NODE_ENV: '"production"'}});
 
 module.exports = {
 	entry: './options/app.js'
 	,output: output
 	,module: {rules: [ vueLoaderRule, imgLoaderRule ]}
-	,plugins: [ optionsHtmlPlugin ]
+	,plugins: [ optionsHtmlPlugin, productionDefinePlugin ]
 }

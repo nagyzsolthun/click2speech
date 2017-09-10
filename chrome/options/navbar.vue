@@ -46,7 +46,6 @@ export default {
         }
         ,routeTo: function(page) {
             router.push(page);
-            console.log(this.$route.path);
         }
     }
     ,filters : { translate }
