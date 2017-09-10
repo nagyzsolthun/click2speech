@@ -27,24 +27,23 @@ function calcVoiceName(settings,voices,lan) {
 
 	// find voice with same gender as preferredVoice, or OsTts
 	const preferredVoice = voices.filter(voice => voice.voiceName == settings.preferredVoice)[0];
-	const voice = voicesMatchingLan.reduce((result,voice) => {
-		if(!result) return voice;
-
+	const voice = voicesMatchingLan.reduce((voice1,voice2) => {
 		// matching gender wins
-		if(voice.gender != result.gender) {
-			if(result.gender == preferredVoice.gender) return result;
-			if(voice.gender == preferredVoice.gender) return voice;
+		if(voice1.gender != voice2.gender) {
+			if(voice1.gender == preferredVoice.gender) return voice1;
+			if(voice2.gender == preferredVoice.gender) return voice2;
 		}
 
 		// OS tts wins
-		if(!result.extensionId) return result;
-		if(!voice.extensionId) return voice;
+		if(!voice1.extensionId) return voice1;
+		if(!voice2.extensionId) return voice2;
 
 		// Google tts wins
-		if(result.voiceName.startsWith("Google")) return result;
-		if(voice.voiceName.startsWith("Google")) return voice;
+		if(voice1.voiceName.startsWith("Google")) return voice1;
+		if(voice2.voiceName.startsWith("Google")) return voice2;
 
-		return result;
+		// genders are same, no OS voice, no Google voice
+		return voice1;
 	});
 	return voice.voiceName;
 }
@@ -53,10 +52,28 @@ function getDefaultVoiceName() {
 	return new Promise( resolve => {
 		const voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
 		voicesPromise.then(voices => {
-			const osVoice = voices.filter(voice => !voice.extensionId)[0];
-			const browserLanguageVoice = voices.filter(voice => voice.lang == navigator.language)[0];
-			const englishVoice = voices.filter(voice => !voice.lang.startsWith("en"))[0];
-			resolve( (osVoice || browserLanguageVoice || englishVoice).voiceName );
+			var voice = voices.reduce((voice1,voice2) => {
+				// dialect wins
+				if(voice1.lang != voice2.lang) {
+					if(navigator.language == voice1.lang) return voice1;
+					if(navigator.language == voice2.lang) return voice2;
+				}
+
+				// language wins
+				const lan1 = voice1.lang.split("-")[0];
+				const lan2 = voice2.lang.split("-")[0];
+				if(lan1 != lan2) {
+					if(navigator.language.startsWith(lan1)) return voice1;
+					if(navigator.language.startsWith(lan2)) return voice2;
+				}
+
+				// OS tts wins
+				if(!voice1.extensionId) return voice1;
+				if(!voice2.extensionId) return voice2;
+
+				return voice1;
+			});
+			resolve(voice.voiceName);
 		})
 	});
 }

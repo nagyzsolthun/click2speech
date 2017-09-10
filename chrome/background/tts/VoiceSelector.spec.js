@@ -12,10 +12,12 @@ const tts = {
 };
 const localStorage = {};
 const i18n = {};
+const navigator = {};
 
 const SOME_TEXT = "some text";
 
 GLOBAL.chrome = {storage: {local:localStorage}, tts:tts, i18n:i18n};
+GLOBAL.navigator = navigator;
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 100;
 
 describe("getVoiceName", () => {
@@ -122,5 +124,22 @@ describe("getVoiceName", () => {
 		i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
 		updateDisabledVoices(["osVoice","enVoice1","enVoice2"]);
 		getVoiceName(SOME_TEXT).then(null, () => done());
+	});
+});
+
+describe("getDefaultVoiceName", () => {
+	it("returns osVoice if it matches navigator language", done => {
+		navigator.language = "en-US";
+		getDefaultVoiceName().then(voiceName => {
+			expect(voiceName).toEqual("osVoice");
+			done();
+		});
+	});
+	it("returns deVoice1 if osVoice does not match navigator language", done => {
+		navigator.language = "de-DE";
+		getDefaultVoiceName().then(voiceName => {
+			expect(voiceName).toEqual("deVoice1");
+			done();
+		});
 	});
 });
