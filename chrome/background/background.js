@@ -184,6 +184,7 @@ chrome.storage.local.get(null, items => {
 
 function populateDefaultSettings() {
 	getDefaultVoiceName().then((voice) => {
+		scheduleAnalytics('storage','defaultVoice', voice);
 		chrome.storage.local.set({
 			turnedOn: true
 			,preferredVoice: voice
@@ -197,6 +198,7 @@ function populateDefaultSettings() {
 
 function populateFromOldSettings(oldSettings) {
 	getDefaultVoiceName().then((voice) => {
+		scheduleAnalytics('storage','defaultVoice', voice);
 		chrome.storage.local.set({
 			turnedOn: oldSettings.turnedOn.value
 			,preferredVoice: voice
