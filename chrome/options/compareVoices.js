@@ -8,6 +8,12 @@ export default function(voice1,voice2) {
 }
 
 const langs = ["en-US","en-GB","en","de","fr","es-ES","es-US"]
+function calcLanValue(voiceLan) {
+    const index = langs.findIndex(lang => voiceLan.startsWith(lang));
+    if(index > -1) return langs.length - index;
+    else return 0;
+}
+
 function compareLangs(lang1,lang2) {
     const langIndex1 = langs.findIndex(lang => lang1.startsWith(lang));
     const langIndex2 = langs.findIndex(lang => lang2.startsWith(lang));
@@ -29,20 +35,13 @@ function compareExtensionId(id1,id2) {
     return 0;
 }
 
-const providers = ["Google","IBM"]
 function compareProvider(voiceName1,voiceName2) {
-    const providerIndex1 = providers.findIndex(provider => voiceName1.startsWith(provider));
-    const providerIndex2 = providers.findIndex(provider => voiceName2.startsWith(provider));
+    const value1 = voiceName1.startsWith("IBM") ? 0 : 10;
+    const value2 = voiceName2.startsWith("IBM") ? 0 : 10;
 
-    if(providerIndex1 == providerIndex2) return 0;
-
-    // one of the providers missing
-    if(providerIndex2 == -1) return 1;
-    if(providerIndex1 == -1) return -1;
-
-    // both in
-    if(providerIndex1 < providerIndex2) return 1;
-    if(providerIndex1 > providerIndex2) return -1;
+    if(value1 > value2) return 1;
+    if(value1 < value2) return -1;
+    return 0;
 }
 
 function compareGender(gender1,gender2) {

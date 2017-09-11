@@ -45,14 +45,14 @@ function calcSpeechVoiceValue(voice, lan, preferredVoice) {
 	const matchingPreferredVoice = voice == preferredVoice
 	const matchingPreferredGender = voice.gender == (preferredVoice ? preferredVoice.gender : null);
 	const osVoice = !voice.extensionId;
-	const googleVoice = voice.voiceName.startsWith("Google");
+	const noIbmVoice = !voice.voiceName.startsWith("IBM");
 	const matchingPreferredLan = voice.lang.split("-")[0] == (preferredVoice ? preferredVoice.lang.split("-")[0] : navigator.language.split("-")[0]);
 
 	var value = 1;	// already worth more than rejected voices
 	if(matchingPreferredVoice)	value += 100000;
 	if(matchingPreferredGender)	value += 10000;
 	if(osVoice)					value += 1000;
-	if(googleVoice)				value += 100;
+	if(noIbmVoice)				value += 100;
 	if(matchingPreferredLan)	value += 10;	// this is important when no lan is provided
 	return value;
 }
@@ -61,7 +61,7 @@ function calcSpeechVoiceValue(voice, lan, preferredVoice) {
 function calcDefaultVoiceValue(voice, lan) {
 	const matchingLanguage = voice.lang.split("-")[0] == lan.split("-")[0];	// lan is in form en-US
 	const osVoice = !voice.extensionId;
-	const googleVoice = voice.voiceName.startsWith("Google");
+	const noIbmVoice = !voice.voiceName.startsWith("IBM");
 	const femaleVoice = voice.gender == "female";
 	const matchingDialect = voice.lang == lan;
 	const usEnglishVoice = voice.lang == "en-US";
@@ -69,7 +69,7 @@ function calcDefaultVoiceValue(voice, lan) {
 	var value = 0;
 	if(matchingLanguage)	value += 100000;
 	if(osVoice)				value += 10000;
-	if(googleVoice)			value += 1000;
+	if(noIbmVoice)			value += 1000;
 	if(femaleVoice)			value += 100;
 	if(matchingDialect)		value += 10;
 	if(usEnglishVoice)		value += 1;
