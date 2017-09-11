@@ -57,17 +57,22 @@ function calcSpeechVoiceValue(voice, lan, preferredVoice) {
 	return value;
 }
 
+// return the value of voice as default
 function calcDefaultVoiceValue(voice, lan) {
-	const matchingDialect = voice.lang == lan;
-	const matchingLanguage = voice.lang.startsWith(lan) || lan.startsWith(voice.lang);
+	const matchingLanguage = voice.lang.split("-")[0] == lan.split("-")[0];	// lan is in form en-US
 	const osVoice = !voice.extensionId;
 	const googleVoice = voice.voiceName.startsWith("Google");
+	const femaleVoice = voice.gender == "female";
+	const matchingDialect = voice.lang == lan;
+	const usEnglishVoice = voice.lang == "en-US";
 
 	var value = 0;
-	if(matchingDialect)		value += 1000;
-	if(matchingLanguage)	value += 100;
-	if(osVoice)				value += 10;
-	if(googleVoice)			value += 1;
+	if(matchingLanguage)	value += 100000;
+	if(osVoice)				value += 10000;
+	if(googleVoice)			value += 1000;
+	if(femaleVoice)			value += 100;
+	if(matchingDialect)		value += 10;
+	if(usEnglishVoice)		value += 1;
 	return value;
 }
 
