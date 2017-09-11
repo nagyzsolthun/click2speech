@@ -1,6 +1,6 @@
 {
   "name": "click2speech"
-  ,"version": "1.5.0"
+  ,"version": "1.5.1"
   ,"autohor": "nagyzsolthun"
   ,"scripts": {
       "build": "npm run clean-build && npm run build-manifest && npm run build-locales && npm run build-img && npm run build-background && npm run build-options && npm run build-popup && npm run build-content && npm run test"
