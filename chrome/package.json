@@ -1,10 +1,10 @@
 {
   "name": "click2speech"
-  ,"version": "1.5.2"
+  ,"version": "1.5.3"
   ,"autohor": "nagyzsolthun"
   ,"scripts": {
       "build": "npm run clean-build && npm run build-manifest && npm run build-locales && npm run build-img && npm run build-background && npm run build-options && npm run build-popup && npm run build-content && npm run test"
-      ,"test": "node node_modules/webpack/bin/webpack.js --config=webpack.config.tests.js && node --harmony_destructuring node_modules/jasmine/bin/jasmine.js ../build-test/test-bundle.js"
+      ,"test": "node node_modules/webpack/bin/webpack.js --config=webpack.config.tests.js && node node_modules/jasmine/bin/jasmine.js ../build-test/test-bundle.js"
       ,"clean-build": "rm -rf ../build-extension/ && mkdir ../build-extension"
       ,"build-manifest": "node manifest.build.js > ../build-extension/manifest.json"
       ,"build-locales": "cp -TR _locales ../build-extension/_locales"

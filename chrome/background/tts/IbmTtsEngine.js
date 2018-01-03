@@ -35,8 +35,7 @@ var ttsVoiceNameToIbmVoiceName = {
 function getIbmVoiceName(ttsVoiceName) {
     return ttsVoiceNameToIbmVoiceName[ttsVoiceName];
 }
-
-const TTS_URL_BASE = "https://text-to-speech-demo.mybluemix.net/api/synthesize";
+const TTS_URL_BASE = "https://text-to-speech-demo.ng.bluemix.net/api/synthesize";
 function testLengthLessThan200(text) {
     return text.length < 200;
 }
