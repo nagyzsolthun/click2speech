@@ -33,19 +33,19 @@ function setLoading() {
 
 function animateError() {
 	animation = {start: Date.now(),transitions: [
-		{from:renderedIcon,to:errorAnimationIcon,length:200}
-		,{from:errorAnimationIcon,to:errorIcon,length:200}
-		,{from:errorIcon,to:errorAnimationIcon,length:200}
-		,{from:errorAnimationIcon,to:errorIcon,length:200}
-		,{from:errorIcon,to:errorAnimationIcon,length:200}
-		,{from:errorAnimationIcon,to:targetIcon,length:200}
+		{from:renderedIcon,to:errorAnimationIcon,length:200},
+		{from:errorAnimationIcon,to:errorIcon,length:200},
+		{from:errorIcon,to:errorAnimationIcon,length:200},
+		{from:errorAnimationIcon,to:errorIcon,length:200},
+		{from:errorIcon,to:errorAnimationIcon,length:200},
+		{from:errorAnimationIcon,to:targetIcon,length:200},
 	]};
 }
 
 function animateInteraction() {
 	animation = {start: Date.now(),transitions: [
-		{from:renderedIcon,to:interactionAnimationIcon,length:200}
-		,{from:interactionAnimationIcon,to:targetIcon,length:200}
+		{from:renderedIcon,to:interactionAnimationIcon,length:200},
+		{from:interactionAnimationIcon,to:targetIcon,length:200},
 	]};
 }
 
@@ -60,52 +60,52 @@ function render(millis) {
 export { setCanvas, setOn, setOff, setError, setPlaying, setLoading, animateError, animateInteraction, render }
 
 const turnedOffIcon = {
-	innerFill: RGBA.create({a:0.5})	//grey
-	,innerRing: RGBA.BLACK
-	,outerFill: RGBA.TRANSPARENT
-	,outerRing: RGBA.BLACK
+	innerFill: RGBA.create({a:0.5}),	//grey
+	innerRing: RGBA.BLACK,
+	outerFill: RGBA.TRANSPARENT,
+	outerRing: RGBA.BLACK,
 }
 
 const turnedOnIcon = {
-	innerFill: RGBA.create({g:1})
-	,innerRing: RGBA.BLACK
-	,outerFill: RGBA.TRANSPARENT
-	,outerRing: RGBA.create({r:0.2,g:0.2,b:0.2})
+	innerFill: RGBA.create({g:1}),
+	innerRing: RGBA.BLACK,
+	outerFill: RGBA.TRANSPARENT,
+	outerRing: RGBA.create({r:0.2,g:0.2,b:0.2}),
 }
 
 const playingIcon = {
-	innerFill: RGBA.create({b:1})
-	,innerRing: RGBA.BLACK
-	,outerFill: RGBA.create({b:1,a:0.5})
-	,outerRing: RGBA.create({b:0.5})
+	innerFill: RGBA.create({b:1}),
+	innerRing: RGBA.BLACK,
+	outerFill: RGBA.create({b:1,a:0.5}),
+	outerRing: RGBA.create({b:0.5}),
 }
 
 const errorIcon = {
-	innerFill: RGBA.create({r:1})
-	,innerRing: RGBA.BLACK
-	,outerFill: RGBA.TRANSPARENT
-	,outerRing: RGBA.BLACK
+	innerFill: RGBA.create({r:1}),
+	innerRing: RGBA.BLACK,
+	outerFill: RGBA.TRANSPARENT,
+	outerRing: RGBA.BLACK,
 }
 
 const errorAnimationIcon = {
-	innerFill: RGBA.create({r:1})
-	,innerRing: RGBA.BLACK
-	,outerFill: RGBA.create({r:1})
-	,outerRing: RGBA.BLACK
+	innerFill: RGBA.create({r:1}),
+	innerRing: RGBA.BLACK,
+	outerFill: RGBA.create({r:1}),
+	outerRing: RGBA.BLACK,
 }
 
 const loadingIcon  = {
-	innerFill: RGBA.TRANSPARENT
-	,innerRing: RGBA.create({a:0.2})	//grey
-	,outerFill: RGBA.TRANSPARENT
-	,outerRing: RGBA.TRANSPARENT
+	innerFill: RGBA.TRANSPARENT,
+	innerRing: RGBA.create({a:0.2}),	//grey
+	outerFill: RGBA.TRANSPARENT,
+	outerRing: RGBA.TRANSPARENT,
 }
 
 const interactionAnimationIcon  = {
-	innerFill: RGBA.create({g:0.7})
-	,innerRing: RGBA.BLACK
-	,outerFill: RGBA.create({g:0.7})
-	,outerRing: RGBA.create({r:0.2,g:0.2,b:0.2})
+	innerFill: RGBA.create({g:0.7}),
+	innerRing: RGBA.BLACK,
+	outerFill: RGBA.create({g:0.7}),
+	outerRing: RGBA.create({r:0.2,g:0.2,b:0.2}),
 }
 
 var context;
@@ -172,10 +172,10 @@ function iconAt(millis) {
 			var w1 = transition.length - (millis-start);
 			var w2 = millis - start;
 			return {
-				innerFill:RGBA.mix(transition.from.innerFill, transition.to.innerFill,w1,w2)
-				,innerRing:RGBA.mix(transition.from.innerRing, transition.to.innerRing,w1,w2)
-				,outerFill:RGBA.mix(transition.from.outerFill, transition.to.outerFill,w1,w2)
-				,outerRing:RGBA.mix(transition.from.outerRing, transition.to.outerRing,w1,w2)
+				innerFill:RGBA.mix(transition.from.innerFill, transition.to.innerFill,w1,w2),
+				innerRing:RGBA.mix(transition.from.innerRing, transition.to.innerRing,w1,w2),
+				outerFill:RGBA.mix(transition.from.outerFill, transition.to.outerFill,w1,w2),
+				outerRing:RGBA.mix(transition.from.outerRing, transition.to.outerRing,w1,w2),
 			}
 		}
 		start += transition.length;

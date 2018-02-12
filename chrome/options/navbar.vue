@@ -37,17 +37,10 @@
 import router from "./content.router.js";
 import translate from "./translate.js";
 export default {
-    data() {
-        return {};
-    }
-    ,methods: {
-        isCurrentRoute: function(page) {
-            return this.$route.path == page;
-        }
-        ,routeTo: function(page) {
-            router.push(page);
-        }
-    }
-    ,filters : { translate }
+    methods: {
+        isCurrentRoute: function(page) { return this.$route.path == page },
+        routeTo: function(page) { router.push(page) }
+    },
+    filters : { translate }
 }
 </script>

@@ -2,12 +2,12 @@ import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./Voice
 
 const tts = {
 	getVoices: callback => callback([
-		{voiceName:"osVoice", extensionId:null, lang:"en", gender:"female"}
-		,{voiceName:"enVoice1", extensionId:1, lang:"en", gender:"female"}
-		,{voiceName:"enVoice2", extensionId:1, lang:"en", gender:"male"}
-		,{voiceName:"deVoice1", extensionId:1, lang:"de", gender:"female"}
-		,{voiceName:"deVoice2", extensionId:1, lang:"de", gender:"male"}
-		,{voiceName:"huVoice", extensionId:1, lang:"hu", gender:"female"}
+		{voiceName:"osVoice", extensionId:null, lang:"en", gender:"female"},
+		{voiceName:"enVoice1", extensionId:1, lang:"en", gender:"female"},
+		{voiceName:"enVoice2", extensionId:1, lang:"en", gender:"male"},
+		{voiceName:"deVoice1", extensionId:1, lang:"de", gender:"female"},
+		{voiceName:"deVoice2", extensionId:1, lang:"de", gender:"male"},
+		{voiceName:"huVoice", extensionId:1, lang:"hu", gender:"female"},
 	])
 };
 const localStorage = {};

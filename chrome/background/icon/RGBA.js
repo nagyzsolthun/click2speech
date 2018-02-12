@@ -1,9 +1,9 @@
 function create(c) {
     var rgba = {
-        r: c.r || 0
-        ,g: c.g || 0
-        ,b: c.b || 0
-        ,a: (c.a != null) ? c.a : 1 //if c.a is zero, we want to keep it as is
+        r: c.r || 0,
+        g: c.g || 0,
+        b: c.b || 0,
+        a: (c.a != null) ? c.a : 1, //if c.a is zero, we want to keep it as is
     }
     return rgba;
 };

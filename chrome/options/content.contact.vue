@@ -12,7 +12,6 @@ import ContactReviewsComponent from "./content.contact.reviews.vue";
 import ContactSupportComponent from "./content.contact.support.vue";
 
 export default {
-    data() {return {}}
-    ,components: { ContactReviewsComponent, ContactSupportComponent }
+    components: { ContactReviewsComponent, ContactSupportComponent }
 }
 </script>

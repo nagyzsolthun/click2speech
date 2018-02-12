@@ -19,9 +19,9 @@
 import translate from "./translate.js";
 
 const selectionOptions = [
-    {name:"hoverSelect", selected:false}
-    ,{name:"arrowSelect", selected:false}
-    ,{name:"browserSelect", selected:false}
+    {name:"hoverSelect", selected:false},
+    {name:"arrowSelect", selected:false},
+    {name:"browserSelect", selected:false},
 ];
 chrome.storage.local.get(null, settings => {
     selectionOptions.forEach(option => option.selected = settings[option.name])
@@ -34,8 +34,8 @@ function selectOption(option) {
 }
 
 export default {
-    data() { return { selectionOptions } }
-    ,methods: { onSelectionOptionClick: selectOption }
-    ,filters : { translate }
+    data() { return { selectionOptions } },
+    methods: { onSelectionOptionClick: selectOption },
+    filters : { translate },
 }
 </script>

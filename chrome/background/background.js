@@ -30,8 +30,8 @@ messageListeners.read = (request,port) => {
 	var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
 	var voiceNamePromise = getVoiceName(request.text);
 	Promise.all([settingsPromise,voiceNamePromise]).then(
-		([settings,voiceName]) => chrome.tts.speak(request.text, {voiceName:voiceName, rate:settings.speed, onEvent:event=>onTtsEvent(event, voiceName, settings.speed)} )
-		,() => onNoMatchingVoice()
+		([settings,voiceName]) => chrome.tts.speak(request.text, {voiceName:voiceName, rate:settings.speed, onEvent:event=>onTtsEvent(event, voiceName, settings.speed)} ),
+		() => onNoMatchingVoice()
 	);
 	const onTtsEvent = (event,voiceName,speed) => {
 		updateIcon(event.type);
@@ -186,12 +186,12 @@ function populateDefaultSettings() {
 	getDefaultVoiceName().then((voice) => {
 		scheduleAnalytics('storage','defaultVoice', voice);
 		chrome.storage.local.set({
-			turnedOn: true
-			,preferredVoice: voice
-			,speed: 1.2
-			,hoverSelect: true
-			,arrowSelect: false
-			,browserSelect: false
+			turnedOn: true,
+			preferredVoice: voice,
+			speed: 1.2,
+			hoverSelect: true,
+			arrowSelect: false,
+			browserSelect: false,
 		}, () => drawIcon(true));
 	});
 }
@@ -200,12 +200,12 @@ function populateFromOldSettings(oldSettings) {
 	getDefaultVoiceName().then((voice) => {
 		scheduleAnalytics('storage','defaultVoice', voice);
 		chrome.storage.local.set({
-			turnedOn: oldSettings.turnedOn.value
-			,preferredVoice: voice
-			,speed: oldSettings.speed.value
-			,hoverSelect: oldSettings.hoverSelect.value
-			,arrowSelect: oldSettings.arrowSelect.value
-			,browserSelect: oldSettings.browserSelect.value
+			turnedOn: oldSettings.turnedOn.value,
+			preferredVoice: voice,
+			speed: oldSettings.speed.value,
+			hoverSelect: oldSettings.hoverSelect.value,
+			arrowSelect: oldSettings.arrowSelect.value,
+			browserSelect: oldSettings.browserSelect.value,
 		}, () => drawIcon(true));
 	});
 }

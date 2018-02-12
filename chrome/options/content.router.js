@@ -8,9 +8,9 @@ import ContactComponent from './content.contact.vue';
 Vue.use(VueRouter);
 
 const routes = [
-    {path: "/", redirect: "/general"}
-    ,{path: "/general", component: GeneralSettingsComponent}
-    ,{path: "/speech", component: SpeechSettingsComponent}
-    ,{path: "/contact", component: ContactComponent}
+    {path: "/", redirect: "/general"},
+    {path: "/general", component: GeneralSettingsComponent},
+    {path: "/speech", component: SpeechSettingsComponent},
+    {path: "/contact", component: ContactComponent},
 ];
 export default new VueRouter({routes});

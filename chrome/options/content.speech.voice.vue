@@ -46,10 +46,10 @@ Promise.all([settingsPromise,chromeVoicesPromise,disabledVoicesPromise]).then( (
     chromeVoices.sort(compareVoices);
     chromeVoices.reverse();
     chromeVoices.forEach(voice => voices.push({
-        name:voice.voiceName
-        ,lan:voice.lang
-        ,selected: settings.preferredVoice == voice.voiceName
-        ,disabled: disabledVoices.some(disabledVoice => disabledVoice == voice.voiceName)
+        name:voice.voiceName,
+        lan:voice.lang,
+        selected: settings.preferredVoice == voice.voiceName,
+        disabled: disabledVoices.some(disabledVoice => disabledVoice == voice.voiceName),
     }));
 });
 
@@ -62,8 +62,8 @@ function selectVoice(voice) {
 }
 
 export default {
-    data() { return {voices} }
-    ,methods: { onVoiceClick: selectVoice }
-    ,filters : { translate }
+    data() { return {voices} },
+    methods: { onVoiceClick: selectVoice },
+    filters : { translate },
 }
 </script>

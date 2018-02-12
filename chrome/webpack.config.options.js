@@ -3,8 +3,8 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const output = {
-	path: path.resolve(__dirname, '../build-extension/options')
-	,filename: 'options.js'
+	path: path.resolve(__dirname, '../build-extension/options'),
+	filename: 'options.js'
 }
 
 const jsLoaderRule = {test: /\.js$/,loader: 'babel-loader'}
@@ -15,8 +15,8 @@ const optionsHtmlPlugin = new HtmlWebpackPlugin({title: "click2speech", filename
 const productionDefinePlugin = new webpack.DefinePlugin({'process.env': {NODE_ENV: '"production"'}});
 
 module.exports = {
-	entry: './options/app.js'
-	,output: output
-	,module: {rules: [ vueLoaderRule, imgLoaderRule ]}
-	,plugins: [ optionsHtmlPlugin, productionDefinePlugin ]
+	entry: './options/app.js',
+	output: output,
+	module: {rules: [ vueLoaderRule, imgLoaderRule ]},
+	plugins: [ optionsHtmlPlugin, productionDefinePlugin ]
 }

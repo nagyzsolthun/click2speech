@@ -52,10 +52,10 @@
 
 <script>
 const speedOptions = {
-    min: 0.5
-    ,max: 4
-    ,step: 0.1
-    ,value: null
+    min: 0.5,
+    max: 4,
+    step: 0.1,
+    value: null
 };
 
 chrome.storage.local.get(null, settings => speedOptions.value = settings.speed);
@@ -66,7 +66,7 @@ function updateSetting(value) {
 }
 
 export default {
-    data() { return speedOptions }
-    ,watch: { value: updateSetting }
+    data() { return speedOptions },
+    watch: { value: updateSetting }
 }
 </script>

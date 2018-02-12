@@ -19,8 +19,8 @@ function sendAnalytics() {
 }
 
 export default {
-    data() { return {reviewsUrl: getStoreUrl()} }
-    ,methods: { onClick: sendAnalytics }
-    ,filters : { translate }
+    data() { return {reviewsUrl: getStoreUrl()} },
+    methods: { onClick: sendAnalytics },
+    filters : { translate },
 }
 </script>

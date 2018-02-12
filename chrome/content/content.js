@@ -389,12 +389,12 @@
 
 	function getDocumentBoundingClientRect() {
 		var result = {
-			top: -window.pageYOffset
-			,bottom: document.body.scrollHeight-window.pageYOffset
-			,left:-window.pageXOffset
-			,right: document.body.scrollWidth-window.pageXOffset
-			,width: document.body.scrollWidth
-			,height: document.body.scrollHeight-2*window.pageYOffset
+			top: -window.pageYOffset,
+			bottom: document.body.scrollHeight-window.pageYOffset,
+			left:-window.pageXOffset,
+			right: document.body.scrollWidth-window.pageXOffset,
+			width: document.body.scrollWidth,
+			height: document.body.scrollHeight-2*window.pageYOffset,
 		};
 		return result;
 	}
@@ -664,10 +664,10 @@
 	function saveOriginal(element) {
 		if(element2original.get(element)) return;	//already saved
 		element2original.set(element,{
-			background:element.style["background"]	//this overrides background-color in soem cases => set to none (e.g. google search result top-right login button)
-			,backgroundColor:element.style["background-color"]
-			,color: element.style["color"]
-			,transition:element.style["-webkit-transition"]
+			background:element.style["background"],	//this overrides background-color in soem cases => set to none (e.g. google search result top-right login button)
+			backgroundColor:element.style["background-color"],
+			color: element.style["color"],
+			transition:element.style["-webkit-transition"],
 		});
 	}
 	var element2original = new Map();	//element => {background, backgroundColor, color, transition}

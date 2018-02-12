@@ -8,7 +8,6 @@
 import SpeedSettingsComponent from "./content.speech.speed.vue";
 import VoiceSettingsComponent from "./content.speech.voice.vue";
 export default {
-    data() {return {}}
-    ,components: { SpeedSettingsComponent, VoiceSettingsComponent }
+    components: { SpeedSettingsComponent, VoiceSettingsComponent }
 }
 </script>

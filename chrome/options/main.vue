@@ -110,14 +110,6 @@ import HeaderComponent from "./header.vue"
 import NavbarComponent from "./navbar.vue"
 
 export default {
-    data() {
-        return {text: "Hello"};
-    }
-    ,methods: {
-        onClick: function() {
-            alert("clicked");
-        }
-    }
-    ,components: { HeaderComponent, NavbarComponent }
+    components: { HeaderComponent, NavbarComponent }
 }
 </script>

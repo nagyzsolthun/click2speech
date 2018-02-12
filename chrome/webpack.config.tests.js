@@ -2,22 +2,20 @@ const webpack = require('webpack');
 const path = require("path");
 const search = require('find')
 
-var entries = search.fileSync(/.spec.js$/, __dirname);
-
-//var entries = [ path.resolve(__dirname, 'background', 'js', 'tts', 'TextSplitter.spec.js') ];
+const entries = search.fileSync(/.spec.js$/, __dirname);
 
 const output = {
-	path: path.resolve(__dirname, '../build-test')
-	,filename: 'test-bundle.js'
+	path: path.resolve(__dirname, '../build-test'),
+	filename: 'test-bundle.js'
 }
 
 const babelLoader = {
-	test: /\.js$/
-	,loader: 'babel-loader'
+	test: /\.js$/,
+	loader: 'babel-loader'
 }
 
 module.exports = {
-	entry: entries
-	,output: output
-	,module: {rules: [ babelLoader ]}
+	entry: entries,
+	output: output,
+	module: {rules: [ babelLoader ]}
 }

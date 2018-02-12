@@ -21,8 +21,8 @@ function sendAnalytics() {
 }
 
 export default {
-    data() { return {email: getEmail(), href:getEmailHref()} }
-    ,methods: { onClink: sendAnalytics }
-    ,filters : { translate }
+    data() { return {email: getEmail(), href:getEmailHref()} },
+    methods: { onClink: sendAnalytics },
+    filters : { translate }
 }
 </script>

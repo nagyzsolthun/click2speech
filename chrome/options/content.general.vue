@@ -7,7 +7,6 @@
 <script>
 import SelectionSettingsComponent from "./content.general.selection.vue";
 export default {
-    data() {return {}}
-    ,components: { SelectionSettingsComponent }
+    components: { SelectionSettingsComponent }
 }
 </script>
