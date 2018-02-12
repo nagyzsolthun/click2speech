@@ -37,7 +37,7 @@ MockAudio.getInstances = function() {
     return MockAudio.instances;
 }
 MockAudio.clearInstances();
-GLOBAL.Audio = MockAudio;
+global.Audio = MockAudio;
 
 function mockBuildUrl(text) {
 	return text;

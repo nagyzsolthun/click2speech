@@ -16,8 +16,8 @@ const navigator = {};
 
 const SOME_TEXT = "some text";
 
-GLOBAL.chrome = {storage: {local:localStorage}, tts:tts, i18n:i18n};
-GLOBAL.navigator = navigator;
+global.chrome = {storage: {local:localStorage}, tts:tts, i18n:i18n};
+global.navigator = navigator;
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 100;
 
 describe("getVoiceName", () => {
