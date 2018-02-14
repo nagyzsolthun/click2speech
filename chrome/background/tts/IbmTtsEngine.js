@@ -3,22 +3,23 @@ import { buildHttpSpeech } from "./HttpSpeech";
 var speech;
 
 function speakListener(utterance, options, sendTtsEvent) {
-    var ibmVoiceName = getIbmVoiceName(options.voiceName);
-    speech = buildHttpSpeech(utterance, text => buildUrl(text,ibmVoiceName), testLengthLessThan200, options.rate)
+    const ibmVoiceName = getIbmVoiceName(options.voiceName);
+    const text = utterance;
+    const buildUrl = text => buildUrlWithVoiceName(text, ibmVoiceName);
+    const speed = options.rate;
+    speech = buildHttpSpeech({ text, buildUrl, testLength, speed })
         .onStart(() => sendTtsEvent({'type':'start', 'charIndex': 0}))
-        .onSentence((charIndex) => sendTtsEvent({'type':'sentence', 'charIndex': charIndex}))
+        .onSentence(charIndex => sendTtsEvent({'type':'sentence', charIndex}))
         .onEnd(() => sendTtsEvent({'type': 'end', 'charIndex': utterance.length}))
-        .onError(charIndex => sendTtsEvent({'type': 'error', 'charIndex': charIndex}));
-    speech.play();
+        .onError(charIndex => sendTtsEvent({'type': 'error', charIndex}))
+        .play();
 }
 
 function stopListener() {
     if(speech) speech.stop();
 }
 
-export { speakListener, stopListener };
-
-var ttsVoiceNameToIbmVoiceName = {
+const ttsVoiceNameToIbmVoiceName = {
     "IBM Birgit":"de-DE_BirgitVoice",
     "IBM Dieter":"de-DE_DieterVoice",
     "IBM Kate":"en-GB_KateVoice",
@@ -36,10 +37,12 @@ function getIbmVoiceName(ttsVoiceName) {
     return ttsVoiceNameToIbmVoiceName[ttsVoiceName];
 }
 const TTS_URL_BASE = "https://text-to-speech-demo.ng.bluemix.net/api/synthesize";
-function testLengthLessThan200(text) {
+function testLength(text) {
     return text.length < 200;
 }
 
-function buildUrl(text,ibmVoiceName) {
+function buildUrlWithVoiceName(text,ibmVoiceName) {
     return TTS_URL_BASE + "?text=" + encodeURIComponent(text) + "&voice=" + ibmVoiceName;
 }
+
+export { speakListener, stopListener };

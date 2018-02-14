@@ -1,8 +1,10 @@
-import * as iconDrawer from "./icon/drawer.js";
 import { scheduleAnalytics } from "./analytics.js";
-import * as ibmTts from "./tts/IbmTtsEngine.js";
-import * as textSplitter from "./tts/TextSplitter.js";
+import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
 import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
+import * as iconDrawer from "./icon/drawer.js";
+import * as ibmTts from "./tts/IbmTtsEngine.js";
+
+// ===================================== incoming messages =====================================
 
 var ports = new Set();
 chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
@@ -11,13 +13,14 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
 
     var action = message["action"];
     var listener = messageListeners[action];
-    if(listener) listener(message, port);
+    if(listener) {
+        listener(message, port);
+    };
 }));
 
-// ===================================== incoming messages =====================================
 var messageListeners = {};
 messageListeners.getSettings = (message,port) => {
-    chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings}));
+    chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
 messageListeners.read = (request,port) => {
     if(isEmpty(request.text)) {
@@ -105,17 +108,17 @@ function getDisabledVoices() {
 // ===================================== Google TTS bug workaround =====================================
 
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
-var scheduledPuseResume;
+var scheduledPauseResume;
 function applyGoogleTtsBugWorkaround(eventType,speed) {
     // pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
     const repeateInterval = 5000 / speed;
     switch(eventType) {
-        case("start"): scheduledPuseResume = scheduledPuseResume || setInterval(pauseResume, repeateInterval); break;
+        case("start"): scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval); break;
         case("end"):
         case("interrupted"):
         case("error"): {
-            if(scheduledPuseResume) clearInterval(scheduledPuseResume);
-            scheduledPuseResume = null;
+            if(scheduledPauseResume) clearInterval(scheduledPauseResume);
+            scheduledPauseResume = null;
             break;
         }
     }
@@ -125,7 +128,7 @@ function pauseResume() {
     chrome.tts.resume();
 }
 
-// ===================================== spaking flag for anyltics =====================================
+// ===================================== speaking flag for anyltics =====================================
 
 var speaking;
 function updateSpeakingFlag(ttsEventType) {
@@ -146,13 +149,13 @@ function notifyContent(port, chromeTtsEvent, text) {
 var ttsEventToContentNotifier = {};
 ttsEventToContentNotifier.sentence = (port,chromeTtsEvent,text) => {
     const startOffset = chromeTtsEvent.charIndex;
-    const endOffset = textSplitter.nextSentenceEnd(text, startOffset);
+    const endOffset = nextSentenceEnd(text, startOffset);
     const textToSend = text.substring(startOffset,endOffset);
     port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
 }
 ttsEventToContentNotifier.word = (port,chromeTtsEvent,text) => {
     const startOffset = chromeTtsEvent.charIndex;
-    const endOffset = textSplitter.nextWordEnd(text, startOffset);
+    const endOffset = nextWordEnd(text, startOffset);
     const textToSend = text.substring(startOffset,endOffset);
     port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
 }
@@ -165,15 +168,6 @@ ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", e
 // ===================================== settings =====================================
 
 chrome.storage.local.get(null, items => {
-
-    // old version of click2speech uses different settings structure
-    if(isOldVersion(items)) {
-        console.log("persist settings from old version");
-        scheduleAnalytics('storage','clear', chrome.app.getDetails().version);
-        chrome.storage.local.clear(() => populateFromOldSettings(items));
-        return;
-    }
-
     if(settingsPopulated(items)) {
         drawIcon(items.turnedOn);
         return;
@@ -183,6 +177,10 @@ chrome.storage.local.get(null, items => {
     scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
     populateDefaultSettings();
 });
+
+function settingsPopulated(storage) {
+    return storage.hasOwnProperty("turnedOn");
+}
 
 function populateDefaultSettings() {
     getDefaultVoiceName().then((voice) => {
@@ -198,35 +196,14 @@ function populateDefaultSettings() {
     });
 }
 
-function populateFromOldSettings(oldSettings) {
-    getDefaultVoiceName().then((voice) => {
-        scheduleAnalytics('storage','defaultVoice', voice);
-        chrome.storage.local.set({
-            turnedOn: oldSettings.turnedOn.value,
-            preferredVoice: voice,
-            speed: oldSettings.speed.value,
-            hoverSelect: oldSettings.hoverSelect.value,
-            arrowSelect: oldSettings.arrowSelect.value,
-            browserSelect: oldSettings.browserSelect.value,
-        }, () => drawIcon(true));
-    });
-}
-
-function isOldVersion(storage) {
-    if(!settingsPopulated(storage)) return false;
-    return storage.turnedOn.version ? true : false;
-}
-
-function settingsPopulated(storage) {
-    return storage.hasOwnProperty("turnedOn");
-}
-
 chrome.storage.onChanged.addListener(changes => {
     for(var setting in changes) {
-        if(setting == "turnedOn")
+        if(setting == "turnedOn") {
             handleOnOffEvent(changes.turnedOn.newValue);
-        if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined)
+        }
+        if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined) {
             scheduleAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
+        }
     }
     chrome.storage.local.get(null, settings =>
         ports.forEach(port =>
@@ -270,8 +247,8 @@ function drawIcon(turnedOn) {
 
 // ===================================== others =====================================
 
-const url = require("./pop.wav");
-const userInteractionAudio = new Audio("background/" + url);    // TODO why "background/" needed?
+const popUrl = require("./pop.wav");
+const userInteractionAudio = new Audio("background/" + popUrl);    // TODO why "background/" needed?
 userInteractionAudio.volume = 0.5;
 
 // register IBM TTS
