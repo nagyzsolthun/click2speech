@@ -17,7 +17,7 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
 // ===================================== incoming messages =====================================
 var messageListeners = {};
 messageListeners.getSettings = (message,port) => {
-    chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings:settings}));
+    chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings}));
 };
 messageListeners.read = (request,port) => {
     if(isEmpty(request.text)) {
@@ -29,22 +29,16 @@ messageListeners.read = (request,port) => {
 
     var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
     var voiceNamePromise = getVoiceName(request.text);
-    Promise.all([settingsPromise,voiceNamePromise]).then(
-        ([settings,voiceName]) => chrome.tts.speak(request.text, {voiceName:voiceName, rate:settings.speed, onEvent:event=>onTtsEvent(event, voiceName, settings.speed)} ),
-        () => onNoMatchingVoice()
-    );
-    const onTtsEvent = (event,voiceName,speed) => {
-        updateIcon(event.type);
-        updateSpeakingFlag(event.type);
-        if(ports.has(port)) notifyContent(port, event, request.text);
-        if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
-        if(event.type == "error") errorVoice(voiceName);
-    };
-    const onNoMatchingVoice = () => {
-        notifyContent(port, {type:"error"});
-        iconDrawer.drawError();
-        scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
-    };
+    Promise.all([settingsPromise,voiceNamePromise])
+        .then(([settings,voiceName]) => {
+            const rate = settings.speed;
+            const onEvent = event => onTtsEvent({ port, request, event, voiceName, rate });
+            chrome.tts.speak(request.text, { voiceName, rate, onEvent });
+        }).catch(() => {
+            notifyContent(port, {type:"error"});
+            iconDrawer.drawError();
+            scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
+        });
 
     // anyltics
     scheduleAnalytics('tts', 'read', request.source);
@@ -69,11 +63,19 @@ function isEmpty(text) {
 }
 
 function stop(request,port) {
-    iconDrawer.drawTurnedOn();    // show on-status after interaction animation (removes error color)
+    iconDrawer.drawTurnedOn();  // show on-status after interaction animation (removes error color)
     chrome.tts.stop();
-    notifyContent(port, {type:"end"});    // empty speech request ends right away
+    notifyContent(port, {type:"end"});  // empty speech request ends right away
     if(speaking) scheduleAnalytics('tts', 'stop', request.source);
     speaking = false;
+}
+
+function onTtsEvent({ port, request, event, voiceName, speed}) {
+    updateIcon(event.type);
+    updateSpeakingFlag(event.type);
+    if(ports.has(port)) notifyContent(port, event, request.text);
+    if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
+    if(event.type == "error") errorVoice(voiceName);
 }
 
 // ===================================== error handling =====================================
