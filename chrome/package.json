@@ -16,8 +16,8 @@
   },
   "devDependencies": {
     "webpack": "latest",
-	"babel-core": "latest",
-	"babel-loader": "latest",
+    "babel-core": "latest",
+    "babel-loader": "latest",
     "vue": "latest",
     "vue-router": "latest",
     "vue-loader": "latest",

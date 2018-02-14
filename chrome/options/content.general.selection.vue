@@ -1,17 +1,17 @@
 <template>
     <div class="setting hoverable">
-    	<div>{{"selectionOptions" | translate}}</div>
-    	<ul class="choiceList selectionList">
-    		<li v-for="option in selectionOptions" v-bind:class="{selected: option.selected}" v-on:click="onSelectionOptionClick(option)">
-    			<span>{{option.name | translate}}</span>
-    		</li>
-    	</ul>
+        <div>{{"selectionOptions" | translate}}</div>
+        <ul class="choiceList selectionList">
+            <li v-for="option in selectionOptions" v-bind:class="{selected: option.selected}" v-on:click="onSelectionOptionClick(option)">
+                <span>{{option.name | translate}}</span>
+            </li>
+        </ul>
     </div>
 </template>
 
 <style>
-.selectionList > :before			{background-image: url('./img/check.svg');}
-.selectionList > .selected:before	{background-image: url('./img/checkSelected.svg');}
+.selectionList > :before          {background-image: url('./img/check.svg');}
+.selectionList > .selected:before {background-image: url('./img/checkSelected.svg');}
 </style>
 
 <script>

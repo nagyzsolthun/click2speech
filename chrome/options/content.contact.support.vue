@@ -9,7 +9,7 @@
 import translate from "./translate.js";
 
 function getEmail() {
-	return "nagydotzsoltdothunatgmaildotcom".replace(/dot/g,".").replace(/at/g,"@");	// obfuscate against spammers
+    return "nagydotzsoltdothunatgmaildotcom".replace(/dot/g,".").replace(/at/g,"@");    // obfuscate against spammers
 }
 function getEmailHref() {
     return "mailto:" + getEmail() + "?subject=click2speech question";

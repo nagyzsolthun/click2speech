@@ -8,7 +8,7 @@ appElement.setAttribute("id","app");
 document.body.appendChild(appElement);
 
 new Vue({
-  el: '#app',
-  router: router,
-  render: r => r(MainComponent),
+    el: '#app',
+    router: router,
+    render: r => r(MainComponent),
 });

@@ -1,49 +1,49 @@
 <template>
     <div class="setting hoverable" ng-class="{unavailable: !isPropertyOfSelectedTts('speed')}">
-    	<div>Speed</div>
-    	<input class="numberInput" type="number" :min="min" :max="max" :step="step" v-model="value" />
-    	<input class="rangeInput" type="range" :min="min" :max="max" :step="step" v-model="value" />
+        <div>Speed</div>
+        <input class="numberInput" type="number" :min="min" :max="max" :step="step" v-model="value" />
+        <input class="rangeInput" type="range" :min="min" :max="max" :step="step" v-model="value" />
     </div>
 </template>
 
 <style>
 .numberInput {
-	width: 2em;
-	font-size: 30px;
-	-webkit-transition: opacity .2s linear;
+    width: 2em;
+    font-size: 30px;
+    -webkit-transition: opacity .2s linear;
 }
 .rangeInput {
-	height:64px;	/*big to catch the thumb easily */
-	width: 100%;
-	margin:-16px 0;	/* smaller vertical space usage*/
-	-webkit-appearance: none;
-	background-color:rgba(0,0,0,0);
+    height:64px; /*big to catch the thumb easily */
+    width: 100%;
+    margin:-16px 0; /* smaller vertical space usage*/
+    -webkit-appearance: none;
+    background-color:rgba(0,0,0,0);
 }
 
-.rangeInput:focus {outline: none;}	/* to hide rectangle when in focus */
+.rangeInput:focus {outline: none;} /* to hide rectangle when in focus */
 
 .rangeInput::-webkit-slider-runnable-track {
-	width: 100%;
-	height: 3px;
-	background-color: #888;
-	vertical-align: middle;
+    width: 100%;
+    height: 3px;
+    background-color: #888;
+    vertical-align: middle;
 }
 
 .rangeInput::-webkit-slider-thumb {
-	-webkit-appearance: none;
-	background-image: url('img/sliderThumb.svg');
-	height: 32px;
-	width: 32px;
-	margin-top:-16px;	/*move up to the middle */
-	-webkit-transition: all .2s linear;
+    -webkit-appearance: none;
+    background-image: url('img/sliderThumb.svg');
+    height: 32px;
+    width: 32px;
+    margin-top:-16px;    /*move up to the middle */
+    -webkit-transition: all .2s linear;
 }
 .rangeInput:hover::-webkit-slider-thumb {
-	background-image: url('img/sliderThumbSelected.svg');
+    background-image: url('img/sliderThumbSelected.svg');
 }
 
 .setting.unavailable > .numberInput {
-	opacity: 0;
-	pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
 .setting.unavailable > .rangeInput {pointer-events: none;}
 .setting.unavailable > .rangeInput::-webkit-slider-runnable-track {background-color: #bbb;}

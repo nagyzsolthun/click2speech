@@ -1,16 +1,16 @@
 <template>
     <div class="setting hoverable">
-    	<div>{{'ttsOptions' | translate}}</div>
-    	<ul class="choiceList voiceList">
-    		<li	v-for="voice in voices"
-    			v-bind:class="{selected: voice.selected, unavailable:voice.disabled}"
-    			v-on:click="onVoiceClick(voice)">
+        <div>{{'ttsOptions' | translate}}</div>
+        <ul class="choiceList voiceList">
+            <li    v-for="voice in voices"
+                v-bind:class="{selected: voice.selected, unavailable:voice.disabled}"
+                v-on:click="onVoiceClick(voice)">
                 <span>
-        			<span class="voice-name">{{voice.name}}</span>
+                    <span class="voice-name">{{voice.name}}</span>
                     <span class="voice-lan">{{voice.lan}}</span>
                 </span>
-    		</li>
-    	</ul>
+            </li>
+        </ul>
     </div>
 </template>
 
@@ -20,9 +20,9 @@
 
 .voiceList > li:hover > span > .voice-lan {color:black;}
 
-.voiceList > li:before						{background-image: url('./img/radio.svg');}
-.voiceList > li.selected:before				{background-image: url('./img/radioSelected.svg');}
-.voiceList > li.selected.loading:before		{background-image: url('./img/radioSelectedLoading.svg');}
+.voiceList > li:before                  {background-image: url('./img/radio.svg');}
+.voiceList > li.selected:before         {background-image: url('./img/radioSelected.svg');}
+.voiceList > li.selected.loading:before {background-image: url('./img/radioSelectedLoading.svg');}
 </style>
 
 <script>

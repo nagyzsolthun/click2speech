@@ -7,19 +7,19 @@
 
 <style>
 .header {
-	padding: 0.5em 2em;
-	background-color: #f8f8f8;
+    padding: 0.5em 2em;
+    background-color: #f8f8f8;
 }
 .header-title {
-	display: inline-block;	/* so logo fits next to h1 */
-	margin: .2em 0;
-	font-family: sans-serif;
-	font-size: 4em;
-	font-weight: 400;
+    display: inline-block;    /* so logo fits next to h1 */
+    margin: .2em 0;
+    font-family: sans-serif;
+    font-size: 4em;
+    font-weight: 400;
 }
 .header-logo {
-	height: 6em;
-	margin: 0 0 -1.5em 0;
+    height: 6em;
+    margin: 0 0 -1.5em 0;
 }
 </style>
 

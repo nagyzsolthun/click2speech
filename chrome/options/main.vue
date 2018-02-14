@@ -10,20 +10,20 @@
 
 <style>
 body {
-	margin: 0;
-	font-family: sans-serif;
-	background-color:#aaa;
-	overflow-y: scroll;
+    margin: 0;
+    font-family: sans-serif;
+    background-color:#aaa;
+    overflow-y: scroll;
 }
 .container {
-	max-width: 80em;
-	margin: 0 auto;
-	background-color:white;
+    max-width: 80em;
+    margin: 0 auto;
+    background-color:white;
 }
 router-view {
-	position: absolute; /* overlapping while animation */
-	width: 80em;
-	-webkit-transition: opacity .2s linear;	/* transition of switching between pages */
+    position: absolute; /* overlapping while animation */
+    width: 80em;
+    -webkit-transition: opacity .2s linear; /* transition of switching between pages */
 }
 
 /* ===================================== content settings =====================================*/
@@ -31,27 +31,27 @@ router-view {
 .hoverable:hover {background-color:#f0fff0;}
 
 .setting {
-	/* background-color: hides flash when changing to reading settings
-	 * flash: the time needed to get the list of tts */
-	background-color: white;
-	font-size: 30px;
-	padding: 1em;
-	border-bottom: 1px solid gray;
+    /* background-color: hides flash when changing to reading settings
+     * flash: the time needed to get the list of tts */
+    background-color: white;
+    font-size: 30px;
+    padding: 1em;
+    border-bottom: 1px solid gray;
 }
-.setting > div {-webkit-transition: color .2s linear;}	/* the transition of the setting titles (when they become unavailable) */
+.setting > div {-webkit-transition: color .2s linear;}    /* the transition of the setting titles (when they become unavailable) */
 .setting > a {
-	font-size: 17px;
-	margin: 4px 0;
-	-webkit-transition: color,background-color .2s;
+    font-size: 17px;
+    margin: 4px 0;
+    -webkit-transition: color,background-color .2s;
 }
 .setting > a:hover {
-	color:black;
-	background-color:#4f4
+    color:black;
+    background-color:#4f4
 }
 
 .content {
-	position: absolute; /* overlapping while animation */
-	width: 80em;
+    position: absolute; /* overlapping while animation */
+    width: 80em;
 }
 .fade-enter-active, .fade-leave-active {transition: opacity .2s;}
 .fade-enter, .fade-leave-to {opacity: 0;}
@@ -61,32 +61,32 @@ router-view {
 
 /* animation for loading: the loading icon rotates behind the option */
 .choiceList > .loading:after {
-	margin-right: 0;
+    margin-right: 0;
     background-size: .7em;
-	width: .7em;
-	height: .7em;
+    width: .7em;
+    height: .7em;
     content: "";
-	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
-	background-image: url('./img/radioLoading.svg');
-	-webkit-animation:rotate 2s linear infinite;
+    display: inline-block; /*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
+    background-image: url('./img/radioLoading.svg');
+    -webkit-animation:rotate 2s linear infinite;
 }
 
 @-webkit-keyframes rotate { 100% { -webkit-transform: rotate(360deg); } }
 
 /** placeholder for the image before options (empty/filled circle/square) */
 .choiceList > :before {
-	margin-right: 0;
+    margin-right: 0;
     background-size: .7em;
-	width: .7em;
-	height: .7em;
+    width: .7em;
+    height: .7em;
     content: "";
-	display: inline-block;	/*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
-	/*-webkit-transition: background-image .2s linear; TODO size changes while transition*/
-	-webkit-transition: opacity .2s linear;
+    display: inline-block; /*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
+    /*-webkit-transition: background-image .2s linear; TODO size changes while transition*/
+    -webkit-transition: opacity .2s linear;
 }
 
 /* change color of-, and remove the image from before the options of unavailable settings*/
-.setting.unavailable {color: grey;}	/* all text in unavailable setting is grey */
+.setting.unavailable {color: grey;}    /* all text in unavailable setting is grey */
 .setting.unavailable > .choiceList > * {pointer-events:none;}
 .setting.unavailable > .choiceList > :before {opacity: 0;}
 
@@ -94,15 +94,15 @@ router-view {
  * we also set animation on text color and background color (by using all)*/
 .choiceList > li > span {margin:0 0.2em; border-radius: 0.4em;-webkit-transition: all .2s linear;}
 
-.choiceList > li:hover > span 				{background-color:#4f4}
-.choiceList > li.loading > span				{color:grey;}
-.choiceList > li.unavailable > span			{color:grey;}
-.choiceList > li.loading:hover > span 		{background-color:#ccc;}
-.choiceList > li.unavailable:hover > span	{background-color:#ccc}
-.choiceList > li.unavailable:before			{opacity: 0;}	/* set opacity for the animation */
+.choiceList > li:hover > span             {background-color:#4f4}
+.choiceList > li.loading > span           {color:grey;}
+.choiceList > li.unavailable > span       {color:grey;}
+.choiceList > li.loading:hover > span     {background-color:#ccc;}
+.choiceList > li.unavailable:hover > span {background-color:#ccc}
+.choiceList > li.unavailable:before       {opacity: 0;} /* set opacity for the animation */
 
 /*unavailable settings options are not highlighted*/
-.setting.unavailable > .choiceList > li > span	{background-color:inherit;}
+.setting.unavailable > .choiceList > li > span {background-color:inherit;}
 </style>
 
 <script>

@@ -6,98 +6,98 @@ import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/V
 
 var ports = new Set();
 chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
-	ports.add(port);
-	port.onDisconnect.addListener(() => ports.delete(port));
+    ports.add(port);
+    port.onDisconnect.addListener(() => ports.delete(port));
 
-	var action = message["action"];
-	var listener = messageListeners[action];
-	if(listener) listener(message, port);
+    var action = message["action"];
+    var listener = messageListeners[action];
+    if(listener) listener(message, port);
 }));
 
 // ===================================== incoming messages =====================================
 var messageListeners = {};
 messageListeners.getSettings = (message,port) => {
-	chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings:settings}));
+    chrome.storage.local.get(null, settings => port.postMessage({action:"updateSettings", settings:settings}));
 };
 messageListeners.read = (request,port) => {
-	if(isEmpty(request.text)) {
-		stop(request,port);
-		return;
-	}
+    if(isEmpty(request.text)) {
+        stop(request,port);
+        return;
+    }
 
-	iconDrawer.drawLoading();
+    iconDrawer.drawLoading();
 
-	var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-	var voiceNamePromise = getVoiceName(request.text);
-	Promise.all([settingsPromise,voiceNamePromise]).then(
-		([settings,voiceName]) => chrome.tts.speak(request.text, {voiceName:voiceName, rate:settings.speed, onEvent:event=>onTtsEvent(event, voiceName, settings.speed)} ),
-		() => onNoMatchingVoice()
-	);
-	const onTtsEvent = (event,voiceName,speed) => {
-		updateIcon(event.type);
-		updateSpeakingFlag(event.type);
-		if(ports.has(port)) notifyContent(port, event, request.text);
-		if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
-		if(event.type == "error") errorVoice(voiceName);
-	};
-	const onNoMatchingVoice = () => {
-		notifyContent(port, {type:"error"});
-		iconDrawer.drawError();
-		scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
-	};
+    var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
+    var voiceNamePromise = getVoiceName(request.text);
+    Promise.all([settingsPromise,voiceNamePromise]).then(
+        ([settings,voiceName]) => chrome.tts.speak(request.text, {voiceName:voiceName, rate:settings.speed, onEvent:event=>onTtsEvent(event, voiceName, settings.speed)} ),
+        () => onNoMatchingVoice()
+    );
+    const onTtsEvent = (event,voiceName,speed) => {
+        updateIcon(event.type);
+        updateSpeakingFlag(event.type);
+        if(ports.has(port)) notifyContent(port, event, request.text);
+        if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
+        if(event.type == "error") errorVoice(voiceName);
+    };
+    const onNoMatchingVoice = () => {
+        notifyContent(port, {type:"error"});
+        iconDrawer.drawError();
+        scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
+    };
 
-	// anyltics
-	scheduleAnalytics('tts', 'read', request.source);
+    // anyltics
+    scheduleAnalytics('tts', 'read', request.source);
 };
 messageListeners.arrowPressed = (message,port) => {
-	userInteractionAudio.currentTime = 0;
-	userInteractionAudio.play();
-	iconDrawer.drawInteraction();
-	scheduleAnalytics('interaction', 'arrow', 'press');
+    userInteractionAudio.currentTime = 0;
+    userInteractionAudio.play();
+    iconDrawer.drawInteraction();
+    scheduleAnalytics('interaction', 'arrow', 'press');
 };
 messageListeners.contactInteraction = (message,port) => {
-	scheduleAnalytics('interaction', 'contacts', message.interaction);
+    scheduleAnalytics('interaction', 'contacts', message.interaction);
 };
 messageListeners.getDisabledVoices = (message,port) => {
-	port.postMessage({action:"updateDisabledVoices", disabledVoices:getDisabledVoices()})
+    port.postMessage({action:"updateDisabledVoices", disabledVoices:getDisabledVoices()})
 };
 
 function isEmpty(text) {
-	if(!text) return true;
-	if(! /\S/.test(text)) return true;	// contains only whitespace
-	return false;
+    if(!text) return true;
+    if(! /\S/.test(text)) return true;    // contains only whitespace
+    return false;
 }
 
 function stop(request,port) {
-	iconDrawer.drawTurnedOn();	// show on-status after interaction animation (removes error color)
-	chrome.tts.stop();
-	notifyContent(port, {type:"end"});	// empty speech request ends right away
-	if(speaking) scheduleAnalytics('tts', 'stop', request.source);
-	speaking = false;
+    iconDrawer.drawTurnedOn();    // show on-status after interaction animation (removes error color)
+    chrome.tts.stop();
+    notifyContent(port, {type:"end"});    // empty speech request ends right away
+    if(speaking) scheduleAnalytics('tts', 'stop', request.source);
+    speaking = false;
 }
 
 // ===================================== error handling =====================================
 const voiceNameToErrorTime = {};
 const voiceNameToEnable = {};
 function errorVoice(voiceName) {
-	voiceNameToErrorTime[voiceName] = Date.now();
-	updateDisabledVoices(getDisabledVoices());
+    voiceNameToErrorTime[voiceName] = Date.now();
+    updateDisabledVoices(getDisabledVoices());
 
-	var enableId = voiceNameToEnable[voiceName];
-	if(enableId) clearTimeout(enableId);
+    var enableId = voiceNameToEnable[voiceName];
+    if(enableId) clearTimeout(enableId);
 
-	enableId = setTimeout(() => {
-		delete voiceNameToErrorTime[voiceName];
-		delete voiceNameToEnable[voiceName];
-		updateDisabledVoices(getDisabledVoices());
-	}, 5*60*1000);	// 5 minutes
-	voiceNameToEnable[voiceName] = enableId;
+    enableId = setTimeout(() => {
+        delete voiceNameToErrorTime[voiceName];
+        delete voiceNameToEnable[voiceName];
+        updateDisabledVoices(getDisabledVoices());
+    }, 5*60*1000);    // 5 minutes
+    voiceNameToEnable[voiceName] = enableId;
 
-	scheduleAnalytics('tts', 'error', voiceName);
+    scheduleAnalytics('tts', 'error', voiceName);
 }
 
 function getDisabledVoices() {
-	return Object.keys(voiceNameToErrorTime);
+    return Object.keys(voiceNameToErrorTime);
 }
 
 // ===================================== Google TTS bug workaround =====================================
@@ -105,54 +105,54 @@ function getDisabledVoices() {
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPuseResume;
 function applyGoogleTtsBugWorkaround(eventType,speed) {
-	// pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
-	const repeateInterval = 5000 / speed;
-	switch(eventType) {
-		case("start"): scheduledPuseResume = scheduledPuseResume || setInterval(pauseResume, repeateInterval); break;
-		case("end"):
-		case("interrupted"):
-		case("error"): {
-			if(scheduledPuseResume) clearInterval(scheduledPuseResume);
-			scheduledPuseResume = null;
-			break;
-		}
-	}
+    // pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
+    const repeateInterval = 5000 / speed;
+    switch(eventType) {
+        case("start"): scheduledPuseResume = scheduledPuseResume || setInterval(pauseResume, repeateInterval); break;
+        case("end"):
+        case("interrupted"):
+        case("error"): {
+            if(scheduledPuseResume) clearInterval(scheduledPuseResume);
+            scheduledPuseResume = null;
+            break;
+        }
+    }
 }
 function pauseResume() {
-	chrome.tts.pause();
-	chrome.tts.resume();
+    chrome.tts.pause();
+    chrome.tts.resume();
 }
 
 // ===================================== spaking flag for anyltics =====================================
 
 var speaking;
 function updateSpeakingFlag(ttsEventType) {
-	switch(ttsEventType) {
-		case "start":
-		case "sentence":
-		case "word": speaking = true; break;
-		default: speaking = false; break;
-	}
+    switch(ttsEventType) {
+        case "start":
+        case "sentence":
+        case "word": speaking = true; break;
+        default: speaking = false; break;
+    }
 }
 
 // ===================================== outgoing messages to content =====================================
 function notifyContent(port, chromeTtsEvent, text) {
-	const contentNofifier = ttsEventToContentNotifier[chromeTtsEvent.type];
-	if(contentNofifier) contentNofifier(port, chromeTtsEvent, text);
+    const contentNofifier = ttsEventToContentNotifier[chromeTtsEvent.type];
+    if(contentNofifier) contentNofifier(port, chromeTtsEvent, text);
 }
 
 var ttsEventToContentNotifier = {};
 ttsEventToContentNotifier.sentence = (port,chromeTtsEvent,text) => {
-	const startOffset = chromeTtsEvent.charIndex;
-	const endOffset = textSplitter.nextSentenceEnd(text, startOffset);
-	const textToSend = text.substring(startOffset,endOffset);
-	port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
+    const startOffset = chromeTtsEvent.charIndex;
+    const endOffset = textSplitter.nextSentenceEnd(text, startOffset);
+    const textToSend = text.substring(startOffset,endOffset);
+    port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
 }
 ttsEventToContentNotifier.word = (port,chromeTtsEvent,text) => {
-	const startOffset = chromeTtsEvent.charIndex;
-	const endOffset = textSplitter.nextWordEnd(text, startOffset);
-	const textToSend = text.substring(startOffset,endOffset);
-	port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
+    const startOffset = chromeTtsEvent.charIndex;
+    const endOffset = textSplitter.nextWordEnd(text, startOffset);
+    const textToSend = text.substring(startOffset,endOffset);
+    port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
 }
 ttsEventToContentNotifier.start = port => port.postMessage({action:"ttsEvent", eventType:"playing"});
 ttsEventToContentNotifier.interrupted =
@@ -164,81 +164,81 @@ ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", e
 
 chrome.storage.local.get(null, items => {
 
-	// old version of click2speech uses different settings structure
-	if(isOldVersion(items)) {
-		console.log("persist settings from old version");
-		scheduleAnalytics('storage','clear', chrome.app.getDetails().version);
-		chrome.storage.local.clear(() => populateFromOldSettings(items));
-		return;
-	}
+    // old version of click2speech uses different settings structure
+    if(isOldVersion(items)) {
+        console.log("persist settings from old version");
+        scheduleAnalytics('storage','clear', chrome.app.getDetails().version);
+        chrome.storage.local.clear(() => populateFromOldSettings(items));
+        return;
+    }
 
-	if(settingsPopulated(items)) {
-		drawIcon(items.turnedOn);
-		return;
-	}
+    if(settingsPopulated(items)) {
+        drawIcon(items.turnedOn);
+        return;
+    }
 
-	console.log("persist default settings");
-	scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
-	populateDefaultSettings();
+    console.log("persist default settings");
+    scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
+    populateDefaultSettings();
 });
 
 function populateDefaultSettings() {
-	getDefaultVoiceName().then((voice) => {
-		scheduleAnalytics('storage','defaultVoice', voice);
-		chrome.storage.local.set({
-			turnedOn: true,
-			preferredVoice: voice,
-			speed: 1.2,
-			hoverSelect: true,
-			arrowSelect: false,
-			browserSelect: false,
-		}, () => drawIcon(true));
-	});
+    getDefaultVoiceName().then((voice) => {
+        scheduleAnalytics('storage','defaultVoice', voice);
+        chrome.storage.local.set({
+            turnedOn: true,
+            preferredVoice: voice,
+            speed: 1.2,
+            hoverSelect: true,
+            arrowSelect: false,
+            browserSelect: false,
+        }, () => drawIcon(true));
+    });
 }
 
 function populateFromOldSettings(oldSettings) {
-	getDefaultVoiceName().then((voice) => {
-		scheduleAnalytics('storage','defaultVoice', voice);
-		chrome.storage.local.set({
-			turnedOn: oldSettings.turnedOn.value,
-			preferredVoice: voice,
-			speed: oldSettings.speed.value,
-			hoverSelect: oldSettings.hoverSelect.value,
-			arrowSelect: oldSettings.arrowSelect.value,
-			browserSelect: oldSettings.browserSelect.value,
-		}, () => drawIcon(true));
-	});
+    getDefaultVoiceName().then((voice) => {
+        scheduleAnalytics('storage','defaultVoice', voice);
+        chrome.storage.local.set({
+            turnedOn: oldSettings.turnedOn.value,
+            preferredVoice: voice,
+            speed: oldSettings.speed.value,
+            hoverSelect: oldSettings.hoverSelect.value,
+            arrowSelect: oldSettings.arrowSelect.value,
+            browserSelect: oldSettings.browserSelect.value,
+        }, () => drawIcon(true));
+    });
 }
 
 function isOldVersion(storage) {
-	if(!settingsPopulated(storage)) return false;
-	return storage.turnedOn.version ? true : false;
+    if(!settingsPopulated(storage)) return false;
+    return storage.turnedOn.version ? true : false;
 }
 
 function settingsPopulated(storage) {
-	return storage.hasOwnProperty("turnedOn");
+    return storage.hasOwnProperty("turnedOn");
 }
 
 chrome.storage.onChanged.addListener(changes => {
-	for(var setting in changes) {
-		if(setting == "turnedOn")
-			handleOnOffEvent(changes.turnedOn.newValue);
-		if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined)
-			scheduleAnalytics('storage',setting,changes[setting].newValue);	// undefined: no analytics when default or clearing
-	}
-	chrome.storage.local.get(null, settings =>
-		ports.forEach(port =>
-			port.postMessage({action:"updateSettings", settings:settings})
-	));
+    for(var setting in changes) {
+        if(setting == "turnedOn")
+            handleOnOffEvent(changes.turnedOn.newValue);
+        if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined)
+            scheduleAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
+    }
+    chrome.storage.local.get(null, settings =>
+        ports.forEach(port =>
+            port.postMessage({action:"updateSettings", settings:settings})
+    ));
 });
 
 function handleOnOffEvent(turnedOn) {
-	if(turnedOn) {
-		iconDrawer.drawTurnedOn()
-	} else {
-		chrome.tts.stop();
-		iconDrawer.drawTurnedOff();
-	}
+    if(turnedOn) {
+        iconDrawer.drawTurnedOn()
+    } else {
+        chrome.tts.stop();
+        iconDrawer.drawTurnedOff();
+    }
 }
 
 // ===================================== icon =====================================
@@ -250,26 +250,26 @@ iconDrawer.setOnRenderFinished(loadIconToToolbar);
 
 // iconDrawer draws the icon on a canvas, this function shows the canvas on the toolbar
 function loadIconToToolbar() {
-	chrome.browserAction.setIcon({imageData:iconCanvas.getContext("2d").getImageData(0, 0, iconCanvas.width, iconCanvas.height)});
+    chrome.browserAction.setIcon({imageData:iconCanvas.getContext("2d").getImageData(0, 0, iconCanvas.width, iconCanvas.height)});
 }
 
 function updateIcon(ttsEventType) {
-	switch(ttsEventType) {
-		case("start"): iconDrawer.drawPlaying(); break;
-		case("end"): iconDrawer.drawTurnedOn(); break;
-		case("error"): iconDrawer.drawError(); break;
-	}
+    switch(ttsEventType) {
+        case("start"): iconDrawer.drawPlaying(); break;
+        case("end"): iconDrawer.drawTurnedOn(); break;
+        case("error"): iconDrawer.drawError(); break;
+    }
 }
 
 function drawIcon(turnedOn) {
-	if(turnedOn) iconDrawer.drawTurnedOn();
-	else iconDrawer.drawTurnedOff();
+    if(turnedOn) iconDrawer.drawTurnedOn();
+    else iconDrawer.drawTurnedOff();
 }
 
 // ===================================== others =====================================
 
 const url = require("./pop.wav");
-const userInteractionAudio = new Audio("background/" + url);	// TODO why "background/" needed?
+const userInteractionAudio = new Audio("background/" + url);    // TODO why "background/" needed?
 userInteractionAudio.volume = 0.5;
 
 // register IBM TTS
@@ -278,7 +278,7 @@ chrome.ttsEngine.onStop.addListener(ibmTts.stopListener);
 
 // initial content script injection - so no Chrome restart is needed after installation
 chrome.tabs.query({}, function(tabs) {
-	for (var i=0; i<tabs.length; i++) {
-		chrome.tabs.executeScript(tabs[i].id, {file: 'content/content.js'}, () => chrome.runtime.lastError);
-	}
+    for (var i=0; i<tabs.length; i++) {
+        chrome.tabs.executeScript(tabs[i].id, {file: 'content/content.js'}, () => chrome.runtime.lastError);
+    }
 });

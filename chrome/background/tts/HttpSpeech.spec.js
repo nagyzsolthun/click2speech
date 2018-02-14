@@ -1,34 +1,34 @@
 import { buildHttpSpeech } from "./HttpSpeech";
 
 function MockAudio(url) {
-	var instances = [];
-	var playCalled = false;
-	var eventToListeners = {};
+    var instances = [];
+    var playCalled = false;
+    var eventToListeners = {};
 
-	MockAudio.instances.push(this);
+    MockAudio.instances.push(this);
 
-	this.addEventListener = function(event,listener) {
-		var listeners = eventToListeners[event];
-		if(!listeners) {
-			listeners = [];
-			eventToListeners[event] = listeners;
-		}
-		listeners.push(listener);
-	}
+    this.addEventListener = function(event,listener) {
+        var listeners = eventToListeners[event];
+        if(!listeners) {
+            listeners = [];
+            eventToListeners[event] = listeners;
+        }
+        listeners.push(listener);
+    }
     this.removeEventListener = function(event,listener) {}
-	this.play = function() {
+    this.play = function() {
         playCalled = true;
     }
-	this.isPlayCalled = function() {
+    this.isPlayCalled = function() {
         return playCalled;
     }
-	this.callEventListeners = function(event) {
-		var eventListeners = eventToListeners[event];
-		if(eventListeners) {
-			eventListeners.forEach(listener => listener());
-		}
-	}
-	this.pause = function() {};
+    this.callEventListeners = function(event) {
+        var eventListeners = eventToListeners[event];
+        if(eventListeners) {
+            eventListeners.forEach(listener => listener());
+        }
+    }
+    this.pause = function() {};
 }
 MockAudio.clearInstances = function() {
     MockAudio.instances = [];
@@ -40,57 +40,57 @@ MockAudio.clearInstances();
 global.Audio = MockAudio;
 
 function mockBuildUrl(text) {
-	return text;
+    return text;
 }
 
 function testLengthShorterThan10(text) {
-	return text.length < 10;
+    return text.length < 10;
 }
 
 describe("HttpSpeech", () => {
-	beforeEach(() => {
+    beforeEach(() => {
         MockAudio.clearInstances();
         jasmine.clock().install();
     });
     afterEach(() => jasmine.clock().uninstall());
 
-	it("creates one HTMLAudioElement for short text", () => {
-		var speech = buildHttpSpeech("text",mockBuildUrl,testLengthShorterThan10);
-		expect(MockAudio.getInstances().length).toBe(1);
-	});
+    it("creates one HTMLAudioElement for short text", () => {
+        var speech = buildHttpSpeech("text",mockBuildUrl,testLengthShorterThan10);
+        expect(MockAudio.getInstances().length).toBe(1);
+    });
 
-	it("plays first Audio when play called", () => {
-		var speech = buildHttpSpeech("text",mockBuildUrl,testLengthShorterThan10);
-		expect(!MockAudio.getInstances()[0].isPlayCalled())
-		speech.play();
-		expect(MockAudio.getInstances()[0].isPlayCalled())
-	});
+    it("plays first Audio when play called", () => {
+        var speech = buildHttpSpeech("text",mockBuildUrl,testLengthShorterThan10);
+        expect(!MockAudio.getInstances()[0].isPlayCalled())
+        speech.play();
+        expect(MockAudio.getInstances()[0].isPlayCalled())
+    });
 
-	it("creates following HTMLAudioElements only after started received", () => {
-		var speech = buildHttpSpeech("long text to be split to 3",mockBuildUrl,testLengthShorterThan10);
-		expect(MockAudio.getInstances().length).toBe(1);
+    it("creates following HTMLAudioElements only after started received", () => {
+        var speech = buildHttpSpeech("long text to be split to 3",mockBuildUrl,testLengthShorterThan10);
+        expect(MockAudio.getInstances().length).toBe(1);
 
-		MockAudio.getInstances()[0].callEventListeners("playing");
-		expect(MockAudio.getInstances().length).toBe(2);
+        MockAudio.getInstances()[0].callEventListeners("playing");
+        expect(MockAudio.getInstances().length).toBe(2);
 
-		MockAudio.getInstances()[1].callEventListeners("playing");
-		expect(MockAudio.getInstances().length).toBe(3);
-	});
+        MockAudio.getInstances()[1].callEventListeners("playing");
+        expect(MockAudio.getInstances().length).toBe(3);
+    });
 
-	it("plays following HTMLAudioElements only after ended received", () => {
-		var speech = buildHttpSpeech("long text to be split to 3",mockBuildUrl,testLengthShorterThan10);
+    it("plays following HTMLAudioElements only after ended received", () => {
+        var speech = buildHttpSpeech("long text to be split to 3",mockBuildUrl,testLengthShorterThan10);
 
-		speech.play();
-		expect(MockAudio.getInstances()[0].isPlayCalled());
+        speech.play();
+        expect(MockAudio.getInstances()[0].isPlayCalled());
 
-		MockAudio.getInstances()[0].callEventListeners("playing");	// to create next Audio
-		MockAudio.getInstances()[0].callEventListeners("ended");
-		expect(MockAudio.getInstances()[1].isPlayCalled());
+        MockAudio.getInstances()[0].callEventListeners("playing");    // to create next Audio
+        MockAudio.getInstances()[0].callEventListeners("ended");
+        expect(MockAudio.getInstances()[1].isPlayCalled());
 
-		MockAudio.getInstances()[1].callEventListeners("playing");	// to create next Audio
-		MockAudio.getInstances()[1].callEventListeners("ended");
-		expect(MockAudio.getInstances()[2].isPlayCalled());
-	});
+        MockAudio.getInstances()[1].callEventListeners("playing");    // to create next Audio
+        MockAudio.getInstances()[1].callEventListeners("ended");
+        expect(MockAudio.getInstances()[2].isPlayCalled());
+    });
 
     it("calls start callback when started", () => {
         var startCallback = jasmine.createSpy("startCallback");
@@ -113,7 +113,7 @@ describe("HttpSpeech", () => {
         var speech = buildHttpSpeech("First. Second.",mockBuildUrl,testLengthShorterThan10).onSentence(sentenceCallback);
         speech.play();
 
-        MockAudio.getInstances()[0].callEventListeners("playing");	// to create next Audio
+        MockAudio.getInstances()[0].callEventListeners("playing");    // to create next Audio
         MockAudio.getInstances()[0].callEventListeners("ended");
         jasmine.clock().tick(10);
         expect(sentenceCallback.calls.count()).toEqual(1);
