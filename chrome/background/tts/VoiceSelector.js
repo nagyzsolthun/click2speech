@@ -1,13 +1,10 @@
 function getVoiceName(text) {
-    return new Promise( (resolve,reject) => {
-        var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-        var voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
-        var lanPromise = calcLanPromise(text);
-        Promise.all([settingsPromise,voicesPromise,lanPromise]).then( ([settings,voices,lan]) => {
-            const voiceName = calcVoiceName(settings,voices,lan);
-            if(voiceName) resolve(voiceName);
-            else reject();
-        });
+    var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
+    var voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
+    var lanPromise = calcLanPromise(text);
+    return Promise.all([settingsPromise,voicesPromise,lanPromise]).then( ([settings,voices,lan]) => {
+        const voiceName = calcVoiceName(settings,voices,lan);
+        return voiceName ? Promise.resolve(voiceName) : Promise.reject();
     });
 }
 
@@ -24,16 +21,14 @@ function calcVoiceName(settings,voices,lan) {
 }
 
 function getDefaultVoiceName() {
-    return new Promise( resolve => {
-        const voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
-        voicesPromise.then(voices => {
-            var voice = voices.reduce((voice1,voice2) => {
-                const value1 = calcDefaultVoiceValue(voice1,navigator.language);
-                const value2 = calcDefaultVoiceValue(voice2,navigator.language);
-                return (value1 < value2) ? voice2 : voice1;
-            });
-            resolve(voice.voiceName);
-        })
+    const voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
+    return voicesPromise.then(voices => {
+        var voice = voices.reduce((voice1,voice2) => {
+            const value1 = calcDefaultVoiceValue(voice1,navigator.language);
+            const value2 = calcDefaultVoiceValue(voice2,navigator.language);
+            return (value1 < value2) ? voice2 : voice1;
+        });
+        return Promise.resolve(voice.voiceName);
     });
 }
 
@@ -49,10 +44,10 @@ function calcSpeechVoiceValue(voice, lan, preferredVoice) {
     const matchingPreferredLan = voice.lang.split("-")[0] == (preferredVoice ? preferredVoice.lang.split("-")[0] : navigator.language.split("-")[0]);
 
     var value = 1;    // already worth more than rejected voices
-    if(matchingPreferredVoice)    value += 100000;
-    if(matchingPreferredGender)    value += 10000;
-    if(osVoice)                    value += 1000;
-    if(noIbmVoice)                value += 100;
+    if(matchingPreferredVoice)  value += 100000;
+    if(matchingPreferredGender) value += 10000;
+    if(osVoice)                 value += 1000;
+    if(noIbmVoice)              value += 100;
     if(matchingPreferredLan)    value += 10;    // this is important when no lan is provided
     return value;
 }
@@ -67,12 +62,12 @@ function calcDefaultVoiceValue(voice, lan) {
     const usEnglishVoice = voice.lang == "en-US";
 
     var value = 0;
-    if(matchingLanguage)    value += 100000;
-    if(osVoice)                value += 10000;
-    if(noIbmVoice)            value += 1000;
-    if(femaleVoice)            value += 100;
-    if(matchingDialect)        value += 10;
-    if(usEnglishVoice)        value += 1;
+    if(matchingLanguage) value += 100000;
+    if(osVoice)          value += 10000;
+    if(noIbmVoice)       value += 1000;
+    if(femaleVoice)      value += 100;
+    if(matchingDialect)  value += 10;
+    if(usEnglishVoice)   value += 1;
     return value;
 }
 
