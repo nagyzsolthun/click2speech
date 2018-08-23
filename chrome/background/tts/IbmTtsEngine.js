@@ -42,7 +42,7 @@ function testLength(text) {
 }
 
 function buildUrlWithVoiceName(text,ibmVoiceName) {
-    return TTS_URL_BASE + "?text=" + encodeURIComponent(text) + "&voice=" + ibmVoiceName;
+    return TTS_URL_BASE + "?text=" + encodeURIComponent(text) + "&voice=" + ibmVoiceName + "&download=true&accept=audio/mp3";
 }
 
 export { speakListener, stopListener };
