@@ -29,7 +29,7 @@ var manifest = {
     }],
     "permissions": ["http://*/","https://*/", "storage", "tts", "ttsEngine"],
     "background" : {"scripts": ["background/background.js"]},
-    "options_page": "options/options.html",
+    "options_page": "options/index.html",
     "browser_action": {
         "default_icon": "img/iconOff32.png",
         "default_popup": "popup/popup.html"
