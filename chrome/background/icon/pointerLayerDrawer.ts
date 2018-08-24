@@ -1,20 +1,29 @@
 import * as RGBA from "./RGBA";
 
-function setCanvas(canvas) {
+const FADE_DURATION = 300; // millisec
+
+var context: CanvasRenderingContext2D;
+var size: number;
+
+// when calling setOn or setOff, these values are manipulated
+var start = 0; // start of start animation
+var end = 1; // start of end animation; end is set to a later point, so when initial setOn is received, animation happens
+
+function setCanvas(canvas: HTMLCanvasElement) {
     context = canvas.getContext("2d");
     size = canvas.width;
 }
 function setOn() {
-    if(end < start) return; //animation already finished/happening
+    if (end < start) return; //animation already finished/happening
     start = Date.now();
 }
 function setOff() {
-    if(start < end) return; //animation already finished/happening
+    if (start < end) return; //animation already finished/happening
     end = Date.now();
 }
 /** @param millis the time at when the animation is rendered
  * @return true ifanimation has finished*/
-function render(millis) {
+function render(millis: number) {
     var alpha = calcAlpha(millis);
     context.lineWidth = 3.33;
     context.strokeStyle = "rgba(0,0,0," + alpha + ")";
@@ -41,35 +50,27 @@ function render(millis) {
 
 export { setCanvas, setOn, setOff, render }
 
-var context;
-var size;
-
-//when calling setOn or setOff, these values are manipulated
-var fadeLength = 300; //millisec
-var start = 0; //start of start animation
-var end = 1; //start of end animation; end is set to a later point, so when initial setOn is received, animation happens
-
 /** @return the alpha value forgiven millis */
-function calcAlpha(millis) {
-    var fadeInAlpha = (millis - start) / fadeLength;
+function calcAlpha(millis: number) {
+    var fadeInAlpha = (millis - start) / FADE_DURATION;
     fadeInAlpha = (fadeInAlpha < 0) ? 0 : fadeInAlpha;
     fadeInAlpha = (fadeInAlpha > 1) ? 1 : fadeInAlpha;
-    var fadeOutAlpha = 1 - (millis - end) / fadeLength;
+    var fadeOutAlpha = 1 - (millis - end) / FADE_DURATION;
     fadeOutAlpha = (fadeOutAlpha < 0) ? 0 : fadeOutAlpha;
     fadeOutAlpha = (fadeOutAlpha > 1) ? 1 : fadeOutAlpha;
-    if(start < end) {
+    if (start < end) {
         //end is next => tend to disappear => prefer the LOWER alpha
         return (fadeInAlpha < fadeOutAlpha) ? fadeInAlpha : fadeOutAlpha;
     }
-    if(end < start) {
+    if (end < start) {
         //start is next => tend to appear => prefer the HIGHER alpha
         return (fadeInAlpha < fadeOutAlpha) ? fadeOutAlpha : fadeInAlpha;
     }
     return 1;
 }
 /** @return true ifanimation finished */
-function hasAnimationFinished(millis) {
-    if(millis < start + fadeLength) return false;
-    if(millis < end + fadeLength) return false;
+function hasAnimationFinished(millis: number) {
+    if (millis < start + FADE_DURATION) return false;
+    if (millis < end + FADE_DURATION) return false;
     return true;
 }

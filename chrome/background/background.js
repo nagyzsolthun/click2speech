@@ -1,7 +1,7 @@
 import { scheduleAnalytics } from "./analytics.js";
 import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
 import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
-import * as iconDrawer from "./icon/drawer.js";
+import * as iconDrawer from "./icon/drawer.ts";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 
 // ===================================== incoming messages =====================================

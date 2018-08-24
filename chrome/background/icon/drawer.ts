@@ -2,11 +2,16 @@ import * as mainLayerDrawer from "./mainLayerDrawer";
 import * as loadingLayerDrawer from "./loadingLayerDrawer";
 import * as pointerLayerDrawer from "./pointerLayerDrawer";
 
-var onRenderFinished;
-function setOnRenderFinished(callback) {
+type Method = () => void;
+
+var canvas: HTMLCanvasElement;
+var animating: boolean;
+var onRenderFinished: Method = () => { };
+
+function setOnRenderFinished(callback: Method) {
     onRenderFinished = callback;
 }
-function setCanvas(canv) {
+function setCanvas(canv: HTMLCanvasElement) {
     canvas = canv;
     mainLayerDrawer.setCanvas(canvas);
     loadingLayerDrawer.setCanvas(canvas);
@@ -50,10 +55,6 @@ function drawInteraction() {
 
 export { setOnRenderFinished, setCanvas, drawTurnedOn, drawTurnedOff, drawPlaying, drawLoading, drawError, drawInteraction }
 
-var canvas;
-var animating = false;
-var onRenderFinished = () => {};
-
 // calls render() on each layer, repeats until all layers finsihed animation
 function render() {
     animating = true;
@@ -63,7 +64,7 @@ function render() {
     var loadingLayerFinished = loadingLayerDrawer.render(now);
     var pointerLayerFinished = pointerLayerDrawer.render(now);
     var allLayersFinished = mainLayerFinished && loadingLayerFinished && pointerLayerFinished;
-    if(allLayersFinished) {
+    if (allLayersFinished) {
         animating = false;
     } else {
         window.setTimeout(() => render(), 10);
@@ -73,5 +74,5 @@ function render() {
 
 // starts iteration of rendering - if not already started
 function animate() {
-    if(!animating) render();
+    if (!animating) render();
 }

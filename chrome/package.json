@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "webpack": "latest",
+    "webpack-cli": "latest",
     "babel-core": "latest",
     "babel-loader": "latest",
     "vue": "latest",
@@ -27,6 +28,8 @@
     "html-webpack-plugin": "latest",
     "find": "latest",
     "jasmine-core": "latest",
-    "jasmine": "latest"
+    "jasmine": "latest",
+    "typescript": "latest",
+    "ts-loader": "latest"
   }
 }
