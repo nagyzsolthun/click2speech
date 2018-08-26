@@ -1,3 +1,8 @@
-<p>
-  general-settings works!
-</p>
+<div class="setting hoverable">
+  <div>{{"selectionOptions" | translate}}</div>
+  <ul class="choiceList selectionList">
+      <li *ngFor="let option of selectionOptions" [class.selected]="option.selected" (click)="select(option.name)">
+          <span>{{option.name | translate}}</span>
+      </li>
+  </ul>
+</div>
