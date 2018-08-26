@@ -18,6 +18,7 @@
             "main": "options/main.ts",
             "polyfills": "options/polyfills.ts",
             "tsConfig": "options/tsconfig.app.json",
+            "styles": [ "options/styles.css" ],
             "scripts": []
           },
           "configurations": {
