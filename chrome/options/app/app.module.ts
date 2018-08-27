@@ -6,10 +6,12 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { TranslatePipe } from './translate.pipe';
 import { GeneralSettingsComponent } from './general-settings/general-settings.component';
 import { RouterModule, Routes } from '@angular/router';
+import { SpeechSettingsComponent } from './speech-settings/speech-settings.component';
+import { SpeedSettingsComponent } from './speed-settings/speed-settings.component';
 
 const routes: Routes = [
   { path: 'general', component: GeneralSettingsComponent },
-  { path: 'speech', component: GeneralSettingsComponent },
+  { path: 'speech', component: SpeechSettingsComponent },
   { path: 'contact', component: GeneralSettingsComponent },
   { path: '**', redirectTo: 'general' }
 ];
@@ -19,7 +21,9 @@ const routes: Routes = [
     AppComponent,
     NavbarComponent,
     TranslatePipe,
-    GeneralSettingsComponent
+    GeneralSettingsComponent,
+    SpeechSettingsComponent,
+    SpeedSettingsComponent
   ],
   imports: [
     BrowserModule,
