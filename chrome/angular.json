@@ -40,17 +40,6 @@
               "buildOptimizer": true
             }
           }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "options/test.ts",
-            "polyfills": "options/polyfills.ts",
-            "tsConfig": "options/tsconfig.spec.json",
-            "karmaConfig": "options/karma.conf.js",
-            "styles": [ "options/styles.css" ],
-            "scripts": []
-          }
         }
       }
     }
