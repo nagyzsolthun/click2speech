@@ -1,0 +1,8 @@
+<div class="setting hoverable">
+  <div>{{'reviewsUrl' | translate}}</div>
+  <a [attr.href]="REVIEWS_URL" target="_blank" (click)="sendAnalytics('reviews-click')">{{REVIEWS_URL}}</a>
+</div>
+<div class="setting hoverable">
+  <div>{{'support' | translate}}</div>
+  <a [attr.href]="EMAIL_URL" (click)="sendAnalytics('support-click')">{{EMAIL}}</a>
+</div>

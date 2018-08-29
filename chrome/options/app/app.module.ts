@@ -10,11 +10,12 @@ import { SpeechSettingsComponent } from './speech-settings/speech-settings.compo
 import { SpeedSettingsComponent } from './speed-settings/speed-settings.component';
 import { VoiceSettingsComponent } from './voice-settings/voice-settings.component';
 import { HeaderComponent } from './header/header.component';
+import { ContactComponent } from './contact/contact.component';
 
 const routes: Routes = [
   { path: 'general', component: GeneralSettingsComponent },
   { path: 'speech', component: SpeechSettingsComponent },
-  { path: 'contact', component: GeneralSettingsComponent },
+  { path: 'contact', component: ContactComponent },
   { path: '**', redirectTo: 'general' }
 ];
 
@@ -27,7 +28,8 @@ const routes: Routes = [
     SpeechSettingsComponent,
     SpeedSettingsComponent,
     VoiceSettingsComponent,
-    HeaderComponent
+    HeaderComponent,
+    ContactComponent
   ],
   imports: [
     BrowserModule,
