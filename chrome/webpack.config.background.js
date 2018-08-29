@@ -16,5 +16,6 @@ module.exports = {
     module: { rules: [tsLoaderRule, jsLoaderRule, audioLoaderRule] },
     resolve: {
         extensions: [ '.ts', '.js' ]   // so imports work without specifying file extension
-    }
+    },
+    mode: "production"
 }
