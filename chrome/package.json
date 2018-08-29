@@ -28,11 +28,11 @@
     "zone.js": "~0.8.26"
   },
   "devDependencies": {
-    "webpack": "latest",
-    "webpack-cli": "latest",
-    "find": "latest",
-    "jasmine": "latest",
-    "ts-loader": "latest",
+    "webpack": "4.17.1",
+    "webpack-cli": "3.1.0",
+    "find": "0.2.9",
+    "jasmine": "3.2.0",
+    "ts-loader": "4.5.0",
     "babel-core": "6.26.3",
     "babel-loader": "7.1.5",
     "@angular-devkit/build-angular": "~0.7.0",
