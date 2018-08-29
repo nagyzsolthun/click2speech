@@ -3,7 +3,7 @@
   <ul class="choiceList voiceList">
       <li *ngFor="let voice of voices"
           [class.selected]="voice.selected"
-          [class.unaviable]="voice.disabled"
+          [class.unavailable]="voice.disabled"
           (click)="select(voice.name)">
           <span>
               <span class="voice-name">{{voice.name}}</span>

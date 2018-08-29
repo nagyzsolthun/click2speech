@@ -39,7 +39,7 @@ export class VoiceSettingsComponent implements OnInit {
           name: voice.voiceName,
           lan: voice.lang,
           selected: settings.preferredVoice == voice.voiceName,
-          disabled: disabledVoices.some(disabledVoice => disabledVoice == voice.voiceName),
+          disabled: disabledVoices.includes(voice.voiceName),
         }));
       });
   }
