@@ -1,7 +1,7 @@
 const LANGUAGES = ["en-US", "en-GB", "en", "de", "fr", "es-ES", "es-US"]
 
 export default function (voice1: chrome.tts.TtsVoice, voice2: chrome.tts.TtsVoice) {
-    var result = compareExtensionId(voice1.extensionsId, voice2.extensionsId);
+    var result = compareExtensionId((voice1 as any).extensionId, (voice2 as any).extensionId);
     result = result ? result : compareProvider(voice1.voiceName, voice2.voiceName);
     result = result ? result : compareLangs(voice1.lang, voice2.lang);
     result = result ? result : compareGender(voice1.gender, voice2.gender);
