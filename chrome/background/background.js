@@ -73,11 +73,11 @@ function stop(request,port) {
     speaking = false;
 }
 
-function onTtsEvent({ port, request, event, voiceName, speed}) {
+function onTtsEvent({ port, request, event, voiceName, rate}) {
     updateIcon(event.type);
     updateSpeakingFlag(event.type);
     if(ports.has(port)) notifyContent(port, event, request.text);
-    if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
+    if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, rate);
     if(event.type == "error") errorVoice(voiceName);
 }
 
@@ -109,18 +109,16 @@ function getDisabledVoices() {
 
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPauseResume;
-function applyGoogleTtsBugWorkaround(eventType,speed) {
+function applyGoogleTtsBugWorkaround(eventType,rate) {
     // pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
-    const repeateInterval = 5000 / speed;
-    switch(eventType) {
-        case("start"): scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval); break;
-        case("end"):
-        case("interrupted"):
-        case("error"): {
-            if(scheduledPauseResume) clearInterval(scheduledPauseResume);
-            scheduledPauseResume = null;
-            break;
-        }
+    const repeateInterval = 5000 / rate;
+    if(eventType == "start") {
+        scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval);
+        return;
+    }
+    if(scheduledPauseResume) {
+        clearInterval(scheduledPauseResume);
+        scheduledPauseResume = null;
     }
 }
 function pauseResume() {
