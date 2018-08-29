@@ -9,6 +9,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { SpeechSettingsComponent } from './speech-settings/speech-settings.component';
 import { SpeedSettingsComponent } from './speed-settings/speed-settings.component';
 import { VoiceSettingsComponent } from './voice-settings/voice-settings.component';
+import { HeaderComponent } from './header/header.component';
 
 const routes: Routes = [
   { path: 'general', component: GeneralSettingsComponent },
@@ -25,7 +26,8 @@ const routes: Routes = [
     GeneralSettingsComponent,
     SpeechSettingsComponent,
     SpeedSettingsComponent,
-    VoiceSettingsComponent
+    VoiceSettingsComponent,
+    HeaderComponent
   ],
   imports: [
     BrowserModule,

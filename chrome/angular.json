@@ -18,6 +18,7 @@
             "main": "options/main.ts",
             "polyfills": "options/polyfills.ts",
             "tsConfig": "options/tsconfig.app.json",
+            "assets": [ "options/img/logo.png" ],
             "styles": [ "options/styles.css" ],
             "scripts": []
           },
