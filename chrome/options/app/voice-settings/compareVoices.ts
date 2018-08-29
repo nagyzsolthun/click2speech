@@ -1,3 +1,5 @@
+const LANGUAGES = ["en-US", "en-GB", "en", "de", "fr", "es-ES", "es-US"]
+
 export default function (voice1: chrome.tts.TtsVoice, voice2: chrome.tts.TtsVoice) {
     var result = compareExtensionId(voice1.extensionsId, voice2.extensionsId);
     result = result ? result : compareProvider(voice1.voiceName, voice2.voiceName);
@@ -7,16 +9,15 @@ export default function (voice1: chrome.tts.TtsVoice, voice2: chrome.tts.TtsVoic
     return result;
 }
 
-const langs = ["en-US", "en-GB", "en", "de", "fr", "es-ES", "es-US"]
 function calcLanValue(voiceLan: string) {
-    const index = langs.findIndex(lang => voiceLan.startsWith(lang));
-    if (index > -1) return langs.length - index;
+    const index = LANGUAGES.findIndex(lang => voiceLan.startsWith(lang));
+    if (index > -1) return LANGUAGES.length - index;
     else return 0;
 }
 
 function compareLangs(lang1: string, lang2: string) {
-    const langIndex1 = langs.findIndex(lang => lang1.startsWith(lang));
-    const langIndex2 = langs.findIndex(lang => lang2.startsWith(lang));
+    const langIndex1 = LANGUAGES.findIndex(lang => lang1.startsWith(lang));
+    const langIndex2 = LANGUAGES.findIndex(lang => lang2.startsWith(lang));
 
     if (langIndex1 == langIndex2) return 0;
 
