@@ -112,13 +112,15 @@ var scheduledPauseResume;
 function applyGoogleTtsBugWorkaround(eventType,rate) {
     // pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
     const repeateInterval = 5000 / rate;
-    if(eventType == "start") {
-        scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval);
-        return;
-    }
-    if(scheduledPauseResume) {
-        clearInterval(scheduledPauseResume);
-        scheduledPauseResume = null;
+    switch(eventType) {
+        case("start"): scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval); break;
+        case("end"):
+        case("interrupted"):
+        case("error"): {
+            if(scheduledPauseResume) clearInterval(scheduledPauseResume);
+            scheduledPauseResume = null;
+            break;
+        }
     }
 }
 function pauseResume() {
