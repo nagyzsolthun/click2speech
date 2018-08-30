@@ -1,0 +1,2 @@
+.selectionList > :before          {background-image: url('options/img/check.svg');}
+.selectionList > .selected:before {background-image: url('options/img/checkSelected.svg');}

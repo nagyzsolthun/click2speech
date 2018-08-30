@@ -1,0 +1,14 @@
+<div class="setting hoverable">
+  <div>{{'ttsOptions' | translate}}</div>
+  <ul class="choiceList voiceList">
+      <li *ngFor="let voice of voices"
+          [class.selected]="voice.selected"
+          [class.unavailable]="voice.disabled"
+          (click)="select(voice.name)">
+          <span>
+              <span class="voice-name">{{voice.name}}</span>
+              <span class="voice-lan">{{voice.lan}}</span>
+          </span>
+      </li>
+  </ul>
+</div>

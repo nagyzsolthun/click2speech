@@ -1,7 +1,7 @@
 import { scheduleAnalytics } from "./analytics.js";
 import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
 import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
-import * as iconDrawer from "./icon/drawer.js";
+import * as iconDrawer from "./icon/drawer.ts";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 
 // ===================================== incoming messages =====================================
@@ -73,11 +73,11 @@ function stop(request,port) {
     speaking = false;
 }
 
-function onTtsEvent({ port, request, event, voiceName, speed}) {
+function onTtsEvent({ port, request, event, voiceName, rate}) {
     updateIcon(event.type);
     updateSpeakingFlag(event.type);
     if(ports.has(port)) notifyContent(port, event, request.text);
-    if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, speed);
+    if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, rate);
     if(event.type == "error") errorVoice(voiceName);
 }
 
@@ -109,9 +109,9 @@ function getDisabledVoices() {
 
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPauseResume;
-function applyGoogleTtsBugWorkaround(eventType,speed) {
+function applyGoogleTtsBugWorkaround(eventType,rate) {
     // pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
-    const repeateInterval = 5000 / speed;
+    const repeateInterval = 5000 / rate;
     switch(eventType) {
         case("start"): scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval); break;
         case("end"):

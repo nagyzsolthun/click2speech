@@ -1,0 +1,49 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "options": {
+      "root": "",
+      "sourceRoot": "options",
+      "projectType": "application",
+      "prefix": "app",
+      "schematics": {},
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "../build-extension/options",
+            "index": "options/index.html",
+            "main": "options/main.ts",
+            "polyfills": "options/polyfills.ts",
+            "tsConfig": "options/tsconfig.app.json",
+            "assets": [ "options/img/logo.png" ],
+            "styles": [ "options/styles.css" ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "options/environments/environment.ts",
+                  "with": "options/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "options"
+}
