@@ -22,8 +22,8 @@ export class SpeedSettingsComponent implements OnInit {
     });
   }
 
-  update(speed: number) {
-    this.speed = speed;
-    chrome.storage.local.set({ speed });
+  update(input: string) {
+    this.speed = parseFloat(input);
+    chrome.storage.local.set({ speed: this.speed });
   }
 }
