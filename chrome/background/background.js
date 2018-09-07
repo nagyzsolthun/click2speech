@@ -34,7 +34,8 @@ messageListeners.read = (request,port) => {
     var voiceNamePromise = getVoiceName(request.text);
     Promise.all([settingsPromise,voiceNamePromise])
         .then(([settings,voiceName]) => {
-            const rate = settings.speed;
+            const speed = settings.speed;
+            const rate = (typeof speed == "string") ? parseFloat(speed) : speed;  // 1.5.5 speed type bug TODO remove
             const onEvent = event => onTtsEvent({ port, request, event, voiceName, rate });
             chrome.tts.speak(request.text, { voiceName, rate, onEvent });
         }).catch(() => {
@@ -169,6 +170,7 @@ ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", e
 
 chrome.storage.local.get(null, items => {
     if(settingsPopulated(items)) {
+        fixSpeedTypeError(items);   // TODO remove
         drawIcon(items.turnedOn);
         return;
     }
@@ -180,6 +182,15 @@ chrome.storage.local.get(null, items => {
 
 function settingsPopulated(storage) {
     return storage.hasOwnProperty("turnedOn");
+}
+
+// 1.5.5 introduced a bug where options set string speed instead of number TODO remove
+function fixSpeedTypeError(items) {
+    const speed = items.speed;
+    if(typeof speed == "string") {
+        chrome.storage.local.set({ speed: parseFloat(speed) });
+        scheduleAnalytics('storage','fixSpeedType', speed);
+    }
 }
 
 function populateDefaultSettings() {
