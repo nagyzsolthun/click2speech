@@ -6,12 +6,9 @@
 	,"selectionOptions": {"message": "Text Markieren"}
 	,"ttsOptions": {"message": "Stimme"}
 	,"speedOptions": {"message": "Geschwindigkeit"}
-	,"genderOptions": {"message": "Geschlecht"}
 	,"hoverSelect": {"message": "mit der maus gewiesen"}
 	,"arrowSelect": {"message": "pfeiltasten"}
 	,"browserSelect": {"message": "browser eingebaute selektion"}
-	,"femaleSpeech": {"message": "weiblich"}
-	,"maleSpeech": {"message": "männlich"}
 	,"OsTts": {"message": "Betriebssystem"}
 	,"reviewsUrl": {"message": "Meinungen"}
 	,"support": {"message": "Support"}

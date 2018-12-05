@@ -4,7 +4,6 @@ export default function (voice1: chrome.tts.TtsVoice, voice2: chrome.tts.TtsVoic
     var result = compareExtensionId((voice1 as any).extensionId, (voice2 as any).extensionId);
     result = result ? result : compareProvider(voice1.voiceName, voice2.voiceName);
     result = result ? result : compareLangs(voice1.lang, voice2.lang);
-    result = result ? result : compareGender(voice1.gender, voice2.gender);
     result = result ? result : compareVoiceName(voice1.voiceName, voice2.voiceName);
     return result;
 }
@@ -43,12 +42,6 @@ function compareProvider(voiceName1: string, voiceName2: string) {
     if (value1 > value2) return 1;
     if (value1 < value2) return -1;
     return 0;
-}
-
-function compareGender(gender1: string, gender2: string) {
-    if (gender1 == gender2) return 0;
-    if (gender1 == "female") return 1;
-    if (gender2 == "female") return -1;
 }
 
 function compareVoiceName(voiceName1: string, voiceName2: string) {

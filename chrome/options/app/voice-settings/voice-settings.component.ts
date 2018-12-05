@@ -18,7 +18,8 @@ export class VoiceSettingsComponent implements OnInit {
 
   ngOnInit() {
     const settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-    const chromeVoicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
+    const chromeVoicesPromise = new Promise<chrome.tts.TtsVoice[]>(resolve => chrome.tts.getVoices(resolve))
+        .then(voices => Promise.resolve(voices.filter(voice => voice.lang)));   // some voices may not have lang set
     const disabledVoicesPromise = new Promise(resolve => {
       this.port.postMessage({ action: "getDisabledVoices" });
       this.port.onMessage.addListener(message => {

@@ -1,6 +1,7 @@
 function getVoiceName(text) {
     var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-    var voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
+    var voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve))
+        .then(voices => Promise.resolve(voices.filter(voice => voice.lang)));   // some voices may not have lang set
     var lanPromise = calcLanPromise(text);
     return Promise.all([settingsPromise,voicesPromise,lanPromise]).then( ([settings,voices,lan]) => {
         const voiceName = calcVoiceName(settings,voices,lan);
@@ -21,7 +22,8 @@ function calcVoiceName(settings,voices,lan) {
 }
 
 function getDefaultVoiceName() {
-    const voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve));
+    const voicesPromise = new Promise(resolve => chrome.tts.getVoices(resolve))
+        .then(voices => Promise.resolve(voices.filter(voice => voice.lang)));   // some voices may not have lang set
     return voicesPromise.then(voices => {
         var voice = voices.reduce((voice1,voice2) => {
             const value1 = calcDefaultVoiceValue(voice1,navigator.language);
@@ -38,14 +40,12 @@ function calcSpeechVoiceValue(voice, lan, preferredVoice) {
     if(lan && !voice.lang.startsWith(lan)) return 0;    // if lan provided, voice must match it
 
     const matchingPreferredVoice = voice == preferredVoice
-    const matchingPreferredGender = voice.gender == (preferredVoice ? preferredVoice.gender : null);
     const osVoice = !voice.extensionId;
     const noIbmVoice = !voice.voiceName.startsWith("IBM");
     const matchingPreferredLan = voice.lang.split("-")[0] == (preferredVoice ? preferredVoice.lang.split("-")[0] : navigator.language.split("-")[0]);
 
     var value = 1;    // already worth more than rejected voices
-    if(matchingPreferredVoice)  value += 100000;
-    if(matchingPreferredGender) value += 10000;
+    if(matchingPreferredVoice)  value += 10000;
     if(osVoice)                 value += 1000;
     if(noIbmVoice)              value += 100;
     if(matchingPreferredLan)    value += 10;    // this is important when no lan is provided
@@ -57,15 +57,13 @@ function calcDefaultVoiceValue(voice, lan) {
     const matchingLanguage = voice.lang.split("-")[0] == lan.split("-")[0];    // lan is in form en-US
     const osVoice = !voice.extensionId;
     const noIbmVoice = !voice.voiceName.startsWith("IBM");
-    const femaleVoice = voice.gender == "female";
     const matchingDialect = voice.lang == lan;
     const usEnglishVoice = voice.lang == "en-US";
 
     var value = 0;
-    if(matchingLanguage) value += 100000;
-    if(osVoice)          value += 10000;
-    if(noIbmVoice)       value += 1000;
-    if(femaleVoice)      value += 100;
+    if(matchingLanguage) value += 10000;
+    if(osVoice)          value += 1000;
+    if(noIbmVoice)       value += 100;
     if(matchingDialect)  value += 10;
     if(usEnglishVoice)   value += 1;
     return value;

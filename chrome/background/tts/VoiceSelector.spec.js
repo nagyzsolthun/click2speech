@@ -2,12 +2,12 @@ import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./Voice
 
 const tts = {
     getVoices: callback => callback([
-        {voiceName:"osVoice", extensionId:null, lang:"en", gender:"female"},
-        {voiceName:"enVoice1", extensionId:1, lang:"en", gender:"female"},
-        {voiceName:"enVoice2", extensionId:1, lang:"en", gender:"male"},
-        {voiceName:"deVoice1", extensionId:1, lang:"de", gender:"female"},
-        {voiceName:"deVoice2", extensionId:1, lang:"de", gender:"male"},
-        {voiceName:"huVoice", extensionId:1, lang:"hu", gender:"female"},
+        {voiceName:"osVoice", extensionId:null, lang:"en"},
+        {voiceName:"enVoice1", extensionId:1, lang:"en"},
+        {voiceName:"enVoice2", extensionId:1, lang:"en"},
+        {voiceName:"deVoice1", extensionId:1, lang:"de"},
+        {voiceName:"deVoice2", extensionId:1, lang:"de"},
+        {voiceName:"huVoice", extensionId:1, lang:"hu"},
     ])
 };
 const localStorage = {};
@@ -62,34 +62,7 @@ describe("getVoiceName", () => {
         });
     });
 
-    it("gives male deVoice if language does not match preferredVoice and preferredVoice is male", done => {
-        localStorage.get = (settings,callback) => callback({preferredVoice:"enVoice2"});
-        i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"de",percentage:100}] });
-        getVoiceName(SOME_TEXT).then((voiceName) => {
-            expect(voiceName).toEqual("deVoice2");
-            done();
-        });
-    });
-
-    it("gives male deVoice if language does not match preferredVoice and preferredVoice is male", done => {
-        localStorage.get = (settings,callback) => callback({preferredVoice:"enVoice2"});
-        i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"de",percentage:100}] });
-        getVoiceName(SOME_TEXT).then((voiceName) => {
-            expect(voiceName).toEqual("deVoice2");
-            done();
-        });
-    });
-
-    it("gives osVoice if language does not match preferredVoice and preferredVoice is female", done => {
-        localStorage.get = (settings,callback) => callback({preferredVoice:"deVoice1"});
-        i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoiceName(SOME_TEXT).then((voiceName) => {
-            expect(voiceName).toEqual("osVoice");
-            done();
-        });
-    });
-
-    it("gives huVoice if langauge is hu, but preferredVoice and gender is different", done => {
+    it("gives huVoice if langauge is hu, but preferredVoice is different", done => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"hu",percentage:100}] });
         getVoiceName(SOME_TEXT).then((voiceName) => {
