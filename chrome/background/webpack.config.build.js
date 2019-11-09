@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const path = require("path");
 
 const output = {
-    path: path.resolve(__dirname, '../build-extension/background'),
+    path: path.resolve(__dirname, 'build'),
     filename: 'background.js'
 };
 
@@ -11,7 +11,7 @@ const jsLoaderRule = { test: /\.js$/, loader: 'babel-loader' };
 const audioLoaderRule = { test: /\.wav$/, loader: 'file-loader' };
 
 module.exports = {
-    entry: './background/background.js',
+    entry: './modules/background.js',
     output: output,
     module: { rules: [tsLoaderRule, jsLoaderRule, audioLoaderRule] },
     resolve: {

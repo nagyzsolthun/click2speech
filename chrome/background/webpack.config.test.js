@@ -1,12 +1,12 @@
 const path = require("path");
 const search = require('find')
 
-const backgroundFolder = path.resolve(__dirname, 'background');
-const entries = search.fileSync(/.spec.js$/, backgroundFolder);
+const moduleFolder = path.resolve(__dirname, 'modules');
+const entries = search.fileSync(/.spec.js$/, moduleFolder);
 
 const output = {
-    path: path.resolve(__dirname, '../build-test'),
-    filename: 'test-bundle.js'
+    path: path.resolve(__dirname, 'build'),
+    filename: 'background.spec.js'
 }
 
 const babelLoader = {
