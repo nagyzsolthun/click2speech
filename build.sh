@@ -9,28 +9,48 @@ function log() {
   echo -e "[$BLUE $1 $NO_COLOR]"
 }
 
-log "clean"
-rm -rf build && mkdir build
+action=$1
 
-log "manifest"
-node chrome/manifest.build.js > build/manifest.json
+if [ -z "$action" ] || [ $action == "clean" ]; then
+  log "clean"
+  rm -rf build && mkdir build
+fi
 
-log "locales"
-cp -TR chrome/_locales build/_locales
+if [ -z "$action" ] || [ $action == "manifest" ]; then
+  log "manifest"
+  node chrome/manifest.build.js > build/manifest.json
+fi
 
-log "images"
-mkdir -p build/img
-cp chrome/img/iconOff32.png chrome/img/iconOn32.png chrome/img/icon64.png build/img/
+if [ -z "$action" ] || [ $action == "locales" ]; then
+  log "locales"
+  cp -TR chrome/_locales build/_locales
+fi
 
-log "content"
-cp -TR chrome/content build/content/
+if [ -z "$action" ] || [ $action == "images" ]; then
+  log "images"
+  mkdir -p build/img
+  cp chrome/img/iconOff32.png chrome/img/iconOn32.png chrome/img/icon64.png build/img/
+fi
 
-log "popup"
-cp -TR chrome/popup build/popup/
+if [ -z "$action" ] || [ $action == "content" ]; then
+  log "content"
+  cp -TR chrome/content build/content/
+fi
 
-log "background"
-npm install --prefix chrome/background
-npm run build --prefix chrome/background
-cp -TR chrome/background/build build/background
+if [ -z "$action" ] || [ $action == "popup" ]; then
+  log "popup"
+  cp -TR chrome/popup build/popup/
+fi
 
-log "options"
+if [ -z "$action" ] || [ $action == "background" ]; then
+  log "background"
+  npm install --prefix chrome/background
+  npm run build --prefix chrome/background
+  cp -TR chrome/background/build build/background
+fi
+
+if [ -z "$action" ] || [ $action == "options" ]; then
+  log "options"
+  npm run build --prefix chrome/options
+  cp -TR chrome/options/build build/options
+fi
