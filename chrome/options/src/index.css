@@ -79,3 +79,6 @@ body {
 
 /*unavailable settings options are not highlighted*/
 .setting.unavailable > .choiceList > li > span {background-color:inherit;}
+
+.selectionList > :before          {background-image: url('img/check.svg');}
+.selectionList > .selected:before {background-image: url('img/checkSelected.svg');}
