@@ -8,15 +8,30 @@ const emailUrl = "mailto:" + email + "?subject=click2speech question";
 const reviews = translate('reviews');
 const support = translate('support');
 
+const backgroundCommunicationPort = process.env.NODE_ENV !== 'development' ? chrome.runtime.connect() : null;
+
+function sendAnalytics(interaction: string) {
+  if(!backgroundCommunicationPort) {
+    console.log(interaction)
+    return; // development env
+  }
+  backgroundCommunicationPort.postMessage({ action: "contactInteraction", interaction });
+}
+
 const Contact = () => (
   <div className="Contact">
     <div className="setting hoverable">
       <div>{reviews}</div>
-      <a href={reviewsUrl} target="_blank">{reviewsUrl}</a>
+      <a href={reviewsUrl}
+        onClick={e => sendAnalytics('reviews-click')}
+        target="_blank"
+      >{reviewsUrl}</a>
     </div>
     <div className="setting hoverable">
       <div>{support}</div>
-      <a href={emailUrl}>{email}</a>
+      <a href={emailUrl}
+        onClick={e => sendAnalytics('support-click')}
+      >{email}</a>
     </div>
   </div>
 );
