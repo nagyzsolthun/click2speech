@@ -10,7 +10,7 @@
 	,"arrowSelect": {"message": "pfeiltasten"}
 	,"browserSelect": {"message": "browser eingebaute selektion"}
 	,"OsTts": {"message": "Betriebssystem"}
-	,"reviewsUrl": {"message": "Meinungen"}
+	,"reviews": {"message": "Meinungen"}
 	,"support": {"message": "Support"}
 	,"turnOff": {"message": "ausschalten"}
 	,"turnOn": {"message": "einschalten"}

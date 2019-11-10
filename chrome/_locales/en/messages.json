@@ -10,7 +10,7 @@
 	,"arrowSelect": {"message": "arrow keys"}
 	,"browserSelect": {"message": "built-in browser selection"}
 	,"OsTts": {"message": "Operating System"}
-	,"reviewsUrl": {"message": "Reviews"}
+	,"reviews": {"message": "Reviews"}
 	,"support": {"message": "Support"}
 	,"turnOff": {"message": "turn off"}
 	,"turnOn": {"message": "turn on"}

@@ -3,6 +3,7 @@ import { Route, Switch, Router, Redirect } from 'react-router-dom';
 import Header from './Header';
 import Navbar from './Navbar';
 import General from './General';
+import Contact from './Contact';
 import './App.css';
 import { createBrowserHistory } from 'history';
 
@@ -15,6 +16,7 @@ const App = () => (
       <Navbar/>
       <Switch>
         <Route path="/general"><General/></Route>
+        <Route path="/contact"><Contact/></Route>
         <Redirect exact from="/" to="/general" />
       </Switch>
     </div>
