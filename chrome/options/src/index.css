@@ -37,19 +37,6 @@ body {
 /* ===================================== choiceList =====================================*/
 .choiceList {list-style: none;margin: 0;}
 
-/* animation for loading: the loading icon rotates behind the option */
-.choiceList > .loading:after {
-  margin-right: 0;
-  background-size: .7em;
-  width: .7em;
-  height: .7em;
-  content: "";
-  display: inline-block; /*http://stackoverflow.com/questions/8959701/using-background-image-in-after-psuedo-class*/
-  background-image: url('img/radioLoading.svg');
-  animation:rotate 2s linear infinite;
-}
-@keyframes rotate { 100% { transform: rotate(360deg); } }
-
 /** placeholder for the image before options (empty|filled circle|square) */
 .choiceList > :before {
   margin-right: 0;
@@ -71,9 +58,7 @@ body {
 * we also set animation on text color and background color (by using all)*/
 .choiceList > li > span {margin:0 0.2em; border-radius: 0.4em; transition: all .2s linear;}
 .choiceList > li:hover > span             {background-color:#4f4}
-.choiceList > li.loading > span           {color:grey;}
 .choiceList > li.unavailable > span       {color:grey;}
-.choiceList > li.loading:hover > span     {background-color:#ccc;}
 .choiceList > li.unavailable:hover > span {background-color:#ccc}
 .choiceList > li.unavailable:before       {opacity: 0;} /* set opacity for the animation */
 

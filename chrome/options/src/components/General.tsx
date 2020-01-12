@@ -4,20 +4,15 @@ import useStorage from '../storage';
 
 interface SettingProps extends React.HTMLAttributes<HTMLLIElement> {
   available?: boolean,
-  loading?: boolean,
   selected?: boolean
 }
 
 const Setting: React.FC<SettingProps> =
-({children, available = true, loading = false, selected = false, ...props}) => {
+({children, available = true, selected = false, ...props}) => {
 
   const classes: string[] = [];
   if(!available) {
     classes.push("unavailable")
-  }
-
-  if(loading) {
-    classes.push("loading");
   }
 
   if(selected) {
@@ -38,11 +33,11 @@ const General: React.FC = () => {
   return (
     <div className="GeneralSettings setting hoverable">
       <div>{"selectionOptions"}</div>
-      {<ul className="choiceList selectionList">
+      <ul className="choiceList selectionList">
         <Setting selected={hoverSelect} onClick={() => setHoverSelect(!hoverSelect)}>{translate("hoverSelect")}</Setting>
         <Setting selected={arrowSelect} onClick={() => setArrowSelect(!arrowSelect)}>{translate("arrowSelect")}</Setting>
         <Setting selected={browserSelect} onClick={() => setBrowserSelect(!browserSelect)}>{translate("browserSelect")}</Setting>
-  </ul>}
+      </ul>
     </div>
   );
 };
