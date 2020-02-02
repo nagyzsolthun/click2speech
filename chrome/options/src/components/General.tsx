@@ -2,16 +2,15 @@ import React from 'react';
 import translate from '../translate';
 import useStorage from '../storage';
 
-interface SettingProps extends React.HTMLAttributes<HTMLLIElement> {
-  available?: boolean,
+interface ChechboxProps extends React.HTMLAttributes<HTMLLIElement> {
   selected?: boolean
 }
 
-const Setting: React.FC<SettingProps> =
-({children, available = true, selected = false, ...props}) => {
+const Checkbox: React.FC<ChechboxProps> =
+({children, selected = false, ...props}) => {
 
   const classes: string[] = [];
-  if(!available) {
+  if(selected === undefined) {
     classes.push("unavailable")
   }
 
@@ -34,9 +33,9 @@ const General: React.FC = () => {
     <div className="GeneralSettings setting hoverable">
       <div>{"selectionOptions"}</div>
       <ul className="choiceList selectionList">
-        <Setting selected={hoverSelect} onClick={() => setHoverSelect(!hoverSelect)}>{translate("hoverSelect")}</Setting>
-        <Setting selected={arrowSelect} onClick={() => setArrowSelect(!arrowSelect)}>{translate("arrowSelect")}</Setting>
-        <Setting selected={browserSelect} onClick={() => setBrowserSelect(!browserSelect)}>{translate("browserSelect")}</Setting>
+        <Checkbox selected={hoverSelect} onClick={() => setHoverSelect(!hoverSelect)}>{translate("hoverSelect")}</Checkbox>
+        <Checkbox selected={arrowSelect} onClick={() => setArrowSelect(!arrowSelect)}>{translate("arrowSelect")}</Checkbox>
+        <Checkbox selected={browserSelect} onClick={() => setBrowserSelect(!browserSelect)}>{translate("browserSelect")}</Checkbox>
       </ul>
     </div>
   );
