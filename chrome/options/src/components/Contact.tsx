@@ -12,7 +12,6 @@ const backgroundCommunicationPort = process.env.NODE_ENV !== 'development' ? chr
 
 function sendAnalytics(interaction: string) {
   if(!backgroundCommunicationPort) {
-    console.log(interaction)
     return; // development env
   }
   backgroundCommunicationPort.postMessage({ action: "contactInteraction", interaction });

@@ -7,7 +7,7 @@ interface ChechboxProps extends React.HTMLAttributes<HTMLLIElement> {
 }
 
 const Checkbox: React.FC<ChechboxProps> =
-({children, selected = false, ...props}) => {
+({children, selected, ...props}) => {
 
   const classes: string[] = [];
   if(selected === undefined) {
