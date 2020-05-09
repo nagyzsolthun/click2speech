@@ -10,6 +10,8 @@
     "@types/react-dom": "16.9.7",
     "@types/react-router-dom": "5.1.5",
     "@types/chrome": "0.0.106",
+    "@types/material-ui": "0.21.7",
+    "@material-ui/core": "4.9.12",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-router-dom": "5.1.2",
