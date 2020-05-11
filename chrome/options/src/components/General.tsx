@@ -1,27 +1,7 @@
 import React from 'react';
 import translate from '../translate';
 import useStorage from '../storage';
-
-interface ChechboxProps extends React.HTMLAttributes<HTMLLIElement> {
-  selected?: boolean
-}
-
-const Checkbox: React.FC<ChechboxProps> =
-({children, selected, ...props}) => {
-
-  const classes: string[] = [];
-  if(selected === undefined) {
-    classes.push("unavailable")
-  }
-
-  if(selected) {
-    classes.push("selected");
-  }
-
-  return (
-    <li className={classes.join(' ')} {...props}><span>{children}</span></li>
-  );
-}
+import { Checkbox, FormControlLabel, FormGroup, FormLabel, FormControl } from '@material-ui/core';
 
 const General: React.FC = () => {
 
@@ -29,15 +9,41 @@ const General: React.FC = () => {
   const [arrowSelect, setArrowSelect] = useStorage<boolean>("arrowSelect");
   const [browserSelect, setBrowserSelect] = useStorage<boolean>("browserSelect");
 
+  const settingsLoading = [hoverSelect, arrowSelect, browserSelect].some(value => value === undefined);
+  if(settingsLoading) {
+    return null;
+  }
+
   return (
-    <div className="GeneralSettings setting hoverable">
-      <div>{"selectionOptions"}</div>
-      <ul className="choiceList selectionList">
-        <Checkbox selected={hoverSelect} onClick={() => setHoverSelect(!hoverSelect)}>{translate("hoverSelect")}</Checkbox>
-        <Checkbox selected={arrowSelect} onClick={() => setArrowSelect(!arrowSelect)}>{translate("arrowSelect")}</Checkbox>
-        <Checkbox selected={browserSelect} onClick={() => setBrowserSelect(!browserSelect)}>{translate("browserSelect")}</Checkbox>
-      </ul>
-    </div>
+    <FormControl>
+      <FormLabel>{translate("selectionOptions")}</FormLabel>
+      <FormGroup>
+        <FormControlLabel
+          control={<Checkbox
+            checked={hoverSelect}
+            color="primary"
+            onChange={() => setHoverSelect(!hoverSelect)}
+          />}
+          label={translate("hoverSelect")}
+        />
+        <FormControlLabel
+          control={<Checkbox
+            checked={arrowSelect}
+            color="primary"
+            onChange={() => setArrowSelect(!arrowSelect)}
+          />}
+          label={translate("arrowSelect")}
+        />
+        <FormControlLabel
+          control={<Checkbox
+            checked={browserSelect}
+            color="primary"
+            onChange={() => setBrowserSelect(!browserSelect)}
+          />}
+          label={translate("browserSelect")}
+        />
+      </FormGroup>
+    </FormControl>
   );
 };
 

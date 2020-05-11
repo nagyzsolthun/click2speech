@@ -1,40 +1,53 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, makeStyles } from '@material-ui/core';
+import { grey } from '@material-ui/core/colors';
 import translate from '../translate';
 import useStorage from '../storage';
 import useVoices from '../voices';
-import "./Speech.css";
 import useDisabledVoices from '../voices-disabled';
 
 export const Speech: React.FC = () => {
   return (
-    <>
-      <SpeedSettings />
+    <Box>
+      <SpeedSettings/>
+      <Divider />
       <VoiceSettings />
-    </>
+    </Box>
   );
 };
 
-const SpeedSettings = () => {
-  const MIN = 0.5;
-  const MAX = 4;
-  const STEP = 0.1;
-  const [speed, setSpeed] = useStorage<number>("speed");
+const useVoiceNameStyle = makeStyles({
+  root: {
+    display: "inline"
+  }
+});
 
+const useVoiceLanStyle = makeStyles({ root: {
+  display: "inline",
+  fontSize: "0.9em",
+  color: grey[600],
+  marginLeft: 8
+}})
+
+const SpeedSettings = () => {
+  const [speed, setSpeed] = useStorage<number>("speed");
   if(speed === undefined) {
     return null;
   }
-
   return (
-    <div className="setting hoverable">
-      <div>{translate("speedOptions")}</div>
-      <input className="numberInput" type="number" min={MIN} max={MAX} step={STEP} value={speed} onChange={onChange} />
-      <input className="rangeInput" type="range" min={MIN} max={MAX} step={STEP} value={speed} onChange={onChange} />
-    </div>
+    <FormControl>
+      <FormLabel>{translate("speedOptions")}</FormLabel>
+      <Typography>{speed.toFixed(1)}</Typography>
+      <Slider
+        aria-label="speed"
+        defaultValue={1}
+        step={0.1}
+        min={0.5}
+        max={4}
+        onChange={(_,value) => setSpeed(value as number)}
+      />
+    </FormControl>
   );
-
-  function onChange(event: React.FormEvent<HTMLInputElement>) {
-    setSpeed(Number(event.currentTarget.value));
-  }
 }
 
 const VoiceSettings = () => {
@@ -42,47 +55,32 @@ const VoiceSettings = () => {
   const voices = useVoices();
   const disabledVoices = useDisabledVoices();
 
+  const voiceNameClasses = useVoiceNameStyle();
+  const voiceLanClasses = useVoiceLanStyle();
+
   if(!voices || disabledVoices === undefined) {
     return null;
   }
 
   return (
-    <div className="setting hoverable">
-    <div>{translate('ttsOptions')}</div>
-    <ul className="choiceList voiceList">
-      {voices.map(voice =>
-        <VoiceOption
-          key={voice.name}
-          name={voice.name}
-          lan={voice.lan}
-          selected={voice.name == preferredVoice}
-          disabled={disabledVoices.includes(voice.name)}
-          setPreferredVoice={setPreferredVoice} />
-      )}
-    </ul>
-  </div>
-  );
-}
-
-const VoiceOption: React.FC<{
-    name: string,
-    lan: string,
-    selected: boolean,
-    disabled: boolean,
-    setPreferredVoice: (value: any) => void
-  }> = ({name, lan, selected, disabled, setPreferredVoice}) => {
-  const classNames = [];
-  classNames.push(selected ? "selected" : null);
-  classNames.push(disabled ? "unavailable" : null);
-  const className = classNames.filter(name => !!name).join(" ");
-  return (
-    <li
-      className={className}
-      onClick={()=> setPreferredVoice(name)}>
-      <span>
-          <span className="voice-name">{name}</span>
-          <span className="voice-lan">{lan}</span>
-      </span>
-    </li>
+    <FormControl>
+      <FormLabel>{translate("ttsOptions")}</FormLabel>
+      <RadioGroup aria-label="voice" name="voice" value={preferredVoice} onChange={(event) => setPreferredVoice(event.target.value)}>
+        {voices.map(voice =>
+          <FormControlLabel
+            key={voice.name}
+            value={voice.name}
+            aria-label={voice.name}
+            control={<Radio color="primary"/>}
+            label={
+              <>
+                <Typography classes={voiceNameClasses}>{voice.name}</Typography>
+                <Typography classes={voiceLanClasses}>{voice.lan}</Typography>
+              </>
+            }
+            disabled={disabledVoices.includes(voice.name)}
+         />)}
+      </RadioGroup>
+    </FormControl>
   );
 }

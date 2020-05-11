@@ -32,11 +32,11 @@ function compareLangs(lang1?: string, lang2?: string) {
   const langIndex1 = LANGUAGES.findIndex(lang => lang1 && lang1.startsWith(lang));
   const langIndex2 = LANGUAGES.findIndex(lang => lang2 && lang2.startsWith(lang));
 
-  if (langIndex1 == langIndex2) return 0;
+  if (langIndex1 === langIndex2) return 0;
 
   // one of the languages missing
-  if (langIndex2 == -1) return 1;
-  if (langIndex1 == -1) return -1;
+  if (langIndex2 === -1) return 1;
+  if (langIndex1 === -1) return -1;
 
   // both in langs
   if (langIndex1 < langIndex2) return 1;
@@ -45,9 +45,9 @@ function compareLangs(lang1?: string, lang2?: string) {
   return 0;
 }
 
-function compareExtensionId(id1: string, id2: string) {
-  if (id1 == null && id2 != null) return 1;   // null extensionId wins
-  if (id1 != null && id2 == null) return -1;
+function compareExtensionId(id1?: string, id2?: string) {
+  if (id1 === undefined && id2 !== undefined) return 1;   // undefined extensionId wins
+  if (id1 !== undefined && id2 === undefined) return -1;
   return 0;
 }
 
@@ -61,7 +61,7 @@ return 0;
 }
 
 function compareVoiceName(voiceName1?: string, voiceName2?: string) {
-  if (voiceName1 == voiceName2) return 0;
+  if (voiceName1 === voiceName2) return 0;
   if (!voiceName1) return 1;
   if (!voiceName2) return -1;
   if (voiceName1 < voiceName2) return 1;   // alphabetically lower voice wins (A wins over B)
