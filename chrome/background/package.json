@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "build": "npm run test && node node_modules/webpack/bin/webpack.js --config=webpack.config.build.js",
+    "test": "node node_modules/webpack/bin/webpack.js --config=webpack.config.test.js && node node_modules/jasmine/bin/jasmine.js build/background.spec.js && rm build/background.spec.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "webpack": "4.41.2",
+    "webpack-cli": "3.3.10",
+    "babel-loader": "8.0.6",
+    "find": "0.3.0",
+    "file-loader": "4.2.0",
+    "jasmine": "3.5.0",
+    "typescript": "3.7.2",
+    "ts-loader": "6.2.1",
+    "@babel/core": "7.7.2"
+  }
+}

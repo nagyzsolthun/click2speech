@@ -1,0 +1,43 @@
+{
+  "name": "click2speech-options",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "/options/",
+  "dependencies": {
+    "@types/jest": "25.2.1",
+    "@types/node": "13.13.5",
+    "@types/react": "16.9.35",
+    "@types/react-dom": "16.9.8",
+    "@types/react-router-dom": "5.1.5",
+    "@types/chrome": "0.0.107",
+    "@types/material-ui": "0.21.7",
+    "@material-ui/core": "4.9.13",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-router-dom": "5.1.2",
+    "react-scripts": "3.4.1",
+    "react-axe": "3.4.1",
+    "typescript": "3.8.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

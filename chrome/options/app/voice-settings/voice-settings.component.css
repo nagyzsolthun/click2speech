@@ -1,7 +1,0 @@
-.voice-name {font-size:25px; margin-right: 7px;}
-.voice-lan {font-size:25px; color:DarkGrey; transition:inherit;}
-
-.voiceList > li:hover > span > .voice-lan {color:black;}
-.voiceList > li:before                  {background-image: url('options/img/radio.svg');}
-.voiceList > li.selected:before         {background-image: url('options/img/radioSelected.svg');}
-.voiceList > li.selected.loading:before {background-image: url('options/img/radioSelectedLoading.svg');}

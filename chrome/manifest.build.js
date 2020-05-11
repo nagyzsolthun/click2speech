@@ -1,6 +1,3 @@
-var config = require('./package.json');
-
-const voiceEvents = ["start", "sentence", "end"];
 const voices = [
     {"voice_name":"IBM Birgit","lang":"de","event_types":["start","sentence","end","error"]},
     {"voice_name":"IBM Dieter","lang":"de","event_types":["start","sentence","end","error"]},
@@ -19,10 +16,10 @@ const voices = [
 
 var manifest = {
     "manifest_version": 2,
-    "name": config.name,
+    "name": "click2speech",
     "default_locale": "en",
     "description": "__MSG_extensionDescription__",
-    "version": config.version,
+    "version": "1.5.8",
     "content_scripts": [{
         "matches": ["<all_urls>"],
         "js": ["content/content.js"]
