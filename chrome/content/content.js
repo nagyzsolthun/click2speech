@@ -25,7 +25,7 @@
     // ============================================= turn on / off =============================================
     var settings = {};    //current settings
 
-    function refresh(newSettings) {
+    function refresh() {
         if(!settings.turnedOn) {
             turnOff();
             return;
@@ -607,17 +607,17 @@
         var backgroundColor;
         switch(status) {
             case("highlighted"):
-                backgroundColor = "#4f4"; break;
+                backgroundColor = "#8f8"; break;
             case("loading"):
             case("playing"):
-                backgroundColor = "#bbf"; break;
+                backgroundColor = "#ddf"; break;
             case("highlighted-loading"):
             case("highlighted-playing"):
-                backgroundColor = "#88f"; break;
+                backgroundColor = "#bbf"; break;
             case("error"):
-                backgroundColor = "#fbb"; break;
+                backgroundColor = "#fdd"; break;
             case("highlighted-error"):
-                backgroundColor = "#f88"; break;
+                backgroundColor = "#fbb"; break;
             default:
                 backgroundColor = element2original.get(element).backgroundColor; break;    //TODO is this needed?
         }
@@ -753,11 +753,11 @@
     var styleElement;
 
     var browserSelectCss = {};
-    browserSelectCss.selecting = "*::selection {background-color:#4f4 !important; color:black !important;}";
-    browserSelectCss.loading = "*::selection {background-color:#88f !important; color:black !important;}";
-    browserSelectCss.reading = "*::selection {background-color:#88f !important; color:black !important;}";
-    browserSelectCss.error = "*::selection {background-color:#fbb !important; color:black !important;}";
-    browserSelectCss.marker = "*::selection {background-color:#88f !important; color:black !important;}";
+    browserSelectCss.selecting = "*::selection {background-color:#8f8 !important; color:black !important;}";
+    browserSelectCss.loading = "*::selection {background-color:#bbf !important; color:black !important;}";
+    browserSelectCss.reading = "*::selection {background-color:#bbf !important; color:black !important;}";
+    browserSelectCss.error = "*::selection {background-color:#fdd !important; color:black !important;}";
+    browserSelectCss.marker = "*::selection {background-color:#bbf !important; color:black !important;}";
 
     // ============================================= speechRequests =============================================
 
