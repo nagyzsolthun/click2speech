@@ -1,15 +1,17 @@
+var turnedOn = false;
+const body = document.querySelector("body");
+const span = body.querySelector("span");
+
 function translate(text) {
     return chrome.i18n.getMessage(text);
 }
 
 function refreshPage() {
-    button.innerHTML = turnedOn ? translate("turnOff") : translate("turnOn");
-    button.className = turnedOn ? "ttsOn" : "ttsOff";
+    span.innerHTML = turnedOn ? translate("turnOff") : translate("turnOn");
+    body.className = turnedOn ? "ttsOn" : "ttsOff";
 }
 
-var turnedOn = false;
-const button = document.getElementsByTagName("button")[0];
-button.addEventListener("click", () => {
+body.addEventListener("click", () => {
     turnedOn = !turnedOn;
     chrome.storage.local.set({turnedOn: turnedOn });
     refreshPage();
