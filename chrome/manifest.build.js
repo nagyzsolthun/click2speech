@@ -19,7 +19,7 @@ var manifest = {
     name: "click2speech",
     default_locale: "en",
     description: "__MSG_extensionDescription__",
-    version: "1.5.8",
+    version: "1.6.0",
     content_scripts: [{
         matches: ["<all_urls>"],
         js: ["content/content.js"]
