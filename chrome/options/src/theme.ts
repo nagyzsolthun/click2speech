@@ -3,10 +3,9 @@ import { createMuiTheme } from "@material-ui/core";
 import createPalette from "@material-ui/core/styles/createPalette";
 
 const palette = createPalette({
-  secondary: { main: "#333" },
   primary: {
     main: "#292",
-    light: "#4f4"
+    light: "#3d3"
   }
 });
 
@@ -22,13 +21,14 @@ const theme = createMuiTheme({
     },
     MuiToolbar: {
       root: {
-        color: "black",
-        backgroundColor: "white"
+        color: palette.text.primary,
+        backgroundColor: palette.background.default
       }
     },
     MuiTabs: {
       root: {
-        backgroundColor: palette.secondary.main,
+        color: "white",
+        backgroundColor: palette.grey[800],
       },
       indicator: {
         display: "none"
@@ -40,7 +40,7 @@ const theme = createMuiTheme({
         textTransform: "none",
         maxWidth: "none",
         padding: 12,
-        transition: "background-color .2s linear",
+        transition: "background-color .2s",
         "&$selected": { backgroundColor: palette.primary.main },
         "&:hover": { backgroundColor: palette.primary.light }
       }
@@ -52,11 +52,12 @@ const theme = createMuiTheme({
     },
     MuiFormControlLabel: {
       root: {
-        "&:not(.Mui-disabled):hover > .MuiTypography-root": { backgroundColor: palette.primary.light }
+        "&:not(.Mui-disabled):hover > .MuiTypography-root": { backgroundColor: palette.action.hover },
+        "&:not(.Mui-disabled):hover > .MuiIconButton-root": { color: palette.primary.light }
       },
       label: {
         borderRadius: 12,
-        transition: "background-color .2s linear",
+        transition: "background-color .2s",
       }
     },
     MuiFormControl: {
@@ -68,9 +69,9 @@ const theme = createMuiTheme({
     },
     MuiFormLabel: {
       root: {
-        color: "black",
+        color: palette.text.primary,
         marginBottom: 8,
-        "&$focused": { color: "black" }
+        "&$focused": { color: palette.text.primary }
       },
     },
     MuiCheckbox: {
@@ -92,8 +93,7 @@ const theme = createMuiTheme({
     MuiSlider: {
       root: {
         "&:hover .MuiSlider-thumb": { color: palette.primary.light },
-        "&:hover .MuiSlider-track": { color: palette.primary.light },
-        "&:hover .MuiSlider-rail": { color: palette.secondary.dark }
+        "&:hover .MuiSlider-track": { color: palette.primary.light }
       },
       thumb: {
         width: 24,
@@ -107,7 +107,7 @@ const theme = createMuiTheme({
         height: 3
       },
       rail: {
-        color: palette.secondary.light
+        color: palette.action.active
       }
     },
     MuiLink: {
@@ -116,10 +116,10 @@ const theme = createMuiTheme({
         color: blue[700],
         margin: 8,
         borderRadius: 12,
+        transition: "background-color .2s",
         "&:hover": {
-          color: "black",
           textDecoration: "none", // doesn't work
-          backgroundColor: palette.primary.light
+          backgroundColor: palette.action.hover
         }
       }
     }

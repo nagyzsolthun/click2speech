@@ -1,10 +1,10 @@
 import React from 'react';
 import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, makeStyles } from '@material-ui/core';
-import { grey } from '@material-ui/core/colors';
 import translate from '../translate';
 import useStorage from '../storage';
 import useVoices from '../voices';
 import useDisabledVoices from '../voices-disabled';
+import theme from '../theme';
 
 export const Speech: React.FC = () => {
   return (
@@ -25,7 +25,7 @@ const useVoiceNameStyle = makeStyles({
 const useVoiceLanStyle = makeStyles({ root: {
   display: "inline",
   fontSize: "0.9em",
-  color: grey[600],
+  color: theme.palette.action.active,
   marginLeft: 8
 }})
 
