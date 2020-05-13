@@ -3,6 +3,7 @@ import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
 import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
 import * as iconDrawer from "./icon/drawer.ts";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
+import popUrl from "./pop.wav"
 
 // ===================================== incoming messages =====================================
 
@@ -258,7 +259,6 @@ function drawIcon(turnedOn) {
 
 // ===================================== others =====================================
 
-const popUrl = require("./pop.wav");
 const userInteractionAudio = new Audio("background/" + popUrl);    // TODO why "background/" needed?
 userInteractionAudio.volume = 0.5;
 
