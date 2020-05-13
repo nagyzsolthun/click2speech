@@ -9,7 +9,7 @@
     "@types/react": "16.9.35",
     "@types/react-dom": "16.9.8",
     "@types/react-router-dom": "5.1.5",
-    "@types/chrome": "0.0.107",
+    "@types/chrome": "0.0.110",
     "@types/material-ui": "0.21.7",
     "@material-ui/core": "4.9.13",
     "react": "^16.13.1",
