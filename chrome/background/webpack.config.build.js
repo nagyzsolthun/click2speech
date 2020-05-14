@@ -11,7 +11,7 @@ const jsLoaderRule = { test: /\.js$/, loader: 'babel-loader' };
 const audioLoaderRule = { test: /\.wav$/, loader: 'file-loader' };
 
 module.exports = {
-    entry: './modules/background.js',
+    entry: './modules/background.ts',
     output: output,
     module: { rules: [tsLoaderRule, jsLoaderRule, audioLoaderRule] },
     resolve: {

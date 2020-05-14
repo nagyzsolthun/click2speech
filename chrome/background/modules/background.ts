@@ -1,25 +1,27 @@
+/// <reference types="chrome"/>
+
 import { scheduleAnalytics } from "./analytics.js";
 import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
 import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
-import * as iconDrawer from "./icon/drawer.ts";
+import * as iconDrawer from "./icon/drawer";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 import popUrl from "./pop.wav"
 
 // ===================================== incoming messages =====================================
 
-var ports = new Set();
+const ports = new Set<chrome.runtime.Port>();
 chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
     ports.add(port);
     port.onDisconnect.addListener(() => ports.delete(port));
 
-    var action = message["action"];
-    var listener = messageListeners[action];
+    const action = message["action"];
+    const listener = messageListeners[action];
     if(listener) {
         listener(message, port);
     };
 }));
 
-var messageListeners = {};
+var messageListeners = {} as any;
 messageListeners.getSettings = (message,port) => {
     chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
@@ -35,10 +37,10 @@ messageListeners.read = (request,port) => {
     var voiceNamePromise = getVoiceName(request.text);
     Promise.all([settingsPromise,voiceNamePromise])
         .then(([settings,voiceName]) => {
-            const speed = settings.speed;
-            const rate = (typeof speed == "string") ? parseFloat(speed) : speed;  // 1.5.5 speed type bug TODO remove
-            const onEvent = event => onTtsEvent({ port, request, event, voiceName, rate });
-            chrome.tts.speak(request.text, { voiceName, rate, onEvent });
+            const rate = settings.speed;
+            const onEvent = (event: chrome.tts.TtsEvent) => onTtsEvent({ port, request, event, voiceName, rate });
+            const options = { voiceName, rate, onEvent } as chrome.tts.SpeakOptions;
+            chrome.tts.speak(request.text, options);
         }).catch(() => {
             notifyContent(port, {type:"error"});
             iconDrawer.drawError();
@@ -143,12 +145,12 @@ function updateSpeakingFlag(ttsEventType) {
 }
 
 // ===================================== outgoing messages to content =====================================
-function notifyContent(port, chromeTtsEvent, text) {
+function notifyContent(port, chromeTtsEvent, text?: string) {
     const contentNofifier = ttsEventToContentNotifier[chromeTtsEvent.type];
     if(contentNofifier) contentNofifier(port, chromeTtsEvent, text);
 }
 
-var ttsEventToContentNotifier = {};
+var ttsEventToContentNotifier = {} as any;
 ttsEventToContentNotifier.sentence = (port,chromeTtsEvent,text) => {
     const startOffset = chromeTtsEvent.charIndex;
     const endOffset = nextSentenceEnd(text, startOffset);
@@ -171,27 +173,18 @@ ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", e
 
 chrome.storage.local.get(null, items => {
     if(settingsPopulated(items)) {
-        fixSpeedTypeError(items);   // TODO remove
         drawIcon(items.turnedOn);
         return;
     }
+    const appVersion = (chrome as any).app.getDetails().version as string;  // TODO firefox
 
     console.log("persist default settings");
-    scheduleAnalytics('storage','defaults', chrome.app.getDetails().version);
+    scheduleAnalytics('storage','defaults', appVersion);
     populateDefaultSettings();
 });
 
 function settingsPopulated(storage) {
     return storage.hasOwnProperty("turnedOn");
-}
-
-// 1.5.5 introduced a bug where options set string speed instead of number TODO remove
-function fixSpeedTypeError(items) {
-    const speed = items.speed;
-    if(typeof speed == "string") {
-        chrome.storage.local.set({ speed: parseFloat(speed) });
-        scheduleAnalytics('storage','fixSpeedType', speed);
-    }
 }
 
 function populateDefaultSettings() {
