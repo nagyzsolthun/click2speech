@@ -1,7 +1,6 @@
 /// <reference types="chrome"/>
 
 import { scheduleAnalytics } from "./analytics.js";
-import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
 import { getVoice, getDefaultVoiceName, getSortedVoices } from "./tts/VoiceSelector";
 import * as iconDrawer from "./icon/drawer";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
@@ -19,30 +18,32 @@ const ports = new Set<chrome.runtime.Port>();
 chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
     ports.add(port);
     port.onDisconnect.addListener(() => ports.delete(port));
-
-    const action = message["action"];
-    const listener = messageListeners[action];
-    if(listener) {
-        listener(message, port);
-    };
+    switch(message.action) {
+        case "getVoices":          sendVoices(port); break;
+        case "getSettings":        sendSettings(port); break;
+        case "read":               requestRead(port, message.text, message.source); break;
+        case "arrowPressed":       popSound(); break;
+        case "contactInteraction": contactInteraction(message.interaction); break;
+        case "getDisabledVoices":  sendDisabledVoices(port); break;
+        default: console.log("unkown action " + message.action);
+    }
 }));
 
 const speechRequests = new Map<string,Request>();
 
-const messageListeners = {} as any;
-messageListeners.getVoices = (message,port) => {
+function sendVoices(port) {
     const voices = getSortedVoices().map(voice => ({name: voice.name, lan: voice.lang}));
     port.postMessage({ action:"updateVoices", voices })
 }
-messageListeners.getSettings = (message,port) => {
+function sendSettings(port) {
     chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
-messageListeners.read = (message, port: chrome.runtime.Port) => {
-    const text = message.text;
+
+function requestRead(port: chrome.runtime.Port, text: string, source: string) {
     const empty = isEmpty(text);
     if(speechRequests.size) {
         speechSynthesis.cancel();   // clean content script request
-        empty && scheduleAnalytics('tts', 'stop', message.source);
+        empty && scheduleAnalytics('tts', 'stop', source);
     }
 
     if(empty) {
@@ -50,7 +51,6 @@ messageListeners.read = (message, port: chrome.runtime.Port) => {
         iconDrawer.drawTurnedOn();
         return;
     }
-
 
     iconDrawer.drawLoading();
     const id = port.name + Date.now();
@@ -84,19 +84,19 @@ messageListeners.read = (message, port: chrome.runtime.Port) => {
     });
 
     // anyltics
-    scheduleAnalytics('tts', 'read', message.source);
+    scheduleAnalytics('tts', 'read', source);
 };
-messageListeners.arrowPressed = (message,port) => {
+function popSound() {
     userInteractionAudio.currentTime = 0;
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
     scheduleAnalytics('interaction', 'arrow', 'press');
 };
-messageListeners.contactInteraction = (message,port) => {
-    scheduleAnalytics('interaction', 'contacts', message.interaction);
+function contactInteraction(interaction: string) {
+    scheduleAnalytics('interaction', 'contacts', interaction);
 };
-messageListeners.getDisabledVoices = (message,port) => {
-    port.postMessage({action:"updateDisabledVoices", disabledVoices:getDisabledVoices()})
+function sendDisabledVoices(port) {
+    port.postMessage({action:"updateDisabledVoices", disabledVoices: getDisabledVoices()})
 };
 
 function isEmpty(text) {
@@ -189,32 +189,6 @@ function pauseResume() {
     speechSynthesis.resume();
 }
 
-// ===================================== outgoing messages to content =====================================
-// TODO delete this all
-function notifyContent(port, chromeTtsEvent, text?: string) {
-    const contentNofifier = ttsEventToContentNotifier[chromeTtsEvent.type];
-    if(contentNofifier) contentNofifier(port, chromeTtsEvent, text);
-}
-
-var ttsEventToContentNotifier = {} as any;
-ttsEventToContentNotifier.sentence = (port,chromeTtsEvent,text) => {
-    const startOffset = chromeTtsEvent.charIndex;
-    const endOffset = nextSentenceEnd(text, startOffset);
-    const textToSend = text.substring(startOffset,endOffset);
-    port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
-}
-ttsEventToContentNotifier.word = (port,chromeTtsEvent,text) => {
-    const startOffset = chromeTtsEvent.charIndex;
-    const endOffset = nextWordEnd(text, startOffset);
-    const textToSend = text.substring(startOffset,endOffset);
-    port.postMessage({action:"ttsEvent", eventType:"playing", startOffset: startOffset, endOffset:endOffset, text:textToSend});
-}
-ttsEventToContentNotifier.start = port => port.postMessage({action:"ttsEvent", eventType:"playing"});
-ttsEventToContentNotifier.interrupted =
-ttsEventToContentNotifier.stop =
-ttsEventToContentNotifier.end = port => port.postMessage({action:"ttsEvent", eventType:"end"});
-ttsEventToContentNotifier.error = port => port.postMessage({action:"ttsEvent", eventType:"error"});
-
 // ===================================== settings =====================================
 
 chrome.storage.local.get(null, items => {
@@ -223,7 +197,7 @@ chrome.storage.local.get(null, items => {
         return;
     }
     // const appVersion = (chrome as any).app.getDetails().version as string;  // TODO firefox
-    const appVersion = "test"
+    const appVersion = chrome.runtime.getManifest().version;
 
     console.log("persist default settings");
     scheduleAnalytics('storage','defaults', appVersion);
