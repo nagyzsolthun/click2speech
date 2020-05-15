@@ -7,6 +7,12 @@ import * as iconDrawer from "./icon/drawer";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 import popUrl from "./pop.wav"
 
+interface Request {
+    port: chrome.runtime.Port,
+    text: string,
+    utterance?: SpeechSynthesisUtterance
+}
+
 // ===================================== incoming messages =====================================
 
 const ports = new Set<chrome.runtime.Port>();
@@ -21,49 +27,55 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
     };
 }));
 
-// requests are pushed in this array
-// first request == active request
-const requests: {port: chrome.runtime.Port, text: string, utterance?: SpeechSynthesisUtterance}[] = [];
+const speechRequests = new Map<string,Request>();
 
 const messageListeners = {} as any;
 messageListeners.getVoices = (message,port) => {
-    const voices = getSortedVoices()
-        .map(voice => ({name: voice.name, lan: voice.lang}));
+    const voices = getSortedVoices().map(voice => ({name: voice.name, lan: voice.lang}));
     port.postMessage({ action:"updateVoices", voices })
 }
 messageListeners.getSettings = (message,port) => {
     chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
-messageListeners.read = (request,port) => {
-    const empty = isEmpty(request.text);
-    const activeRequest = requests[0];
-    if(activeRequest) {
-        speechSynthesis.cancel();   // TODO this causes end event, iconDrawer.drawLoading won't work
-        empty && scheduleAnalytics('tts', 'stop', request.source);
+messageListeners.read = (message, port: chrome.runtime.Port) => {
+    const text = message.text;
+    const empty = isEmpty(text);
+    if(speechRequests.size) {
+        speechSynthesis.cancel();   // clean content script request
+        empty && scheduleAnalytics('tts', 'stop', message.source);
     }
 
-    requests.push({port, text: request.text});
     if(empty) {
-        onSpeechEnd();
+        port.postMessage({action:"ttsEvent", eventType:"end"});
+        iconDrawer.drawTurnedOn();
         return;
     }
 
+
     iconDrawer.drawLoading();
+    const id = port.name + Date.now();
+    const request = {port, text} as Request;
+    speechRequests.set(id, request);
+
     const settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-    const voicePromise = getVoice(request.text, getDisabledVoices());
+    const voicePromise = getVoice(text, getDisabledVoices());
     Promise.all([settingsPromise,voicePromise]).then(values => {
         const settings = values[0] as any;
         const voice = values[1] as SpeechSynthesisVoice;
 
-        const utterance = new SpeechSynthesisUtterance(request.text);
-        requests[0].utterance = utterance;  // TODO kinda hacky here..
-
+        const utterance = new SpeechSynthesisUtterance(text);
+        request.utterance = utterance;
+        
         utterance.voice = voice;
         utterance.rate = settings.speed;
-        utterance.addEventListener("start",    onSpeechStart);
-        utterance.addEventListener("end",      onSpeechEnd);
-        utterance.addEventListener("error",    onSpeechError);
-        utterance.addEventListener("boundary", onSpeechBoundary);
+        utterance.addEventListener("start",    () => onSpeechStart(id));
+        utterance.addEventListener("end",      () => onSpeechEnd(id));
+        utterance.addEventListener("error",    () => onSpeechError(id));
+        utterance.addEventListener("boundary", event => onSpeechBoundary(id, event));
+
+        if(voice.name.includes("Google")) {
+            applyGoogleVoiceWorkaround(utterance)
+        }
         speechSynthesis.speak(utterance);
     }).catch(() => {
         iconDrawer.drawError();
@@ -72,7 +84,7 @@ messageListeners.read = (request,port) => {
     });
 
     // anyltics
-    scheduleAnalytics('tts', 'read', request.source);
+    scheduleAnalytics('tts', 'read', message.source);
 };
 messageListeners.arrowPressed = (message,port) => {
     userInteractionAudio.currentTime = 0;
@@ -93,39 +105,37 @@ function isEmpty(text) {
     return false;
 }
 
-function onSpeechStart() {
-    const request = requests[0];
-    iconDrawer.drawPlaying();
+function onSpeechStart(id) {
+    const request = speechRequests.get(id);
     request.port.postMessage({action:"ttsEvent", eventType:"playing"});
-    if(request.utterance.voice.name.includes("Google")) {
-        startPauseResume(request.utterance.rate);
-    }
+    iconDrawer.drawPlaying();
 }
 
-function onSpeechBoundary(event: SpeechSynthesisEvent) {
-    if(!event.charLength) {
-        return;
-    }
-    const request = requests[0];
+function onSpeechBoundary(id: string, event: SpeechSynthesisEvent) {
+    const request = speechRequests.get(id);
     const startOffset = event.charIndex;
     const endOffset = startOffset + event.charLength;
     const text = request.text.substring(startOffset, endOffset);
     request.port.postMessage({action:"ttsEvent", eventType:"playing", startOffset, endOffset, text});
 }
 
-function onSpeechEnd() {
-    const request = requests.shift();
-    iconDrawer.drawTurnedOn();
+function onSpeechEnd(id: string) {
+    const request = speechRequests.get(id);
     request.port.postMessage({action:"ttsEvent", eventType:"end"});
-    clearPauseResume();
+    speechRequests.delete(id);
+    if(!speechRequests.size) {
+        iconDrawer.drawTurnedOn();  // no loading request
+    }
 }
 
-function onSpeechError() {
-    const request = requests.shift();
-    iconDrawer.drawError();
+function onSpeechError(id: string) {
+    const request = speechRequests.get(id);
     request.port.postMessage({action:"ttsEvent", eventType:"error"});
+    speechRequests.delete(id);
+    if(!speechRequests.size) {
+        iconDrawer.drawTurnedOn();  // no loading request
+    }
     errorVoice(request.utterance.voice.name);
-    clearPauseResume();
 }
 
 // ===================================== error handling =====================================
@@ -154,6 +164,13 @@ function getDisabledVoices() {
 
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPauseResume;
+
+function applyGoogleVoiceWorkaround(utternace: SpeechSynthesisUtterance) {
+    utternace.addEventListener("start", () => startPauseResume(utternace.rate));
+    utternace.addEventListener("end", clearPauseResume);
+    utternace.addEventListener("error", clearPauseResume);
+}
+
 function startPauseResume(rate) {
     // pauseResume() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
     const repeateInterval = 5000 / rate;
