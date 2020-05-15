@@ -600,7 +600,7 @@
             return;
         }
 
-        element.style["-webkit-transition"] = "background .2s, background-color .2s, color .2s";    //'background' transition doesn't seem to work
+        element.style["transition"] = "background .2s, background-color .2s, color .2s";    //'background' transition doesn't seem to work
         element.style["background"] = "none";
         element.style["color"] = "black";
 
@@ -655,7 +655,7 @@
             if(getElementStatus(element)) return;
 
             //otherwise we do, and also remove the original for given element
-            element.style["-webkit-transition"] = original.transition;
+            element.style["transition"] = original.transition;
             element2original.delete(element);
         }, 200);
     }
@@ -667,7 +667,7 @@
             background:element.style["background"],    //this overrides background-color in soem cases => set to none (e.g. google search result top-right login button)
             backgroundColor:element.style["background-color"],
             color: element.style["color"],
-            transition:element.style["-webkit-transition"],
+            transition:element.style["transition"],
         });
     }
     var element2original = new Map();    //element => {background, backgroundColor, color, transition}
