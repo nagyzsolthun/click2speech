@@ -21,15 +21,13 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
     switch(message.action) {
         case "getVoices":          sendVoices(port); break;
         case "getSettings":        sendSettings(port); break;
-        case "read":               requestRead(port, message.text, message.source); break;
+        case "read":               read(port, message.text, message.source); break;
         case "arrowPressed":       popSound(); break;
         case "contactInteraction": contactInteraction(message.interaction); break;
         case "getDisabledVoices":  sendDisabledVoices(port); break;
         default: console.log("unkown action " + message.action);
     }
 }));
-
-const speechRequests = new Map<string,Request>();
 
 function sendVoices(port) {
     const voices = getSortedVoices().map(voice => ({name: voice.name, lan: voice.lang}));
@@ -39,7 +37,8 @@ function sendSettings(port) {
     chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
 
-function requestRead(port: chrome.runtime.Port, text: string, source: string) {
+const speechRequests = new Map<string,Request>();
+function read(port: chrome.runtime.Port, text: string, source: string) {
     const empty = isEmpty(text);
     if(speechRequests.size) {
         speechSynthesis.cancel();   // clean content script request
@@ -57,44 +56,30 @@ function requestRead(port: chrome.runtime.Port, text: string, source: string) {
     const request = {port, text} as Request;
     speechRequests.set(id, request);
 
-    const settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
     const voicePromise = getVoice(text, getDisabledVoices());
-    Promise.all([settingsPromise,voicePromise]).then(values => {
-        const settings = values[0] as any;
-        const voice = values[1] as SpeechSynthesisVoice;
+    const speedPromise = new Promise(resolve => chrome.storage.local.get(null, resolve))
+        .then((settings: any) => settings.speed as number);
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        request.utterance = utterance;
-        
-        utterance.voice = voice;
-        utterance.rate = settings.speed;
-        utterance.addEventListener("start",    () => onSpeechStart(id));
-        utterance.addEventListener("end",      () => onSpeechEnd(id));
-        utterance.addEventListener("error",    () => onSpeechError(id));
-        utterance.addEventListener("boundary", event => onSpeechBoundary(id, event));
-
-        if(voice.name.includes("Google")) {
-            applyGoogleVoiceWorkaround(utterance)
-        }
-        speechSynthesis.speak(utterance);
-    }).catch(() => {
-        iconDrawer.drawError();
-        port.postMessage({action:"ttsEvent", eventType:"error"});
-        scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
-    });
+    Promise.all([voicePromise, speedPromise])
+        .then(([voice, speed]) => createUtterance(id, text, voice, speed))
+        .then(utterance => speechSynthesis.speak(utterance))
+        .catch(error => onSynthesisError(id, error));
 
     // anyltics
     scheduleAnalytics('tts', 'read', source);
 };
+
 function popSound() {
     userInteractionAudio.currentTime = 0;
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
     scheduleAnalytics('interaction', 'arrow', 'press');
 };
+
 function contactInteraction(interaction: string) {
     scheduleAnalytics('interaction', 'contacts', interaction);
 };
+
 function sendDisabledVoices(port) {
     port.postMessage({action:"updateDisabledVoices", disabledVoices: getDisabledVoices()})
 };
@@ -103,6 +88,30 @@ function isEmpty(text) {
     if(!text) return true;
     if(! /\S/.test(text)) return true;    // contains only whitespace
     return false;
+}
+
+function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, speed: number) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = voice;
+    utterance.rate = speed;
+    utterance.addEventListener("start",    () => onSpeechStart(id));
+    utterance.addEventListener("end",      () => onSpeechEnd(id));
+    utterance.addEventListener("error",    () => onSpeechError(id));
+    utterance.addEventListener("boundary", event => onSpeechBoundary(id, event));
+    if(voice.name.includes("Google")) {
+        applyGoogleVoiceWorkaround(utterance)
+    }
+    speechRequests.get(id).utterance = utterance;
+    return utterance;
+}
+
+function onSynthesisError(id: string, error: Error) {
+    console.error(error);
+    const request = speechRequests.get(id);
+    request.port.postMessage({action:"ttsEvent", eventType:"error"});
+    scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
+    iconDrawer.drawError();
+    speechRequests.delete(id);
 }
 
 function onSpeechStart(id) {
@@ -138,7 +147,7 @@ function onSpeechError(id: string) {
     errorVoice(request.utterance.voice.name);
 }
 
-// ===================================== error handling =====================================
+// ===================================== disabled voices =====================================
 const voiceNameToErrorTime = {};
 const voiceNameToEnable = {};
 function errorVoice(voiceName) {

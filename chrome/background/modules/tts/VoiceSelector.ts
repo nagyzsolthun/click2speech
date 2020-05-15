@@ -5,12 +5,12 @@ function getVoice(text, disabledVoices) {
         const settings = values[0] as any;
         const lanDetect = values[1] as string;
         const voice = selectVoice(lanDetect, settings.preferredVoice, disabledVoices);
-        return voice ? Promise.resolve(voice) : Promise.reject();
+        return voice ? Promise.resolve(voice) : Promise.reject("no matching voice for " + lanDetect);
     });
 }
 
 function getDefaultVoiceName() {
-    const timeoutPromise = new Promise((resolve, reject) => setTimeout(reject, 5000));
+    const timeoutPromise = new Promise((_, reject) => setTimeout(reject, 5000));
     const defaultVoicePromise = new Promise(resolve => {
         const voice = getSortedVoices()[0];
         if(voice) {
