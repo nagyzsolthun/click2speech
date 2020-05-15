@@ -2,7 +2,7 @@ const path = require("path");
 const search = require('find')
 
 const moduleFolder = path.resolve(__dirname, 'modules');
-const entries = search.fileSync(/.spec.js$/, moduleFolder);
+const entries = search.fileSync(/.spec.[jt]s$/, moduleFolder);
 
 const output = {
     path: path.resolve(__dirname, 'build'),
@@ -23,5 +23,8 @@ module.exports = {
     entry: entries,
     output: output,
     module: {rules: [ babelLoader, tsLoader ]},
+    resolve: {
+        extensions: [ '.ts', '.js' ]   // so imports work without specifying file extension
+    },
     mode: "development"
 }

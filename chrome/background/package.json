@@ -14,6 +14,7 @@
     "typescript": "3.8.3",
     "ts-loader": "7.0.4",
     "@babel/core": "7.9.6",
-    "@types/chrome": "0.0.110"
+    "@types/chrome": "0.0.110",
+    "@types/jasmine": "2.8.7"
   }
 }

@@ -24,14 +24,14 @@ var manifest = {
         matches: ["<all_urls>"],
         js: ["content/content.js"]
     }],
-    permissions: ["http://*/","https://*/", "storage", "tts", "ttsEngine"],
+    permissions: ["http://*/","https://*/", "storage", "ttsEngine"],
     background : {"scripts": ["background/background.js"]},
     options_page: "options/index.html",
     browser_action: {
         default_icon: "img/iconOff32.png",
         default_popup: "popup/popup.html"
     },
-    tts_engine: {voices: voices},
+    tts_engine: {voices},
     icons: {
         "16": "img/iconOn32.png",
         "128": "img/icon64.png"

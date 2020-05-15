@@ -17,5 +17,8 @@ module.exports = {
     resolve: {
         extensions: [ '.ts', '.js' ]   // so imports work without specifying file extension
     },
-    mode: "production"
+    mode: "production",
+    optimization: {
+        minimize: false
+    }
 }

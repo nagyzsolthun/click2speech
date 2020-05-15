@@ -2,7 +2,7 @@
 
 import { scheduleAnalytics } from "./analytics.js";
 import { nextSentenceEnd, nextWordEnd } from "./tts/TextSplitter.js";
-import { getVoiceName, getDefaultVoiceName, updateDisabledVoices } from "./tts/VoiceSelector.js";
+import { getVoice, getDefaultVoiceName, getSortedVoices } from "./tts/VoiceSelector";
 import * as iconDrawer from "./icon/drawer";
 import * as ibmTts from "./tts/IbmTtsEngine.js";
 import popUrl from "./pop.wav"
@@ -21,31 +21,55 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
     };
 }));
 
-var messageListeners = {} as any;
+// requests are pushed in this array
+// first request == active request
+const requests: {port: chrome.runtime.Port, text: string, utterance?: SpeechSynthesisUtterance}[] = [];
+
+const messageListeners = {} as any;
+messageListeners.getVoices = (message,port) => {
+    const voices = getSortedVoices()
+        .map(voice => ({name: voice.name, lan: voice.lang}));
+    port.postMessage({ action:"updateVoices", voices })
+}
 messageListeners.getSettings = (message,port) => {
     chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
 messageListeners.read = (request,port) => {
-    if(isEmpty(request.text)) {
-        stop(request,port);
+    const empty = isEmpty(request.text);
+    const activeRequest = requests[0];
+    if(activeRequest) {
+        speechSynthesis.cancel();   // TODO this causes end event, iconDrawer.drawLoading won't work
+        empty && scheduleAnalytics('tts', 'stop', request.source);
+    }
+
+    requests.push({port, text: request.text});
+    if(empty) {
+        onSpeechEnd();
         return;
     }
 
     iconDrawer.drawLoading();
+    const settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
+    const voicePromise = getVoice(request.text, getDisabledVoices());
+    Promise.all([settingsPromise,voicePromise]).then(values => {
+        const settings = values[0] as any;
+        const voice = values[1] as SpeechSynthesisVoice;
 
-    var settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-    var voiceNamePromise = getVoiceName(request.text);
-    Promise.all([settingsPromise,voiceNamePromise])
-        .then(([settings,voiceName]) => {
-            const rate = settings.speed;
-            const onEvent = (event: chrome.tts.TtsEvent) => onTtsEvent({ port, request, event, voiceName, rate });
-            const options = { voiceName, rate, onEvent } as chrome.tts.SpeakOptions;
-            chrome.tts.speak(request.text, options);
-        }).catch(() => {
-            notifyContent(port, {type:"error"});
-            iconDrawer.drawError();
-            scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
-        });
+        const utterance = new SpeechSynthesisUtterance(request.text);
+        requests[0].utterance = utterance;  // TODO kinda hacky here..
+
+        utterance.voice = voice;
+        utterance.rate = settings.speed;
+        utterance.addEventListener("start",    onSpeechStart);
+        utterance.addEventListener("end",      onSpeechEnd);
+        utterance.addEventListener("error",    onSpeechError);
+        utterance.addEventListener("boundary", onSpeechBoundary);
+        speechSynthesis.speak(utterance);
+    }).catch(() => {
+        iconDrawer.drawError();
+        port.postMessage({action:"ttsEvent", eventType:"error"});
+        scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
+    });
 
     // anyltics
     scheduleAnalytics('tts', 'read', request.source);
@@ -69,20 +93,39 @@ function isEmpty(text) {
     return false;
 }
 
-function stop(request,port) {
-    iconDrawer.drawTurnedOn();  // show on-status after interaction animation (removes error color)
-    chrome.tts.stop();
-    notifyContent(port, {type:"end"});  // empty speech request ends right away
-    if(speaking) scheduleAnalytics('tts', 'stop', request.source);
-    speaking = false;
+function onSpeechStart() {
+    const request = requests[0];
+    iconDrawer.drawPlaying();
+    request.port.postMessage({action:"ttsEvent", eventType:"playing"});
+    if(request.utterance.voice.name.includes("Google")) {
+        startPauseResume(request.utterance.rate);
+    }
 }
 
-function onTtsEvent({ port, request, event, voiceName, rate}) {
-    updateIcon(event.type);
-    updateSpeakingFlag(event.type);
-    if(ports.has(port)) notifyContent(port, event, request.text);
-    if(voiceName.startsWith("Google")) applyGoogleTtsBugWorkaround(event.type, rate);
-    if(event.type == "error") errorVoice(voiceName);
+function onSpeechBoundary(event: SpeechSynthesisEvent) {
+    if(!event.charLength) {
+        return;
+    }
+    const request = requests[0];
+    const startOffset = event.charIndex;
+    const endOffset = startOffset + event.charLength;
+    const text = request.text.substring(startOffset, endOffset);
+    request.port.postMessage({action:"ttsEvent", eventType:"playing", startOffset, endOffset, text});
+}
+
+function onSpeechEnd() {
+    const request = requests.shift();
+    iconDrawer.drawTurnedOn();
+    request.port.postMessage({action:"ttsEvent", eventType:"end"});
+    clearPauseResume();
+}
+
+function onSpeechError() {
+    const request = requests.shift();
+    iconDrawer.drawError();
+    request.port.postMessage({action:"ttsEvent", eventType:"error"});
+    errorVoice(request.utterance.voice.name);
+    clearPauseResume();
 }
 
 // ===================================== error handling =====================================
@@ -90,7 +133,6 @@ const voiceNameToErrorTime = {};
 const voiceNameToEnable = {};
 function errorVoice(voiceName) {
     voiceNameToErrorTime[voiceName] = Date.now();
-    updateDisabledVoices(getDisabledVoices());
 
     var enableId = voiceNameToEnable[voiceName];
     if(enableId) clearTimeout(enableId);
@@ -98,7 +140,6 @@ function errorVoice(voiceName) {
     enableId = setTimeout(() => {
         delete voiceNameToErrorTime[voiceName];
         delete voiceNameToEnable[voiceName];
-        updateDisabledVoices(getDisabledVoices());
     }, 5*60*1000);    // 5 minutes
     voiceNameToEnable[voiceName] = enableId;
 
@@ -113,38 +154,26 @@ function getDisabledVoices() {
 
 // https://bugs.chromium.org/p/chromium/issues/detail?id=335907
 var scheduledPauseResume;
-function applyGoogleTtsBugWorkaround(eventType,rate) {
-    // pauseResum() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
+function startPauseResume(rate) {
+    // pauseResume() generates noise, should be infrequent but frequent enough for for the seech to not get stuck
     const repeateInterval = 5000 / rate;
-    switch(eventType) {
-        case("start"): scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval); break;
-        case("end"):
-        case("interrupted"):
-        case("error"): {
-            if(scheduledPauseResume) clearInterval(scheduledPauseResume);
-            scheduledPauseResume = null;
-            break;
-        }
-    }
+    scheduledPauseResume = scheduledPauseResume || setInterval(pauseResume, repeateInterval);
 }
+
+function clearPauseResume() {
+    if(scheduledPauseResume) {
+        clearInterval(scheduledPauseResume);
+    }
+    scheduledPauseResume = null;
+}
+
 function pauseResume() {
-    chrome.tts.pause();
-    chrome.tts.resume();
-}
-
-// ===================================== speaking flag for anyltics =====================================
-
-var speaking;
-function updateSpeakingFlag(ttsEventType) {
-    switch(ttsEventType) {
-        case "start":
-        case "sentence":
-        case "word": speaking = true; break;
-        default: speaking = false; break;
-    }
+    speechSynthesis.pause();
+    speechSynthesis.resume();
 }
 
 // ===================================== outgoing messages to content =====================================
+// TODO delete this all
 function notifyContent(port, chromeTtsEvent, text?: string) {
     const contentNofifier = ttsEventToContentNotifier[chromeTtsEvent.type];
     if(contentNofifier) contentNofifier(port, chromeTtsEvent, text);
@@ -176,7 +205,8 @@ chrome.storage.local.get(null, items => {
         drawIcon(items.turnedOn);
         return;
     }
-    const appVersion = (chrome as any).app.getDetails().version as string;  // TODO firefox
+    // const appVersion = (chrome as any).app.getDetails().version as string;  // TODO firefox
+    const appVersion = "test"
 
     console.log("persist default settings");
     scheduleAnalytics('storage','defaults', appVersion);
@@ -220,7 +250,7 @@ function handleOnOffEvent(turnedOn) {
     if(turnedOn) {
         iconDrawer.drawTurnedOn()
     } else {
-        chrome.tts.stop();
+        speechSynthesis.cancel();
         iconDrawer.drawTurnedOff();
     }
 }
