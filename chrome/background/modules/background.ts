@@ -23,7 +23,7 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
         case "getSettings":        sendSettings(port); break;
         case "read":               read(port, message.text, message.source); break;
         case "arrowPressed":       popSound(); break;
-        case "contactInteraction": contactInteraction(message.interaction); break;
+        case "sendAnalytics":      scheduleAnalytics(message.analytics.category, message.analytics.action, message.analytics.label); break;
         case "getDisabledVoices":  sendDisabledVoices(port); break;
         default: console.log("unkown action " + message.action);
     }
@@ -74,10 +74,6 @@ function popSound() {
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
     scheduleAnalytics('interaction', 'arrow', 'press');
-};
-
-function contactInteraction(interaction: string) {
-    scheduleAnalytics('interaction', 'contacts', interaction);
 };
 
 function sendDisabledVoices(port) {

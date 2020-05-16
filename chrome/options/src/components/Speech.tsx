@@ -5,6 +5,7 @@ import useStorage from '../storage';
 import useVoices from '../voices';
 import useDisabledVoices from '../voices-disabled';
 import theme from '../theme';
+import sendAnalytics from '../analytics';
 
 export const Speech: React.FC = () => {
   return (
@@ -62,6 +63,7 @@ const VoiceError = () => {
         href={readmeUrl}
         target="_blank"
         rel="noopener"
+        onClick={() => sendAnalytics("interaction", "speech-settings", "novoice-url")}
       >{readmeUrl}</Link>
     </>
   )
