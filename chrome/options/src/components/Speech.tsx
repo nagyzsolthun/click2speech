@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, makeStyles } from '@material-ui/core';
+import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Link, makeStyles } from '@material-ui/core';
 import translate from '../translate';
 import useStorage from '../storage';
 import useVoices from '../voices';
@@ -15,19 +15,6 @@ export const Speech: React.FC = () => {
     </Box>
   );
 };
-
-const useVoiceNameStyle = makeStyles({
-  root: {
-    display: "inline"
-  }
-});
-
-const useVoiceLanStyle = makeStyles({ root: {
-  display: "inline",
-  fontSize: "0.9em",
-  color: theme.palette.action.active,
-  marginLeft: 8
-}})
 
 const SpeedSettings = () => {
   const [speed, setSpeed] = useStorage<number>("speed");
@@ -51,36 +38,76 @@ const SpeedSettings = () => {
 }
 
 const VoiceSettings = () => {
-  const [preferredVoice, setPreferredVoice] = useStorage("preferredVoice");
   const voices = useVoices();
   const disabledVoices = useDisabledVoices();
-
-  const voiceNameClasses = useVoiceNameStyle();
-  const voiceLanClasses = useVoiceLanStyle();
-
-  if(!voices || disabledVoices === undefined) {
+  if(voices === undefined || disabledVoices === undefined) {
     return null;
   }
 
   return (
     <FormControl>
       <FormLabel>{translate("ttsOptions")}</FormLabel>
-      <RadioGroup aria-label="voice" name="voice" value={preferredVoice} onChange={(event) => setPreferredVoice(event.target.value)}>
-        {voices.map(voice =>
-          <FormControlLabel
-            key={voice.name}
-            value={voice.name}
-            aria-label={voice.name}
-            control={<Radio color="primary"/>}
-            label={
-              <>
-                <Typography classes={voiceNameClasses}>{voice.name}</Typography>
-                <Typography classes={voiceLanClasses}>{voice.lan}</Typography>
-              </>
-            }
-            disabled={disabledVoices.includes(voice.name)}
-         />)}
-      </RadioGroup>
+      {voices.length ? <VoiceRadioGroup voices={voices} disabledVoices={disabledVoices}/> : <VoiceError/>}
     </FormControl>
   );
 }
+
+const VoiceError = () => {
+  const errorClasses = useAlertStyle();
+  const readmeUrl = "https://github.com/nagyzsolthun/click2speech/blob/master/README.md";
+  return (
+    <>
+      <Typography classes={errorClasses}>no voice available</Typography>
+      <Link
+        href={readmeUrl}
+        target="_blank"
+        rel="noopener"
+      >{readmeUrl}</Link>
+    </>
+  )
+}
+
+const VoiceRadioGroup: React.FC<{
+  voices: {name: string, lan:string }[],
+  disabledVoices: string[]
+}> = ({ voices, disabledVoices }) => {
+  const voiceNameClasses = useVoiceNameStyle();
+  const voiceLanClasses = useVoiceLanStyle();
+  const [preferredVoice, setPreferredVoice] = useStorage("preferredVoice");
+
+  return (
+    <RadioGroup aria-label="voice" name="voice" value={preferredVoice || ""} onChange={(event) => setPreferredVoice(event.target.value)}>
+      {voices.map(voice =>
+        <FormControlLabel
+          key={voice.name}
+          value={voice.name}
+          aria-label={voice.name}
+          control={<Radio color="primary"/>}
+          label={
+            <>
+              <Typography classes={voiceNameClasses}>{voice.name}</Typography>
+              <Typography classes={voiceLanClasses}>{voice.lan}</Typography>
+            </>
+          }
+          disabled={disabledVoices.includes(voice.name)}
+        />)}
+    </RadioGroup>
+  )
+};
+
+const useVoiceNameStyle = makeStyles({
+  root: {
+    display: "inline"
+  }
+});
+
+const useVoiceLanStyle = makeStyles({ root: {
+  display: "inline",
+  fontSize: "0.9em",
+  color: theme.palette.action.active,
+  marginLeft: 8
+}})
+
+const useAlertStyle = makeStyles({ root: {
+  color: theme.palette.error.main,
+}});
