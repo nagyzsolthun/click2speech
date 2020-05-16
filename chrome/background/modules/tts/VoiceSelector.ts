@@ -63,7 +63,6 @@ const LANGUAGES = ["en-US", "en-GB", "en", "de", "fr", "es-ES", "es-US"]
 
 function compareVoices(voice1: SpeechSynthesisVoice, voice2: SpeechSynthesisVoice) {
   var result = compareFlag(voice1.localService, voice2.localService);
-  result = result ? result : compareProvider(voice1.name, voice2.name);
   result = result ? result : compareLang(voice1.lang, voice2.lang);
   result = result ? result : compareVoiceName(voice1.name, voice2.name);
   return result;
@@ -74,17 +73,6 @@ function compareFlag(flag1?: boolean, flag2?: boolean) {
   if (!flag1 && flag2) return -1;
   return 0;
 }
-
-function compareProvider(voiceName1?: string, voiceName2?: string) {
-    const provider1 = voiceName1 ? voiceName1.split(" ")[0] : null;
-    const provider2 = voiceName2 ? voiceName2.split(" ")[0] : null;
-    if (provider1 === provider2) return 0;
-    if (!provider1) return 1;
-    if (!provider2) return -1;
-    if (provider1 < provider2) return 1;   // alphabetically lower voice wins (A wins over B)
-    if (provider1 > provider2) return -1;
-    return 0;
-  }
 
 function compareLang(lang1?: string, lang2?: string) {
   const langIndex1 = LANGUAGES.findIndex(lang => lang1 && lang1.startsWith(lang));
