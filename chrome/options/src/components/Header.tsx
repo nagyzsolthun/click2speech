@@ -3,8 +3,8 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { useHistory } from "react-router-dom";
-import translate from "../translate";
 import { Toolbar, Typography, makeStyles } from "@material-ui/core";
+import translate from "../modules/translate";
 
 const logoStyle = {
   height: 64,

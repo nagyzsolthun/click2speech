@@ -1,7 +1,7 @@
 import React from "react";
-import translate from "../translate";
 import { FormControl, FormLabel, Link, Box, Divider } from "@material-ui/core";
-import sendAnalytics from "../analytics";
+import translate from "../modules/translate";
+import sendAnalytics from "../modules/analytics";
 
 const extensionUrl = "https://chrome.google.com/webstore/detail/click2speech/djfpbemmcokhlllnafdmomgecdlicfhj";
 const reviewsUrl = extensionUrl + "/reviews";

@@ -1,6 +1,6 @@
 import React from 'react';
-import translate from '../translate';
-import useStorage from '../storage';
+import translate from '../modules/translate';
+import useStorage from '../modules/storage';
 import { Checkbox, FormControlLabel, FormGroup, FormLabel, FormControl } from '@material-ui/core';
 
 const General: React.FC = () => {

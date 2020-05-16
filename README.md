@@ -6,6 +6,11 @@ Potential fixes:
 1. voices can be installed for Chrome, e.g. [US English voice from Google](https://chrome.google.com/webstore/detail/us-english-female-text-to/pkidpnnapnfgjhfhkpmjpbckkbaodldb) (seem to be Windows only)
 1. if using Linux, try Firefox instead of Chromium. Firefox supports `espeak` if installed.
 
-## local execution
-- `build.sh` builds the extension
-- `npm start` in `chrome/options` starts the dev version of the options page
+## build
+1. `build.sh` builds the extension
+
+## options local run
+1. `cd chrome/options`
+1. `mv src/modules src/modules-backup`
+1. `mv src/modules-dev src/modules`
+1. `npm start`

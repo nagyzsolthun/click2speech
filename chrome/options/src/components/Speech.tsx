@@ -1,11 +1,11 @@
 import React from 'react';
 import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Link, makeStyles } from '@material-ui/core';
-import translate from '../translate';
-import useStorage from '../storage';
-import useVoices from '../voices';
-import useDisabledVoices from '../voices-disabled';
 import theme from '../theme';
-import sendAnalytics from '../analytics';
+import translate from '../modules/translate';
+import useStorage from '../modules/storage';
+import useVoices from '../modules/tts';
+import useDisabledVoices from '../modules/voices-disabled';
+import sendAnalytics from '../modules/analytics';
 
 export const Speech: React.FC = () => {
   return (
