@@ -12,7 +12,7 @@ const palette = createPalette({
 const theme = createMuiTheme({
   typography: {
     fontSize: 24,
-    fontFamily: ["Roboto", "Arial", "sans-seerif"].join(",")
+    fontFamily: ["Roboto", "sans-serif"].join(",")
   },
   overrides: {
     MuiPaper: {
@@ -113,15 +113,19 @@ const theme = createMuiTheme({
     },
     MuiLink: {
       root: {
-        fontSize: 18, // if not set, prod is different
+        fontFamily: ["Roboto", "sans-serif"].join(","), // otherwise not set
+        fontSize: 16, // if not set, prod is different
         color: blue[700],
         margin: 8,
         borderRadius: 12,
         transition: "background-color .2s",
         "&:hover": {
-          textDecoration: "none", // doesn't work
+          color: palette.text.primary,
           backgroundColor: palette.action.hover
         }
+      },
+      underlineHover: {
+        "&:hover": { textDecoration: "none" }
       }
     }
   },
