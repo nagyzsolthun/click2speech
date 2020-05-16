@@ -12,6 +12,7 @@ const palette = createPalette({
 const theme = createMuiTheme({
   typography: {
     fontSize: 24,
+    fontFamily: ["Roboto", "Arial", "sans-seerif"].join(",")
   },
   overrides: {
     MuiPaper: {

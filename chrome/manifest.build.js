@@ -26,7 +26,10 @@ var manifest = {
     }],
     permissions: ["http://*/","https://*/", "storage", "ttsEngine"],
     background : {"scripts": ["background/background.js"]},
-    options_page: "options/index.html",
+    options_ui: {
+        page: "options/index.html",
+        open_in_tab: true
+    },
     browser_action: {
         default_icon: "img/iconOff32.png",
         default_popup: "popup/popup.html"
