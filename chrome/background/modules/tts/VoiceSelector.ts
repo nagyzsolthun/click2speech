@@ -1,45 +1,54 @@
-function getVoice(text, disabledVoices) {
-    const settingsPromise = new Promise(resolve => chrome.storage.local.get(null, resolve));
-    const langDetectPromise = calcLanPromise(text);
-    return Promise.all([settingsPromise,langDetectPromise]).then(values => {
-        const settings = values[0] as any;
-        const lanDetect = values[1] as string;
-        const voice = selectVoice(lanDetect, settings.preferredVoice, disabledVoices);
-        return voice ? Promise.resolve(voice) : Promise.reject("no matching voice for " + lanDetect);
-    });
+async function getVoice(text, disabledVoices) {
+    const settingsPromise = new Promise<any>(resolve => chrome.storage.local.get(null, resolve));
+    const lanDetectPromise = calcLanPromise(text);
+    const voicesPromise = getSortedVoices();
+    const [settings, lanDetect, voices] = await Promise.all([settingsPromise, lanDetectPromise, voicesPromise]);
+
+    const enabledVoices = voices.filter(voice => !disabledVoices.includes(voice.name));
+    const voice = selectVoice(enabledVoices, settings.preferredVoice, lanDetect);
+    return Promise.resolve(voice);
 }
 
-function getDefaultVoiceName() {
-    const timeoutPromise = new Promise((_, reject) => setTimeout(reject, 5000));
-    const defaultVoicePromise = new Promise(resolve => {
-        const voice = getSortedVoices()[0];
-        if(voice) {
-            resolve(voice.name);
-            return;
-        }
-        speechSynthesis.addEventListener("voiceschanged", () => {
-            const voice = getSortedVoices()[0];
-            voice && resolve(voice.name);
-        }, {once: true});
-    });
-    return Promise.race([defaultVoicePromise, timeoutPromise]);
+async function getDefaultVoiceName() {
+    const voices = await getSortedVoices();
+    return voices[0]?.name || "";
 }
 
-function calcLanPromise(text) {
-    return new Promise<chrome.i18n.LanguageDetectionResult>(resolve => chrome.i18n.detectLanguage(text, resolve))
-        .then(result => result.isReliable && result.languages.reduce(higherPercentage).language);
+async function getSortedVoices() {
+    const voices = await getVoices();
+    return voices.sort(compareVoices).reverse();
+  }
+
+async function calcLanPromise(text) {
+    const result = await new Promise<chrome.i18n.LanguageDetectionResult>(resolve => chrome.i18n.detectLanguage(text, resolve))
+    return result.isReliable && result.languages.reduce(higherPercentage).language;
 }
 
-function selectVoice(lanDetect: string, preferredVoiceName: string, disabledVoices: string[]) {
-    const voices = getSortedVoices().filter(voice => !disabledVoices.includes(voice.name));
-    const preferredVoice = voices.find(voice => voice.name === preferredVoiceName);
+function selectVoice(enabledVoices: SpeechSynthesisVoice[], preferredVoiceName: string, lanDetect: string, ) {
+    const preferredVoice = enabledVoices.find(voice => voice.name === preferredVoiceName);
     if(!lanDetect) {
-        return preferredVoice || voices[0];
+        return preferredVoice || enabledVoices[0];
     }
     if(matchingLanguage(preferredVoice, lanDetect)) {
         return preferredVoice;
     }
-    return voices.find(voice => matchingLanguage(voice, lanDetect));
+    return enabledVoices.find(voice => matchingLanguage(voice, lanDetect));
+}
+
+function getVoices(): Promise<SpeechSynthesisVoice[]> {
+    const timeoutPromise = new Promise<SpeechSynthesisVoice[]>(resolve => setTimeout(() => resolve([]), 10000));
+    const voicesPromise = new Promise<SpeechSynthesisVoice[]>(resolve => {
+        const voices = speechSynthesis.getVoices();
+        if(voices.length) {
+            resolve(voices);
+            return;
+        }
+        speechSynthesis.addEventListener("voiceschanged", () => {
+            const voices = speechSynthesis.getVoices();
+            voices.length ? resolve(voices) : resolve([]);
+        }, {once: true});
+    });
+    return Promise.race([voicesPromise, timeoutPromise]);
 }
 
 function higherPercentage(a,b) {
@@ -52,11 +61,6 @@ function matchingLanguage(voice: SpeechSynthesisVoice, lan: string) {
     // voice.lang is in form en-US
     // lan is usually in form en, but we are future proof here
     return voice && voice.lang.split("-")[0] == lan.split("-")[0];
-}
-
-// ============================================== new stuff ==============================================
-function getSortedVoices() {
-  return speechSynthesis.getVoices().sort(compareVoices).reverse();
 }
 
 const LANGUAGES = ["en-US", "en-GB", "en", "de", "fr", "es-ES", "es-US"]

@@ -24,97 +24,81 @@ describe("getVoice", () => {
         navigator.language = "en-US";    // used when no preferredVoice is given
     });
 
-    it("gives OS voice if preferred and supports language", done => {
+    it("gives OS voice if preferred and supports language", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoice(SOME_TEXT, []).then((voice) => {
-            expect(voice.name).toEqual("osVoice");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice.name).toEqual("osVoice");
     });
 
-    it("gives OS voice if preferred and no langauge detected", done => {
+    it("gives OS voice if preferred and no langauge detected", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:false});
-        getVoice(SOME_TEXT, []).then((voice) => {
-            expect(voice.name).toEqual("osVoice");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice.name).toEqual("osVoice");
     });
 
-    it("gives enVoice1 if preferred and supports language", done => {
+    it("gives enVoice1 if preferred and supports language", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"enVoice1"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoice(SOME_TEXT, []).then((voice) => {
-            expect(voice.name).toEqual("enVoice1");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice.name).toEqual("enVoice1");
     });
 
-    it("gives deVoice1 if language does not match preferredVoice", done => {
+    it("gives deVoice1 if language does not match preferredVoice", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"de",percentage:100}] });
-        getVoice(SOME_TEXT, []).then((voice) => {
-            expect(voice.name).toEqual("deVoice1");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice.name).toEqual("deVoice1");
     });
 
-    it("gives huVoice if langauge is hu, but preferredVoice is different", done => {
+    it("gives huVoice if langauge is hu, but preferredVoice is different", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"hu",percentage:100}] });
-        getVoice(SOME_TEXT, []).then((voice) => {
-            expect(voice.name).toEqual("huVoice");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice.name).toEqual("huVoice");
     });
 
-    it("rejects if detected language is not supported", done => {
+    it("gives null if detected language is not supported", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"fr",percentage:100}] });
-        getVoice(SOME_TEXT, []).then(null, () => done());
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice).toBeFalsy();
     });
 
-    it("gives enVoice1 if OsVoice is disabled", done => {
+    it("gives enVoice1 if OsVoice is disabled", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoice(SOME_TEXT, ["osVoice"]).then((voice) => {
-            expect(voice.name).toEqual("enVoice1");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, ["osVoice"]);
+        expect(voice.name).toEqual("enVoice1");
     });
 
-    it("gives enVoice2 if enVoice1 and OsVoice are disabled", done => {
+    it("gives enVoice2 if enVoice1 and OsVoice are disabled", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoice(SOME_TEXT, ["osVoice","enVoice1"]).then((voice) => {
-            expect(voice.name).toEqual("enVoice2");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, ["osVoice","enVoice1"]);
+        expect(voice.name).toEqual("enVoice2");
     });
 
-    it("rejects if all voices matching language are disabled", done => {
+    it("gives null if all voices matching language are disabled", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"osVoice"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoice(SOME_TEXT, ["osVoice","enVoice1","enVoice2"]).then(null, () => done());
+        const voice = await getVoice(SOME_TEXT, ["osVoice","enVoice1","enVoice2"]);
+        expect(voice).toBeFalsy();
     });
 
-    it("gives OS voice if matching language but no valid preferredVoice", done => {
+    it("gives OS voice if matching language but no valid preferredVoice", async () => {
         localStorage.get = (settings,callback) => callback({preferredVoice:"non-existent"});
         i18n.detectLanguage = (text,callback) => callback({isReliable:true, languages:[{language:"en",percentage:100}] });
-        getVoice(SOME_TEXT, []).then((voice) => {
-            expect(voice.name).toEqual("osVoice");
-            done();
-        });
+        const voice = await getVoice(SOME_TEXT, []);
+        expect(voice.name).toEqual("osVoice");
     });
 });
 
 describe("getDefaultVoiceName", () => {
-    it("returns osVoice", done => {
+    it("returns osVoice", async () => {
         navigator.language = "en-US";
-        getDefaultVoiceName().then(voiceName => {
-            expect(voiceName).toEqual("osVoice");
-            done();
-        });
+        const voiceName = await getDefaultVoiceName();
+        expect(voiceName).toEqual("osVoice");
     });
 });

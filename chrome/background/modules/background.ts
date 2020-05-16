@@ -29,16 +29,17 @@ chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message 
     }
 }));
 
-function sendVoices(port) {
-    const voices = getSortedVoices().map(voice => ({name: voice.name, lan: voice.lang}));
-    port.postMessage({ action:"updateVoices", voices })
+async function sendVoices(port) {
+    const speechVoices = await getSortedVoices();
+    const voices = speechVoices.map(speechVoice => ({name: speechVoice.name, lan: speechVoice.lang}));
+    port.postMessage({ action:"updateVoices", voices });
 }
 function sendSettings(port) {
     chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
 };
 
 const speechRequests = new Map<string,Request>();
-function read(port: chrome.runtime.Port, text: string, source: string) {
+async function read(port: chrome.runtime.Port, text: string, source: string) {
     const empty = isEmpty(text);
     if(speechRequests.size) {
         speechSynthesis.cancel();   // clean content script request
@@ -57,15 +58,15 @@ function read(port: chrome.runtime.Port, text: string, source: string) {
     speechRequests.set(id, request);
 
     const voicePromise = getVoice(text, getDisabledVoices());
-    const speedPromise = new Promise(resolve => chrome.storage.local.get(null, resolve))
-        .then((settings: any) => settings.speed as number);
+    const settingsPromise = new Promise<any>(resolve => chrome.storage.local.get(null, resolve));
+    const [voice, settings] = await Promise.all([voicePromise, settingsPromise]);
+    if(!voice) {
+        onNoVoice(id);
+        return;
+    }
 
-    Promise.all([voicePromise, speedPromise])
-        .then(([voice, speed]) => createUtterance(id, text, voice, speed))
-        .then(utterance => speechSynthesis.speak(utterance))
-        .catch(error => onSynthesisError(id, error));
-
-    // anyltics
+    const utterance = createUtterance(id, text, voice, settings.speed);
+    speechSynthesis.speak(utterance);
     scheduleAnalytics('tts', 'read', source);
 };
 
@@ -101,8 +102,7 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
     return utterance;
 }
 
-function onSynthesisError(id: string, error: Error) {
-    console.error(error);
+function onNoVoice(id: string) {
     const request = speechRequests.get(id);
     request.port.postMessage({action:"ttsEvent", eventType:"error"});
     scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
@@ -211,18 +211,17 @@ function settingsPopulated(storage) {
     return storage.hasOwnProperty("turnedOn");
 }
 
-function populateDefaultSettings() {
-    getDefaultVoiceName().then((voice) => {
-        scheduleAnalytics('storage','defaultVoice', voice);
-        chrome.storage.local.set({
-            turnedOn: true,
-            preferredVoice: voice,
-            speed: 1.2,
-            hoverSelect: true,
-            arrowSelect: false,
-            browserSelect: false,
-        }, () => drawIcon(true));
-    });
+async function populateDefaultSettings() {
+    const defaultVoiceName = await getDefaultVoiceName();
+    scheduleAnalytics('storage','defaultVoice', defaultVoiceName);
+    chrome.storage.local.set({
+        turnedOn: true,
+        preferredVoice: defaultVoiceName,
+        speed: 1.2,
+        hoverSelect: true,
+        arrowSelect: false,
+        browserSelect: false,
+    }, () => drawIcon(true));
 }
 
 chrome.storage.onChanged.addListener(changes => {
