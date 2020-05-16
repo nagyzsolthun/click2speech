@@ -5,6 +5,7 @@ import * as pointerLayerDrawer from "./pointerLayerDrawer";
 type Method = () => void;
 
 var canvas: HTMLCanvasElement;
+var animationEnabled: boolean;
 var animating: boolean;
 var onRenderFinished: Method = () => { };
 
@@ -16,6 +17,9 @@ function setCanvas(canv: HTMLCanvasElement) {
     mainLayerDrawer.setCanvas(canvas);
     loadingLayerDrawer.setCanvas(canvas);
     pointerLayerDrawer.setCanvas(canvas);
+}
+function setAnimationEnabled(enabled: boolean) {
+    animationEnabled = enabled;
 }
 function drawTurnedOn() {
     mainLayerDrawer.setOn();
@@ -53,10 +57,18 @@ function drawInteraction() {
     animate();
 }
 
-export { setOnRenderFinished, setCanvas, drawTurnedOn, drawTurnedOff, drawPlaying, drawLoading, drawError, drawInteraction }
+export { setOnRenderFinished, setCanvas, setAnimationEnabled, drawTurnedOn, drawTurnedOff, drawPlaying, drawLoading, drawError, drawInteraction }
+
+function animate() {
+    if(animationEnabled) {
+        animating || renderAnimating();
+    } else {
+        renderFixed();
+    }
+}
 
 // calls render() on each layer, repeats until all layers finsihed animation
-function render() {
+function renderAnimating() {
     animating = true;
     canvas.width = canvas.width;
     var now = Date.now();
@@ -67,12 +79,23 @@ function render() {
     if (allLayersFinished) {
         animating = false;
     } else {
-        window.setTimeout(() => render(), 10);
+        window.setTimeout(() => renderAnimating(), 10);
     }
     onRenderFinished();
 }
 
-// starts iteration of rendering - if not already started
-function animate() {
-    if (!animating) render();
+function renderFixed() {
+    canvas.width = canvas.width;
+    var later = Date.now() + 120000;    // 2 minites from now
+    mainLayerDrawer.render(later);
+
+    // hacky way to draw full circle instead of rotating ring
+    loadingLayerDrawer.render(later + 0);
+    loadingLayerDrawer.render(later + 100);
+    loadingLayerDrawer.render(later + 200);
+    loadingLayerDrawer.render(later + 300);
+    loadingLayerDrawer.render(later + 400);
+
+    pointerLayerDrawer.render(later);
+    onRenderFinished();
 }

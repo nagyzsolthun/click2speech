@@ -205,9 +205,7 @@ chrome.storage.local.get(null, items => {
         drawIcon(items.turnedOn);
         return;
     }
-    // const appVersion = (chrome as any).app.getDetails().version as string;  // TODO firefox
     const appVersion = chrome.runtime.getManifest().version;
-
     console.log("persist default settings");
     scheduleAnalytics('storage','defaults', appVersion);
     populateDefaultSettings();
@@ -256,6 +254,11 @@ function handleOnOffEvent(turnedOn) {
 }
 
 // ===================================== icon =====================================
+
+// hack to check which browser is active
+const getBrowserInfo = (window as any).browser?.runtime?.getBrowserInfo;  // this method is only available in Firefox
+const browserName = getBrowserInfo ? getBrowserInfo().then(info => info.name) : Promise.resolve("Chrome");
+browserName.then(name => iconDrawer.setAnimationEnabled(name.includes("Chrome")));  // Firefox does not support icon animation (it looks weird)
 
 var iconCanvas = document.createElement("canvas");
 iconCanvas.width = iconCanvas.height = 32;
