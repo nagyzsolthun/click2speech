@@ -267,14 +267,6 @@ function loadIconToToolbar() {
     chrome.browserAction.setIcon({imageData:iconCanvas.getContext("2d").getImageData(0, 0, iconCanvas.width, iconCanvas.height)});
 }
 
-function updateIcon(ttsEventType) {
-    switch(ttsEventType) {
-        case("start"): iconDrawer.drawPlaying(); break;
-        case("end"): iconDrawer.drawTurnedOn(); break;
-        case("error"): iconDrawer.drawError(); break;
-    }
-}
-
 function drawIcon(turnedOn) {
     if(turnedOn) iconDrawer.drawTurnedOn();
     else iconDrawer.drawTurnedOff();
