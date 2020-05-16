@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npm run test && node node_modules/webpack/bin/webpack.js --config=webpack.config.build.js",
+    "build": "node node_modules/webpack/bin/webpack.js --config=webpack.config.build.js",
     "test": "node node_modules/webpack/bin/webpack.js --config=webpack.config.test.js && node node_modules/jasmine/bin/jasmine.js build/background.spec.js && rm build/background.spec.js"
   },
   "dependencies": {},
