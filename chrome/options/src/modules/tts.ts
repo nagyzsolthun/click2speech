@@ -7,10 +7,11 @@ export default function() {
 
   function init() {
     const port = chrome.runtime.connect();
-    port.postMessage({ action: "getVoices" });
+    port.postMessage("getVoices");
     port.onMessage.addListener(message => {
-      if (message.action === "updateVoices") {
-        setVoices(message.voices);
+      const voices = message.voices;
+      if(voices !== undefined) {
+        setVoices(voices)
       }
     });
   }

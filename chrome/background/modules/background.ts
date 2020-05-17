@@ -11,34 +11,40 @@ interface Request {
     utterance?: SpeechSynthesisUtterance
 }
 
+type MessageListener = (port: chrome.runtime.Port, data?: any) => any
+
 // ===================================== incoming messages =====================================
 
 const ports = new Set<chrome.runtime.Port>();
-chrome.runtime.onConnect.addListener(port => port.onMessage.addListener(message => {
+const messageListeners: { [key: string]: MessageListener } = {};
+chrome.runtime.onConnect.addListener(port => {
     ports.add(port);
     port.onDisconnect.addListener(() => ports.delete(port));
-    switch(message.action) {
-        case "getVoices":          sendVoices(port); break;
-        case "getSettings":        sendSettings(port); break;
-        case "read":               read(port, message.text, message.source); break;
-        case "arrowPressed":       popSound(); break;
-        case "sendAnalytics":      scheduleAnalytics(message.analytics.category, message.analytics.action, message.analytics.label); break;
-        case "getDisabledVoices":  sendDisabledVoices(port); break;
-        default: console.log("unkown action " + message.action);
-    }
-}));
+    port.onMessage.addListener(message => {
+        if(typeof message === "string") {
+            const listener = messageListeners[message];
+            listener && listener(port);
+            return;
+        }
+        Object.keys(message).forEach(key => {
+            const listener = messageListeners[key];
+            listener && listener(port, message[key]);
+        });
+    });
+});
 
-async function sendVoices(port) {
+messageListeners.getVoices = async (port) => {
     const speechVoices = await getSortedVoices();
     const voices = speechVoices.map(speechVoice => ({name: speechVoice.name, lan: speechVoice.lang}));
-    port.postMessage({ action:"updateVoices", voices });
+    port.postMessage({ voices });
 }
-function sendSettings(port) {
-    chrome.storage.local.get(null, settings => port.postMessage({ action:"updateSettings", settings }));
+
+messageListeners.getSettings = (port) => {
+    chrome.storage.local.get(null, settings => port.postMessage({ settings }));
 };
 
 const speechRequests = new Map<string,Request>();
-async function read(port: chrome.runtime.Port, text: string, source: string) {
+messageListeners.read = async (port: chrome.runtime.Port, { text, source }) => {
     const empty = isEmpty(text);
     if(speechRequests.size) {
         speechSynthesis.cancel();   // clean content script request
@@ -46,7 +52,7 @@ async function read(port: chrome.runtime.Port, text: string, source: string) {
     }
 
     if(empty) {
-        port.postMessage({action:"ttsEvent", eventType:"end"});
+        port.postMessage("ttsEnd");
         iconDrawer.drawTurnedOn();
         return;
     }
@@ -69,15 +75,21 @@ async function read(port: chrome.runtime.Port, text: string, source: string) {
     scheduleAnalytics('tts', 'read', source);
 };
 
-function popSound() {
+messageListeners.arrowPressed = () => {
     userInteractionAudio.currentTime = 0;
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
     scheduleAnalytics('interaction', 'arrow', 'press');
 };
 
-function sendDisabledVoices(port) {
-    port.postMessage({action:"updateDisabledVoices", disabledVoices: getDisabledVoices()})
+messageListeners.analytics = (_, analytics) => {
+    const { category, action, label } = analytics;
+    scheduleAnalytics(category, action, label);
+}
+
+messageListeners.getDisabledVoices = (port) => {
+    const disabledVoices = getDisabledVoices();
+    port.postMessage({ disabledVoices })
 };
 
 function isEmpty(text) {
@@ -103,7 +115,7 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
 
 function onNoVoice(id: string) {
     const request = speechRequests.get(id);
-    request.port.postMessage({action:"ttsEvent", eventType:"error"});
+    request.port.postMessage("ttsError");
     scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
     iconDrawer.drawError();
     speechRequests.delete(id);
@@ -111,7 +123,7 @@ function onNoVoice(id: string) {
 
 function onSpeechStart(id) {
     const request = speechRequests.get(id);
-    request.port.postMessage({action:"ttsEvent", eventType:"playing"});
+    request.port.postMessage("ttsPlaying");
     iconDrawer.drawPlaying();
 }
 
@@ -120,12 +132,12 @@ function onSpeechBoundary(id: string, event: SpeechSynthesisEvent) {
     const startOffset = event.charIndex;
     const endOffset = startOffset + event.charLength;
     const text = request.text.substring(startOffset, endOffset);
-    request.port.postMessage({action:"ttsEvent", eventType:"playing", startOffset, endOffset, text});
+    request.port.postMessage({ttsPlaying: {startOffset, endOffset, text}});
 }
 
 function onSpeechEnd(id: string) {
     const request = speechRequests.get(id);
-    request.port.postMessage({action:"ttsEvent", eventType:"end"});
+    request.port.postMessage("ttsEnd");
     speechRequests.delete(id);
     if(!speechRequests.size) {
         iconDrawer.drawTurnedOn();  // no loading request
@@ -134,11 +146,9 @@ function onSpeechEnd(id: string) {
 
 function onSpeechError(id: string) {
     const request = speechRequests.get(id);
-    request.port.postMessage({action:"ttsEvent", eventType:"error"});
+    request.port.postMessage("ttsError");
     speechRequests.delete(id);
-    if(!speechRequests.size) {
-        iconDrawer.drawTurnedOn();  // no loading request
-    }
+    iconDrawer.drawError();
     errorVoice(request.utterance.voice.name);
 }
 
@@ -232,10 +242,7 @@ chrome.storage.onChanged.addListener(changes => {
             scheduleAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
         }
     }
-    chrome.storage.local.get(null, settings =>
-        ports.forEach(port =>
-            port.postMessage({action:"updateSettings", settings:settings})
-    ));
+    chrome.storage.local.get(null, settings => ports.forEach(port => port.postMessage({ settings }) ));
 });
 
 function handleOnOffEvent(turnedOn) {

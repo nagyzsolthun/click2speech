@@ -19,7 +19,7 @@
     }
 
     function requestSettings() {
-        backgroundCommunicationPort.postMessage({action:"getSettings"});    //the response will call backgroundEventListeners.updateSettings
+        backgroundCommunicationPort.postMessage("getSettings");    //the response will call backgroundEventListeners.settings
     }
 
     // ============================================= turn on / off =============================================
@@ -51,9 +51,16 @@
 
     // ============================================= ClickToSpeech background events =============================================
     function addClickToSpeechEventListeners() {
-        backgroundCommunicationPort.onMessage.addListener(function(message) {
-            var listener = backgroundEventListeners[message.action];
-            if(listener) listener(message);
+        backgroundCommunicationPort.onMessage.addListener(message => {
+            if(typeof message === "string") {
+                const listener = backgroundEventListeners[message];
+                listener && listener();
+                return;
+            }
+            Object.keys(message).forEach(key => {
+                const listener = backgroundEventListeners[key];
+                listener && listener(message[key]);
+            });
         });
     }
 
@@ -61,29 +68,23 @@
 
     var backgroundEventListeners = {};
 
-    backgroundEventListeners.updateSettings = function(message) {
-        for(var setting in message.settings) {
-            settings[setting] = message.settings[setting];
+    backgroundEventListeners.settings = function(data) {
+        for(var setting in data) {
+            settings[setting] = data[setting];
         }
         refresh();
     }
 
-    backgroundEventListeners.ttsEvent = function(message) {
-        activeRequest().status = message.eventType;
-        var eventListener = ttsEventListeners[message.eventType];
-        if(eventListener) eventListener(message);
-    }
-
-    // ============================================= tts events =============================================
-    var ttsEventListeners = {};
-    ttsEventListeners.playing = function(message) {
+    backgroundEventListeners.ttsPlaying = function(message) {
+        activeRequest().status = "playing";
         if(browserSelectionRequested()) recolorBrowserSelection("reading");
         if(requestedElement()) {
             updateElementStyle(requestedElement());
             markText(message);
         }
     }
-    ttsEventListeners.end = function(message) {
+    backgroundEventListeners.ttsEnd = function() {
+        activeRequest().status = "end";
         if(browserSelectionRequested()) recolorBrowserSelection(null);
         if(requestedElement()) {
             const element = requestedElement();
@@ -92,7 +93,8 @@
         }
         deleteActiveRequest();
     }
-    ttsEventListeners.error = function(message) {
+    backgroundEventListeners.ttsError = function() {
+        activeRequest().status = "error";
         if(browserSelectionRequested()) recolorBrowserSelection("error");
         if(requestedElement()) {
             markText(null);
@@ -323,7 +325,7 @@
         setHighlighted(closestReadable);
         scrollIntoView(closestReadable);
 
-        backgroundCommunicationPort.postMessage({action: "arrowPressed"});
+        backgroundCommunicationPort.postMessage("arrowPressed");
 
         //createDivOnBoundingClientRect(closestReadable);
     }
@@ -787,7 +789,7 @@
             markText(null);
         }
 
-        backgroundCommunicationPort.postMessage({action:"read", text:text, source:c.source});
+        backgroundCommunicationPort.postMessage({read: {text:text, source:c.source}});
     }
 
     function textFromRequest(request) {

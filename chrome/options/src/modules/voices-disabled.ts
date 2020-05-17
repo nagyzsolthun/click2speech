@@ -7,10 +7,11 @@ export default function() {
 
   function init() {
     const port = chrome.runtime.connect();
-    port.postMessage({ action: "getDisabledVoices" });
+    port.postMessage("getDisabledVoices");
     port.onMessage.addListener(message => {
-      if (message.action === "updateDisabledVoices") {
-        setDisabledVoices(message.disabledVoices);
+      const disabledVoices = message.disabledVoices;
+      if(disabledVoices !== undefined) {
+        setDisabledVoices(disabledVoices)
       }
     });
   }
