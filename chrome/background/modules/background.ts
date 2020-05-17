@@ -3,7 +3,6 @@
 import { scheduleAnalytics } from "./analytics.js";
 import { getVoice, getDefaultVoiceName, getSortedVoices } from "./tts/VoiceSelector";
 import * as iconDrawer from "./icon/drawer";
-import * as ibmTts from "./tts/IbmTtsEngine.js";
 import popUrl from "./pop.wav"
 
 interface Request {
@@ -275,13 +274,8 @@ function drawIcon(turnedOn) {
 const userInteractionAudio = new Audio("background/" + popUrl);    // TODO why "background/" needed?
 userInteractionAudio.volume = 0.5;
 
-// register IBM TTS
-chrome.ttsEngine.onSpeak.addListener(ibmTts.speakListener);
-chrome.ttsEngine.onStop.addListener(ibmTts.stopListener);
-
 // initial content script injection - so no Chrome restart is needed after installation
-chrome.tabs.query({}, function(tabs) {
-    for (var i=0; i<tabs.length; i++) {
-        chrome.tabs.executeScript(tabs[i].id, {file: 'content/content.js'}, () => chrome.runtime.lastError);
-    }
-});
+chrome.tabs.query({}, tabs => tabs
+    .map(tab => tab.id)
+    .forEach(id => chrome.tabs.executeScript(id, {file: 'content/content.js'}, () => chrome.runtime.lastError))
+);

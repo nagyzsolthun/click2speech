@@ -1,5 +1,7 @@
 import { getVoice, getDefaultVoiceName } from "./VoiceSelector";
 
+declare var global;
+
 const voices = [
     {name:"osVoice", lang:"en-US", localService: true},
     {name:"enVoice1", lang:"en-US"},
@@ -12,12 +14,11 @@ const localStorage = {} as any;
 const i18n = {} as any;
 const navigator = {} as any;
 
-const SOME_TEXT = "some text";
+global.chrome = {storage: {local:localStorage}, i18n:i18n};
+global.speechSynthesis = {getVoices: () => voices};
+global.navigator = navigator;
 
-global["chrome"] = {storage: {local:localStorage}, i18n:i18n};
-global["speechSynthesis"] = {getVoices: () => voices};
-global["navigator"] = navigator;
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 100;
+const SOME_TEXT = "some text";
 
 describe("getVoice", () => {
     beforeEach(() => {

@@ -1,19 +1,3 @@
-const voices = [
-    {voice_name:"IBM Birgit",lang:"de",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Dieter",lang:"de",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Kate",lang:"en-GB",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Allison",lang:"en-US",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Michael",lang:"en-US",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Enrique",lang:"es-ES",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Laura",lang:"es-ES",event_types:["start","sentence","end","error"],remote:true},
-    // {voice_name:"IBM Sofia",lang:"es-LA",event_types:["start","sentence","end","error"],remote:true}, TODO duplicate voice names
-    {voice_name:"IBM Sofia",lang:"es-US",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Renee",lang:"fr",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Francesca",lang:"it",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Emi",lang:"ja",event_types:["start","sentence","end","error"],remote:true},
-    {voice_name:"IBM Isabela",lang:"pt",event_types:["start","sentence","end","error"],remote:true}
-];
-
 var manifest = {
     manifest_version: 2,
     name: "click2speech",
@@ -34,7 +18,6 @@ var manifest = {
         default_icon: "img/iconOff32.png",
         default_popup: "popup/popup.html"
     },
-    tts_engine: {voices},
     icons: {
         "16": "img/iconOn32.png",
         "128": "img/icon64.png"

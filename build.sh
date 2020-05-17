@@ -20,7 +20,7 @@ fi;
 if [ -z "$action" ] || [[ "$action" =~ " clean " ]]; then
   log "clean"
   rm -rf build && mkdir build
-  rm build.zip
+  rm -f build.zip
 fi
 
 if [ -z "$action" ] || [[ "$action" =~ " manifest " ]]; then
