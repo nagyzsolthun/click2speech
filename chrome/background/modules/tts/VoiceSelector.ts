@@ -36,19 +36,27 @@ function selectVoice(enabledVoices: SpeechSynthesisVoice[], preferredVoiceName: 
 }
 
 function getVoices(): Promise<SpeechSynthesisVoice[]> {
-    const timeoutPromise = new Promise<SpeechSynthesisVoice[]>(resolve => setTimeout(() => resolve([]), 10000));
-    const voicesPromise = new Promise<SpeechSynthesisVoice[]>(resolve => {
+    return new Promise<SpeechSynthesisVoice[]>(resolve => {
         const voices = speechSynthesis.getVoices();
         if(voices.length) {
             resolve(voices);
             return;
         }
-        speechSynthesis.addEventListener("voiceschanged", () => {
-            const voices = speechSynthesis.getVoices();
-            voices.length ? resolve(voices) : resolve([]);
-        }, {once: true});
+
+        // wait if voices appear
+        speechSynthesis.addEventListener("voiceschanged", resolveVocies);
+        function resolveVocies() {
+            speechSynthesis.removeEventListener("voiceschanged", resolveVocies);
+            resolve(speechSynthesis.getVoices());
+            clearTimeout(timeout);
+        };
+
+        // add timeout
+        const timeout = setTimeout(() => {
+            speechSynthesis.removeEventListener("voiceschanged", resolveVocies);
+            resolve([]);
+        }, 200);
     });
-    return Promise.race([voicesPromise, timeoutPromise]);
 }
 
 function higherPercentage(a,b) {

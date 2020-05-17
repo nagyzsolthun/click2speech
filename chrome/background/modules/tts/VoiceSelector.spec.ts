@@ -1,4 +1,4 @@
-import { getVoice, getDefaultVoiceName } from "./VoiceSelector";
+import { getVoice, getDefaultVoiceName, getSortedVoices } from "./VoiceSelector";
 
 declare var global;
 
@@ -15,14 +15,69 @@ const i18n = {} as any;
 const navigator = {} as any;
 
 global.chrome = {storage: {local:localStorage}, i18n:i18n};
-global.speechSynthesis = {getVoices: () => voices};
+global.speechSynthesis = {} as any;
 global.navigator = navigator;
 
 const SOME_TEXT = "some text";
 
+describe("getSortedVoices", () => {
+
+    let onVoicesChange;
+    beforeEach(() => {
+        onVoicesChange = null;
+        global.speechSynthesis.addEventListener = (_,callback) => onVoicesChange = callback;
+        global.speechSynthesis.removeEventListener = () => {};
+        spyOn(global.speechSynthesis, "addEventListener").and.callThrough();
+        spyOn(global.speechSynthesis, "removeEventListener");
+    });
+
+    it("provides voices sync if available", async () => {
+        global.speechSynthesis.getVoices = () => voices;
+
+        // check subscription
+        const voicesPromise = getSortedVoices();
+        expect(global.speechSynthesis.addEventListener).not.toHaveBeenCalled();
+        expect(onVoicesChange).toBeFalsy();
+
+        const result = await voicesPromise;
+        expect(result.length).toBe(voices.length);
+    });
+
+    it("provides voices async when available", async () => {
+        global.speechSynthesis.getVoices = () => [];
+
+        // check subscription
+        const voicesPromise = getSortedVoices();
+        expect(global.speechSynthesis.addEventListener).toHaveBeenCalled();
+        expect(onVoicesChange).toBeTruthy();
+
+        // voices received
+        global.speechSynthesis.getVoices = () => voices;
+        onVoicesChange();
+        const result = await voicesPromise;
+        expect(result.length).toBe(voices.length)
+        expect(global.speechSynthesis.removeEventListener).toHaveBeenCalled();
+    });
+
+    it("provides empty array async when not available", async () => {
+        global.speechSynthesis.getVoices = () => [];
+
+        // check subscription
+        const voicesPromise = getSortedVoices();
+        expect(global.speechSynthesis.addEventListener).toHaveBeenCalled();
+        expect(onVoicesChange).toBeTruthy();
+
+        // should time out when onVoicesChange not called
+        const result = await voicesPromise;
+        expect(result.length).toBe(0);
+        expect(global.speechSynthesis.removeEventListener).toHaveBeenCalled();
+    });
+});
+
 describe("getVoice", () => {
     beforeEach(() => {
         navigator.language = "en-US";    // used when no preferredVoice is given
+        global.speechSynthesis.getVoices = () => voices
     });
 
     it("gives OS voice if preferred and supports language", async () => {
@@ -97,6 +152,10 @@ describe("getVoice", () => {
 });
 
 describe("getDefaultVoiceName", () => {
+    beforeEach(() => {
+        global.speechSynthesis.getVoices = () => voices
+    });
+
     it("returns osVoice", async () => {
         navigator.language = "en-US";
         const voiceName = await getDefaultVoiceName();
