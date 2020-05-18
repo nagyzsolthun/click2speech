@@ -8,7 +8,7 @@ var manifest = {
         matches: ["<all_urls>"],
         js: ["content/content.js"]
     }],
-    permissions: ["http://*/","https://*/", "storage", "ttsEngine"],
+    permissions: ["http://*/","https://*/", "storage"],
     background : {"scripts": ["background/background.js"]},
     options_ui: {
         page: "options/index.html",

@@ -55,7 +55,7 @@ function getVoices(): Promise<SpeechSynthesisVoice[]> {
         const timeout = setTimeout(() => {
             speechSynthesis.removeEventListener("voiceschanged", resolveVocies);
             resolve([]);
-        }, 200);
+        }, 1000);
     });
 }
 

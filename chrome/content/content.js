@@ -37,10 +37,9 @@
     function turnOff() {
         removeBrowserEventListeners();
         setHighlighted(null);
-
+        recolorBrowserSelection(null);
         speechRequests.forEach(request => {
             request.status = null;    // in case extension is removed, end event is never received
-            if(request.selection) recolorBrowserSelection(null);
             if(request.element) {
                 updateElementStyle(request.element);
                 markText(null);
@@ -145,8 +144,13 @@
     }
 
     function onNonSelectingMouseUp() {
-        if(settings.browserSelect) stopBrowserSelected();
-        if(settings.hoverSelect) readHovered();
+        if(settings.hoverSelect) {
+            readHovered();
+            return;
+        }
+        if(settings.browserSelect) {
+            stopBrowserSelected();
+        }
     }
 
     // ============================================= browser events =============================================
@@ -238,6 +242,7 @@
         var selection = window.getSelection();
         if(selection.rangeCount == 0) return true;
 
+        // empty range created when clicking
         var range = selection.getRangeAt(0);
         return isRangeEmpty(range);
     }
@@ -759,7 +764,7 @@
     browserSelectCss.loading = "*::selection {background-color:#bbf !important; color:black !important;}";
     browserSelectCss.reading = "*::selection {background-color:#bbf !important; color:black !important;}";
     browserSelectCss.error = "*::selection {background-color:#fdd !important; color:black !important;}";
-    browserSelectCss.marker = "*::selection {background-color:#bbf !important; color:black !important;}";
+    browserSelectCss.marker = "*::selection {background-color:#88f !important; color:black !important;}";
 
     // ============================================= speechRequests =============================================
 
@@ -778,10 +783,6 @@
         speechRequests.push(request);
         request.status = "loading";
 
-        // remove browserSelect style if stop
-        const text = textFromRequest(c);
-        if(!text) setStyleOfFutureBrowserSelect(null);
-
         // loading animations
         if(request.selection) recolorBrowserSelection("loading");
         if(request.element) {
@@ -789,6 +790,7 @@
             markText(null);
         }
 
+        const text = textFromRequest(c);
         backgroundCommunicationPort.postMessage({read: {text:text, source:c.source}});
     }
 
@@ -876,46 +878,50 @@
     /** selects text between @param c.startOffset and @param c.endOffset indecies if matches @param c.text */
     function markText(c) {
 
-        //otherwise when mouse button is pressed, the selection gets connected to the marked text
-        if(isMouseButtonBeingPressed()) {
-            markedRange = null;
-            return;    //browserSelect style not set - I assume it was set by onSelectingMouseMouve|Up
-        }
+        unMark();
 
-        //check if no selection happened since
-        if(isBrowserSelect()) {
-            markedRange = null;
-            return;    //browserSelect style not set - I assume it was set by onSelectingMouseMouve|Up TODO what if JS selects text?
-        }
-
-        if(isUserTyping()) {
-            markedRange = null;
+        if(isEmptyMarker(c)) {
             setStyleOfFutureBrowserSelect(null);
             return;
         }
-
-        removeSelection();
-
-        if(isEmptyMarker(c)) {
-            markedRange = null;
+        if(isMouseButtonBeingPressed()) {   // chrome would start selection from the range
+            setStyleOfFutureBrowserSelect(null);
+            return;
+        }
+        if(isUserTyping()) {
+            setStyleOfFutureBrowserSelect(null);
+            return;
+        }
+        if(!isSelectionEmpty()) {
             setStyleOfFutureBrowserSelect(null);
             return;
         }
 
         var range = getRangeForMarker(c);
         if(range.toString() != c.text) {
-            markedRange = null;
             setStyleOfFutureBrowserSelect(null);
             return;
         }
 
         setStyleOfFutureBrowserSelect("marker");
-        selectRange(range);    //check if the textNodes didnt change since read request TODO test
+        selectRange(range);
     }
 
-    function removeSelection() {
-        var selection = window.getSelection();
-        selection.removeAllRanges();
+    function unMark() {
+        if(!markedRange) {
+            return;
+        }
+        const selection = window.getSelection();
+        const rangeCount = selection.rangeCount;
+        const rangesToRemove = [];
+        for(var i=0; i<rangeCount; i++) {
+            const range = selection.getRangeAt(i);
+            if(isSameRange(range, markedRange)) {
+                rangesToRemove.push(range);
+            }
+        }
+        rangesToRemove.forEach(range => selection.removeRange(range));
+        markedRange = null;
     }
 
     // provides the only selection range, if there is only one
@@ -971,6 +977,7 @@
 
     function selectRange(range) {
         var selection = window.getSelection();
+        selection.removeAllRanges();    // chrome selection often contains an empty range
         selection.addRange(range);
         markedRange = range;
     }

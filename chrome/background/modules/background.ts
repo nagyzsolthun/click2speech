@@ -39,8 +39,9 @@ messageListeners.getVoices = async (port) => {
     port.postMessage({ voices });
 }
 
-messageListeners.getSettings = (port) => {
-    chrome.storage.local.get(null, settings => port.postMessage({ settings }));
+messageListeners.getSettings = async (port) => {
+    const settings = await getSettings();
+    port.postMessage({ settings });
 };
 
 const speechRequests = new Map<string,Request>();
@@ -53,7 +54,8 @@ messageListeners.read = async (port: chrome.runtime.Port, { text, source }) => {
 
     if(empty) {
         port.postMessage("ttsEnd");
-        iconDrawer.drawTurnedOn();
+        const turnedOn = await getSetting("turnedOn");
+        drawIcon(turnedOn);
         return;
     }
 
@@ -63,14 +65,14 @@ messageListeners.read = async (port: chrome.runtime.Port, { text, source }) => {
     speechRequests.set(id, request);
 
     const voicePromise = getVoice(text, getDisabledVoices());
-    const settingsPromise = new Promise<any>(resolve => chrome.storage.local.get(null, resolve));
-    const [voice, settings] = await Promise.all([voicePromise, settingsPromise]);
+    const speedPromise = getSetting("speed");
+    const [voice, speed] = await Promise.all([voicePromise, speedPromise]);
     if(!voice) {
         onNoVoice(id);
         return;
     }
 
-    const utterance = createUtterance(id, text, voice, settings.speed);
+    const utterance = createUtterance(id, text, voice, speed);
     speechSynthesis.speak(utterance);
     scheduleAnalytics('tts', 'read', source);
 };
@@ -135,12 +137,13 @@ function onSpeechBoundary(id: string, event: SpeechSynthesisEvent) {
     request.port.postMessage({ttsPlaying: {startOffset, endOffset, text}});
 }
 
-function onSpeechEnd(id: string) {
+async function onSpeechEnd(id: string) {
     const request = speechRequests.get(id);
     request.port.postMessage("ttsEnd");
     speechRequests.delete(id);
-    if(!speechRequests.size) {
-        iconDrawer.drawTurnedOn();  // no loading request
+    if(!speechRequests.size) {  // no loading request
+        const turnedOn = await getSetting("turnedOn");
+        drawIcon(turnedOn);
     }
 }
 
@@ -205,20 +208,16 @@ function pauseResume() {
 
 // ===================================== settings =====================================
 
-chrome.storage.local.get(null, items => {
-    if(settingsPopulated(items)) {
-        drawIcon(items.turnedOn);
+getSetting("turnedOn").then(turnedOn => {
+    if(turnedOn !== undefined) {
+        drawIcon(turnedOn);
         return;
     }
     const appVersion = chrome.runtime.getManifest().version;
     console.log("persist default settings");
     scheduleAnalytics('storage','defaults', appVersion);
     populateDefaultSettings();
-});
-
-function settingsPopulated(storage) {
-    return storage.hasOwnProperty("turnedOn");
-}
+})
 
 async function populateDefaultSettings() {
     const defaultVoiceName = await getDefaultVoiceName();
@@ -230,10 +229,19 @@ async function populateDefaultSettings() {
         hoverSelect: true,
         arrowSelect: false,
         browserSelect: false,
-    }, () => drawIcon(true));
+    }, iconDrawer.drawTurnedOn);
 }
 
-chrome.storage.onChanged.addListener(changes => {
+async function getSetting(key: string) {
+    const settings = await new Promise<any>(resolve => chrome.storage.local.get(key, resolve));
+    return settings[key];
+}
+
+function getSettings() {
+    return new Promise<any>(resolve => chrome.storage.local.get(null, resolve));
+}
+
+chrome.storage.onChanged.addListener(async changes => {
     for(var setting in changes) {
         if(setting == "turnedOn") {
             handleOnOffEvent(changes.turnedOn.newValue);
@@ -242,7 +250,8 @@ chrome.storage.onChanged.addListener(changes => {
             scheduleAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
         }
     }
-    chrome.storage.local.get(null, settings => ports.forEach(port => port.postMessage({ settings }) ));
+    const settings = await getSettings();
+    ports.forEach(port => port.postMessage({ settings }));
 });
 
 function handleOnOffEvent(turnedOn) {
@@ -255,6 +264,10 @@ function handleOnOffEvent(turnedOn) {
 }
 
 // ===================================== icon =====================================
+
+function drawIcon(turnedOn: boolean) {
+    turnedOn ? iconDrawer.drawTurnedOn() : iconDrawer.drawTurnedOff();
+}
 
 // hack to check which browser is active
 const getBrowserInfo = (window as any).browser?.runtime?.getBrowserInfo;  // this method is only available in Firefox
@@ -269,11 +282,6 @@ iconDrawer.setOnRenderFinished(loadIconToToolbar);
 // iconDrawer draws the icon on a canvas, this function shows the canvas on the toolbar
 function loadIconToToolbar() {
     chrome.browserAction.setIcon({imageData:iconCanvas.getContext("2d").getImageData(0, 0, iconCanvas.width, iconCanvas.height)});
-}
-
-function drawIcon(turnedOn) {
-    if(turnedOn) iconDrawer.drawTurnedOn();
-    else iconDrawer.drawTurnedOff();
 }
 
 // ===================================== others =====================================

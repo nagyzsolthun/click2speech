@@ -31,6 +31,7 @@
 3.7 selection style disappears when ended
 3.8 select " " should not cause error
 3.9 error animation should disappear after 2 secs TODO
+3.10 error style disappear if turned off
 
 4) hover + arrows
 4.2 browserSelect: hover behav
@@ -38,6 +39,7 @@
 
 5) hover + browserSelect
 5.1 click while browserSelect => read the highlighted paragraph
+5.2 click to empty area while no select => one read request is sent
 
 6) arrows + browserSelect & hover + arrows + browserSelect
 6.1 selection style disappears if reading starts (with space)
@@ -59,6 +61,7 @@
 10.1 space + arrows + esc => default behav
 10.2 check turning on and off different settings => always the default behav
 10.3 turn off while highlight active => highlight disappears
+10.4 turn off while reading => icon should be off
 
 11) reinstall behavior
 11.1 install while tabs are opened => content injected to tab
