@@ -94,6 +94,11 @@ messageListeners.getDisabledVoices = (port) => {
     port.postMessage({ disabledVoices })
 };
 
+messageListeners.getBrowserName = async (port) => {
+    const browserName = await getBrowserName();
+    port.postMessage({ browserName });
+}
+
 function isEmpty(text) {
     if(!text) return true;
     if(! /\S/.test(text)) return true;    // contains only whitespace
@@ -265,14 +270,21 @@ function handleOnOffEvent(turnedOn) {
 
 // ===================================== icon =====================================
 
+async function getBrowserName() {
+    const getBrowserInfo = (window as any).browser?.runtime?.getBrowserInfo;  // this method is only available in Firefox
+    if(!getBrowserInfo) {
+        return "Chrome";
+    }
+    const browserInfo = await getBrowserInfo();
+    return browserInfo.name;
+}
+
 function drawIcon(turnedOn: boolean) {
     turnedOn ? iconDrawer.drawTurnedOn() : iconDrawer.drawTurnedOff();
 }
 
 // hack to check which browser is active
-const getBrowserInfo = (window as any).browser?.runtime?.getBrowserInfo;  // this method is only available in Firefox
-const browserName = getBrowserInfo ? getBrowserInfo().then(info => info.name) : Promise.resolve("Chrome");
-browserName.then(name => iconDrawer.setAnimationEnabled(name.includes("Chrome")));  // Firefox does not support icon animation (it looks weird)
+getBrowserName().then(name => iconDrawer.setAnimationEnabled(name.includes("Chrome")));  // Firefox does not support icon animation (it looks weird)
 
 var iconCanvas = document.createElement("canvas");
 iconCanvas.width = iconCanvas.height = 32;
