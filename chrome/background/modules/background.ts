@@ -219,10 +219,11 @@ getSetting("turnedOn").then(turnedOn => {
         populatAnalyticsFlag();
         return;
     }
-    const appVersion = chrome.runtime.getManifest().version;
     console.log("persist default settings");
-    requestAnalytics('storage','defaults', appVersion);
     populateDefaultSettings();
+    
+    const appVersion = chrome.runtime.getManifest().version;
+    scheduleAnalytics('storage','defaults', appVersion);
 })
 
 // temporary function to add analytics flag for old versions
