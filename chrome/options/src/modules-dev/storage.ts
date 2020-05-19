@@ -6,6 +6,7 @@ const cache = new Map<string, any>(Object.entries({
   hoverSelect: true,
   arrowSelect: false,
   browserSelect: false,
+  analytics: true
 }));
 
 function useMemoryStorage<T>(key: string, defaultValue?: T): [T | undefined, (value:T) => void] {

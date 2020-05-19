@@ -127,6 +127,11 @@ const theme = createMuiTheme({
       underlineHover: {
         "&:hover": { textDecoration: "none" }
       }
+    },
+    MuiTooltip: {
+      tooltip: {
+        maxWidth: 'none'
+      }
     }
   },
   palette

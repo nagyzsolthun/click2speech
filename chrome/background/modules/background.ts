@@ -49,7 +49,7 @@ messageListeners.read = async (port: chrome.runtime.Port, { text, source }) => {
     const empty = isEmpty(text);
     if(speechRequests.size) {
         speechSynthesis.cancel();   // clean content script request
-        empty && scheduleAnalytics('tts', 'stop', source);
+        empty && requestAnalytics('tts', 'stop', source);
     }
 
     if(empty) {
@@ -74,19 +74,19 @@ messageListeners.read = async (port: chrome.runtime.Port, { text, source }) => {
 
     const utterance = createUtterance(id, text, voice, speed);
     speechSynthesis.speak(utterance);
-    scheduleAnalytics('tts', 'read', source);
+    requestAnalytics('tts', 'read', source);
 };
 
 messageListeners.arrowPressed = () => {
     userInteractionAudio.currentTime = 0;
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
-    scheduleAnalytics('interaction', 'arrow', 'press');
+    requestAnalytics('interaction', 'arrow', 'press');
 };
 
 messageListeners.analytics = (_, analytics) => {
     const { category, action, label } = analytics;
-    scheduleAnalytics(category, action, label);
+    requestAnalytics(category, action, label);
 }
 
 messageListeners.getDisabledVoices = (port) => {
@@ -123,7 +123,7 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
 function onNoVoice(id: string) {
     const request = speechRequests.get(id);
     request.port.postMessage("ttsError");
-    scheduleAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
+    requestAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
     iconDrawer.drawError();
     speechRequests.delete(id);
 }
@@ -175,7 +175,7 @@ function errorVoice(voiceName) {
     }, 5*60*1000);    // 5 minutes
     voiceNameToEnable[voiceName] = enableId;
 
-    scheduleAnalytics('tts', 'error', voiceName);
+    requestAnalytics('tts', 'error', voiceName);
 }
 
 function getDisabledVoices() {
@@ -216,17 +216,27 @@ function pauseResume() {
 getSetting("turnedOn").then(turnedOn => {
     if(turnedOn !== undefined) {
         drawIcon(turnedOn);
+        populatAnalyticsFlag();
         return;
     }
     const appVersion = chrome.runtime.getManifest().version;
     console.log("persist default settings");
-    scheduleAnalytics('storage','defaults', appVersion);
+    requestAnalytics('storage','defaults', appVersion);
     populateDefaultSettings();
 })
 
+// temporary function to add analytics flag for old versions
+async function populatAnalyticsFlag() {
+    const analytics = await getSetting("analytics");
+    if(analytics === undefined) {
+        console.log("persist analytics flag");
+        chrome.storage.local.set({analytics: true});
+    }
+}
+
 async function populateDefaultSettings() {
     const defaultVoiceName = await getDefaultVoiceName();
-    scheduleAnalytics('storage','defaultVoice', defaultVoiceName);
+    requestAnalytics('storage','defaultVoice', defaultVoiceName);
     chrome.storage.local.set({
         turnedOn: true,
         preferredVoice: defaultVoiceName,
@@ -234,6 +244,7 @@ async function populateDefaultSettings() {
         hoverSelect: true,
         arrowSelect: false,
         browserSelect: false,
+        analytics: true
     }, iconDrawer.drawTurnedOn);
 }
 
@@ -251,8 +262,11 @@ chrome.storage.onChanged.addListener(async changes => {
         if(setting == "turnedOn") {
             handleOnOffEvent(changes.turnedOn.newValue);
         }
+        if(setting === "analytics" && changes[setting].newValue === false) {
+            scheduleAnalytics('storage', 'analytics', false);   // otherwise already blocked
+        }
         if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined) {
-            scheduleAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
+            requestAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
         }
     }
     const settings = await getSettings();
@@ -297,6 +311,13 @@ function loadIconToToolbar() {
 }
 
 // ===================================== others =====================================
+
+async function requestAnalytics(category: string, action: string, label: string) {
+    const anayltics = await getSetting("analytics");
+    if(anayltics) {
+        scheduleAnalytics(category, action, label);
+    }
+}
 
 const userInteractionAudio = new Audio("background/" + popUrl);    // TODO why "background/" needed?
 userInteractionAudio.volume = 0.5;

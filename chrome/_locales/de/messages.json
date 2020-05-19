@@ -1,17 +1,19 @@
 {
-	"extensionDescription": {"message": "Klicken Sie auf einen Text und das click2speech liest den vor."}
-	,"generalOptionsPage": {"message": "Allgemein"}
-	,"speechOptionsPage": {"message": "Sprechen"}
-	,"contactPage": {"message": "Kontakt"}
-	,"selectionOptions": {"message": "Text Markieren"}
-	,"ttsOptions": {"message": "Stimme"}
-	,"speedOptions": {"message": "Geschwindigkeit"}
-	,"hoverSelect": {"message": "mit der maus gewiesen"}
-	,"arrowSelect": {"message": "pfeiltasten"}
-	,"browserSelect": {"message": "browser eingebaute selektion"}
-	,"OsTts": {"message": "Betriebssystem"}
-	,"reviews": {"message": "Meinungen"}
-	,"support": {"message": "Support"}
-	,"turnOff": {"message": "ausschalten"}
-	,"turnOn": {"message": "einschalten"}
+	"extensionDescription": {"message": "Klicken Sie auf einen Text und das click2speech liest den vor."},
+	"generalOptionsPage": {"message": "Allgemein"},
+	"speechOptionsPage": {"message": "Sprechen"},
+	"contactPage": {"message": "Kontakt"},
+	"selectionOptions": {"message": "Text Markieren"},
+	"analytics": {"message": "Analytik"},
+	"ttsOptions": {"message": "Stimme"},
+	"speedOptions": {"message": "Geschwindigkeit"},
+	"hoverSelect": {"message": "mit der maus gewiesen"},
+	"arrowSelect": {"message": "pfeiltasten"},
+	"browserSelect": {"message": "browser eingebaute selektion"},
+	"userActivity": {"message": "benutzeraktivität"},
+	"userActivityTooltip": {"message": "senden sie anonyme daten zur verbesserung von click2speech"},
+	"reviews": {"message": "Meinungen"},
+	"support": {"message": "Support"},
+	"turnOff": {"message": "ausschalten"},
+	"turnOn": {"message": "einschalten"}
 }

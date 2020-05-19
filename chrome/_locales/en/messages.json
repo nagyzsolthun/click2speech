@@ -1,17 +1,19 @@
 {
-	"extensionDescription": {"message": "Click on a text and click2speech reads it out to you."}
-	,"generalOptionsPage": {"message": "General"}
-	,"speechOptionsPage": {"message": "Speech"}
-	,"contactPage": {"message": "Contact"}
-	,"selectionOptions": {"message": "Text Selection"}
-	,"ttsOptions": {"message": "Voice"}
-	,"speedOptions": {"message": "Speed"}
-	,"hoverSelect": {"message": "mouse pointed"}
-	,"arrowSelect": {"message": "arrow keys"}
-	,"browserSelect": {"message": "built-in browser selection"}
-	,"OsTts": {"message": "Operating System"}
-	,"reviews": {"message": "Reviews"}
-	,"support": {"message": "Support"}
-	,"turnOff": {"message": "turn off"}
-	,"turnOn": {"message": "turn on"}
+	"extensionDescription": {"message": "Click on a text and click2speech reads it out to you."},
+	"generalOptionsPage": {"message": "General"},
+	"speechOptionsPage": {"message": "Speech"},
+	"contactPage": {"message": "Contact"},
+	"selectionOptions": {"message": "Text Selection"},
+	"analytics": {"message": "Analytics"},
+	"ttsOptions": {"message": "Voice"},
+	"speedOptions": {"message": "Speed"},
+	"hoverSelect": {"message": "mouse pointed"},
+	"arrowSelect": {"message": "arrow keys"},
+	"browserSelect": {"message": "built-in browser selection"},
+	"userActivity": {"message": "user activity"},
+	"userActivityTooltip": {"message": "send anonymous data for improving click2speech"},
+	"reviews": {"message": "Reviews"},
+	"support": {"message": "Support"},
+	"turnOff": {"message": "turn off"},
+	"turnOn": {"message": "turn on"}
 }
