@@ -4,20 +4,20 @@
   "private": true,
   "homepage": "/options/",
   "dependencies": {
-    "@types/jest": "25.2.1",
-    "@types/node": "13.13.5",
+    "@types/jest": "25.2.3",
+    "@types/node": "14.0.2",
     "@types/react": "16.9.35",
     "@types/react-dom": "16.9.8",
     "@types/react-router-dom": "5.1.5",
-    "@types/chrome": "0.0.110",
+    "@types/chrome": "0.0.112",
     "@types/material-ui": "0.21.7",
-    "@material-ui/core": "4.9.13",
+    "@material-ui/core": "4.9.14",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-router-dom": "5.1.2",
     "react-scripts": "3.4.1",
     "react-axe": "3.4.1",
-    "typescript": "3.8.3"
+    "typescript": "3.9.2"
   },
   "scripts": {
     "start": "react-scripts start",
