@@ -614,7 +614,7 @@
         var backgroundColor;
         switch(status) {
             case("highlighted"):
-                backgroundColor = "#8f8"; break;
+                backgroundColor = "#bfb"; break;
             case("loading"):
             case("playing"):
                 backgroundColor = "#ddf"; break;
@@ -760,7 +760,7 @@
     var styleElement;
 
     var browserSelectCss = {};
-    browserSelectCss.selecting = "*::selection {background-color:#8f8 !important; color:black !important;}";
+    browserSelectCss.selecting = "*::selection {background-color:#bfb !important; color:black !important;}";
     browserSelectCss.loading = "*::selection {background-color:#bbf !important; color:black !important;}";
     browserSelectCss.reading = "*::selection {background-color:#bbf !important; color:black !important;}";
     browserSelectCss.error = "*::selection {background-color:#fdd !important; color:black !important;}";
