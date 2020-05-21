@@ -37,7 +37,7 @@
     function turnOff() {
         removeBrowserEventListeners();
         setHighlighted(null);
-        recolorBrowserSelection(null);
+        updateSelectionStyle(null);
         speechRequests.forEach(request => {
             request.status = null;    // in case extension is removed, end event is never received
             if(request.element) {
@@ -76,7 +76,7 @@
 
     backgroundEventListeners.ttsPlaying = function(message) {
         activeRequest().status = "playing";
-        if(browserSelectionRequested()) recolorBrowserSelection("reading");
+        if(browserSelectionRequested()) updateSelectionStyle("reading");
         if(requestedElement()) {
             updateElementStyle(requestedElement());
             markText(message);
@@ -84,7 +84,7 @@
     }
     backgroundEventListeners.ttsEnd = function() {
         activeRequest().status = "end";
-        if(browserSelectionRequested()) recolorBrowserSelection(null);
+        if(browserSelectionRequested()) updateSelectionStyle(null);
         if(requestedElement()) {
             const element = requestedElement();
             setTimeout(() => updateElementStyle(element));    // remove style after deleteActiveRequest called
@@ -94,7 +94,7 @@
     }
     backgroundEventListeners.ttsError = function() {
         activeRequest().status = "error";
-        if(browserSelectionRequested()) recolorBrowserSelection("error");
+        if(browserSelectionRequested()) updateSelectionStyle("error");
         if(requestedElement()) {
             markText(null);
             const element = requestedElement();
@@ -131,7 +131,7 @@
 
     function onSelectingMouseMove() {
         if(isUserTyping()) return;
-        setStyleOfFutureBrowserSelect(settings.browserSelect ? "selecting" : null);    //null: to remove style of markers
+        setFutureSelectionStyle(settings.browserSelect ? "selecting" : null);    //null: to remove style of markers
         if(settings.hoverSelect) setHighlighted(null);
     }
 
@@ -141,6 +141,7 @@
 
     function onSelectingMouseUp() {
         if(settings.browserSelect) readBrowserSelected();
+        updateSelectionStyle(settings.browserSelect ? "selecting" : null);    //null: to remove style of markers in case of double-click select
     }
 
     function onNonSelectingMouseUp() {
@@ -212,50 +213,40 @@
         return isInputElement(activeElement);
     }
 
-    // ============================================= browserSelect decisions =============================================
-
     //to know whether mouse button is pressed
     var mouseDownTime = 0;
     var mouseUpTime = 0;
+    
+    function isMouseButtonBeingPressed() {return mouseUpTime < mouseDownTime;}
+
+    // ============================================= browserSelect decisions =============================================
 
     /** @param selectingCallback is called in case selecting is happening
      * @param nonSelectingCallback is called in case selecting is NOT happening
      * we use callbacks because result of getSelection() is only consistent if the check is shceduled */
     function checkBrowserSelect(onSelect, onNoSelect) {
         window.setTimeout(() => {
-            if(isBrowserSelect()) onSelect();
-            else onNoSelect();
+            const range = getUserSelectionRange();
+            range ? onSelect() : onNoSelect();
         });
     }
 
-    // selected means: selection contains something + selection is not the marked text0
-    function isBrowserSelect() {
-        if(isSelectionEmpty()) return false;
-
-        // markers - selection same as marker is not considered browserSelect
-        if(isSelectionMoreRanges()) return true;    // marker is always 1 range
-        return ! isSameRange(getSelectionRange(), markedRange);
+    // return the range selected by the user manually (assuming it's one only)
+    // not marked range
+    // not empty range (which is just user click)
+    function getUserSelectionRange() {
+        const ranges = getSelectionRanges()
+            .filter(nonEmptyRange)
+            .filter(range => !isSameRange(range, markedRange))
+        return ranges[0];
     }
 
-
-    function isSelectionEmpty() {
-        var selection = window.getSelection();
-        if(selection.rangeCount == 0) return true;
-
-        // empty range created when clicking
-        var range = selection.getRangeAt(0);
-        return isRangeEmpty(range);
+    function nonEmptyRange(range) {
+        if(range == null) return false;
+        if(range.startContainer !== range.endContainer) return true;
+        if(range.startOffset !== range.endOffset) return true;
+        return false;
     }
-
-    function isSelectionMoreRanges() {
-        return window.getSelection().rangeCount > 1;
-    }
-
-    function isRangeEmpty(range) {
-        return (range.startContainer == range.endContainer && range.startOffset == range.endOffset);
-    }
-
-    function isMouseButtonBeingPressed() {return mouseUpTime < mouseDownTime;}
 
     // ============================================= hovered =============================================
 
@@ -548,11 +539,10 @@
 
     /** @return true if @param element is an input area*/
     function isInputElement(element) {
-        if(element) {
-            if(element.tagName.toLowerCase() == "input") return true;
-            if(element.tagName.toLowerCase() == "textarea") return true;
-            if(element.isContentEditable) return true;    //gmail new email
-        }
+        if(!element) return false;
+        if(element.tagName.toLowerCase() === "input") return true;
+        if(element.tagName.toLowerCase() === "textarea") return true;
+        if(element.isContentEditable) return true;    //gmail new email
         return false;
     }
 
@@ -681,22 +671,40 @@
 
     // ============================================= browserSelect style =============================================
 
-    /** changes the color of the selections in future
-     * @param state loading|reading|error defines the color to use */
-    function setStyleOfFutureBrowserSelect(state) {
-        var cssToSet = browserSelectCss[state] || "";
-        if(cssToSet) getStyleElement().innerHTML = cssToSet;
-        else removeStyleElement();
-    }
+    var styleElement;
 
     /** changes the color of the current selection
      * @param state loading|reading|error defines the color to use */
-    function recolorBrowserSelection(state) {
-        var cssToSet = browserSelectCss[state];
-        if(cssToSet == getCurrentCss()) return;
+    function updateSelectionStyle(state) {
+        const change = setFutureSelectionStyle(state);
+        if(change) reselectBrowserSelection();
+    }
 
-        setStyleOfFutureBrowserSelect(state);
-        reselectBrowserSelection();
+    /** changes the color of the selections in future
+     * @param state loading|reading|error defines the color to use
+     * @return true if the DOM changed */
+    function setFutureSelectionStyle(state) {
+        var cssToSet = browserSelectCss[state];
+        if(!cssToSet && !styleElement) {
+            return false;
+        }
+        if(!cssToSet && styleElement) {
+            styleElement.parentNode.removeChild(styleElement)
+            styleElement = null;
+            return true;
+        }
+        if(cssToSet && !styleElement) {
+            styleElement = appendStyleElement();
+            styleElement.innerHTML = cssToSet;
+            return true;
+        }
+        if(cssToSet && styleElement && styleElement.innerHTML === cssToSet) {
+            return false;
+        }
+        if(cssToSet && styleElement && styleElement.innerHTML !== cssToSet) {
+            styleElement.innerHTML = cssToSet;
+            return true;
+        }
     }
 
     /** selects the current selection in the next cycle */
@@ -705,12 +713,8 @@
         if(selection.rangeCount < 1) return;    //when clicking on empty area while loading
 
         const ranges = getSelectionRanges();
-        window.setTimeout(function() {
-            if(areSameRanges(ranges, getSelectionRanges())) {    // check if selection changed while schedule
-                selection.removeAllRanges();
-                ranges.forEach(range => selection.addRange(range));
-            }
-        }, 50);    //css changes take effect later
+        selection.removeAllRanges();
+        ranges.forEach(range => selection.addRange(range));
     }
 
     function getSelectionRanges() {
@@ -724,40 +728,15 @@
         return result;
     }
 
-    function areSameRanges(ranges1,ranges2) {
-        if(!ranges1 || !ranges2) return false;
-        if(ranges1.length != ranges2.length) return false;
-        for(var i=0; i<ranges1.length; i++) {
-            if(!isSameRange(ranges1[i], ranges2[i])) return false;
-        }
-        return true;
-    }
-
-    function getStyleElement() {
-        if(!styleElement) appendStyleElement();
-        return styleElement;
-    }
-
-    function getCurrentCss() {
-        if(!styleElement) return null;
-        return styleElement.innerHTML;
-    }
-
     function appendStyleElement() {
-        styleElement = document.createElement("style");
-        styleElement.setAttribute("id","ClickToSpeechBrowserSelectionStyle");
-        styleElement.type = 'text/css';
+        const style = document.createElement("style");
+        style.setAttribute("id","ClickToSpeechBrowserSelectionStyle");
+        style.type = 'text/css';
 
         var head = document.getElementsByTagName("head")[0];
-        head.appendChild(styleElement);
+        head.appendChild(style);
+        return style;
     }
-
-    function removeStyleElement() {
-        if(styleElement) styleElement.parentNode.removeChild(styleElement);
-        styleElement = null;
-    }
-
-    var styleElement;
 
     var browserSelectCss = {};
     browserSelectCss.selecting = "*::selection {background-color:#bfb !important; color:black !important;}";
@@ -772,30 +751,28 @@
      * the 2+th requests are acive until the previous requests end is received
      * techincally its always 2 requests, 1 active, and the 2nd active until end event received from background */
 
-    var speechRequests = [];    // array of {element,textNodes | selection}
+    var speechRequests = [];    // array of {element | range}
 
-    /** sends read message with content of element or selection
-     * @param c.element | c.selection:Array<Range> is added to speechRequests
+    /** sends read message with content of element or range
+     * @param c element|range is added to speechRequests
      * @param c.source is used for analytics */
-    function requestSpeech(c) {
-        const request = c.selection ? {selection:c.selection} : {element:c.element};
-        if(c.element) request.textNodes = getTextNodes(c.element);
+    function requestSpeech(request) {
         speechRequests.push(request);
-        request.status = "loading";
 
         // loading animations
-        if(request.selection) recolorBrowserSelection("loading");
+        request.status = "loading";
+        if(request.range) updateSelectionStyle("loading");
         if(request.element) {
+            request.textNodes = getTextNodes(request.element);
             updateElementStyle(request.element);
-            markText(null);
         }
 
-        const text = textFromRequest(c);
-        backgroundCommunicationPort.postMessage({read: {text:text, source:c.source}});
+        const text = textFromRequest(request);
+        backgroundCommunicationPort.postMessage({read: {text:text, source:request.source}});
     }
 
     function textFromRequest(request) {
-        if(request.selection) return request.selection.join('');
+        if(request.range) return request.range.toString();
         if(request.element) return request.element.textContent;
         return "";
     }
@@ -812,11 +789,11 @@
     // return if the current selection is the one that has been requested
     function browserSelectionRequested() {
         const request = activeRequest();
-        if(!request) return false;
+        if(!request || !request.range) return false;
 
-        const requestSelectionRanges = request.selection;
-        const browserSelectionRanges = getSelectionRanges();
-        return areSameRanges(requestSelectionRanges, browserSelectionRanges);
+        const requestRange = request.range;
+        const currentRange = getUserSelectionRange();
+        return isSameRange(requestRange, currentRange);
     }
 
     // return the requested element if any
@@ -849,7 +826,8 @@
 
     /** reads the text provided by browserSelect */
     function readBrowserSelected() {
-        requestSpeech({selection:getSelectionRanges(), source:"browserSelect"});
+        const range = getUserSelectionRange();
+        requestSpeech({range, source:"browserSelect"});
     }
 
     /** stops reading + sets source as "browserSelected" */
@@ -880,30 +858,15 @@
 
         unMark();
 
-        if(isEmptyMarker(c)) {
-            setStyleOfFutureBrowserSelect(null);
-            return;
-        }
-        if(isMouseButtonBeingPressed()) {   // chrome would start selection from the range
-            setStyleOfFutureBrowserSelect(null);
-            return;
-        }
-        if(isUserTyping()) {
-            setStyleOfFutureBrowserSelect(null);
-            return;
-        }
-        if(!isSelectionEmpty()) {
-            setStyleOfFutureBrowserSelect(null);
-            return;
-        }
+        if(isEmptyMarker(c)) return;
+        if(isUserTyping()) return;
+        if(isMouseButtonBeingPressed()) return;   // chrome starts selection from marker
+        if(getUserSelectionRange()) return;
 
-        var range = getRangeForMarker(c);
-        if(range.toString() != c.text) {
-            setStyleOfFutureBrowserSelect(null);
-            return;
-        }
+        const range = getRangeForMarker(c);
+        if(range.toString() !== c.text) return;
 
-        setStyleOfFutureBrowserSelect("marker");
+        updateSelectionStyle("marker");
         selectRange(range);
     }
 
@@ -924,11 +887,8 @@
         markedRange = null;
     }
 
-    // provides the only selection range, if there is only one
-    function getSelectionRange() {
-        var selection = window.getSelection();
-        var rangeCount = selection.rangeCount;
-        return rangeCount == 1 ? selection.getRangeAt(0) : null;
+    function isEmptyMarker(marker) {
+        return (!marker || marker.startOffset == marker.endOffset);
     }
 
     /** @return true if @param range1 matches @param range2. Simple == doesnt work */
@@ -969,10 +929,6 @@
         //the length of the text increased since reading started - no perfect solution, just mark till the end
         var node = textNodes[textNodes.length-1];
         return {node:node,offset:node.textContent.length}
-    }
-
-    function isEmptyMarker(marker) {
-        return (!marker || marker.startOffset == marker.endOffset);
     }
 
     function selectRange(range) {

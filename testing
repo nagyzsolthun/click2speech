@@ -41,50 +41,55 @@
 5.1 click while browserSelect => read the highlighted paragraph
 5.2 click to empty area while no select => one read request is sent
 
-6) arrows + browserSelect & hover + arrows + browserSelect
-6.1 selection style disappears if reading starts (with space)
-6.2 highlight disappears if selecting
+6) arrows + browserSelect
+6.1 mark style disappears when double clicking random word
+6.2 mark style returns when no selection
 
-7) input text behav
-7.1 space + arrows => default behav (check gmail new email too, its a special setup)
-7.2 click => default behav (check gmail new email)
+7) hover + arrows + browserSelect
+7.1 selection style disappears if reading starts (with space)
+7.2 highlight disappears if selecting
 
-8) reading settings
-8.1 settings should be refected without content reload
-8.2 settings remean after browser restart
+8) input text behav
+8.1 space + arrows => default behav (check gmail new email too, its a special setup)
+8.2 click => default behav (check gmail new email)
 
-9) error handling
-9.1 make error (by using wrong url) => error style should be applied + icon animation
-9.2 error style disappears when highlighted or after 3 sec in case of clickables
+9) reading settings
+9.1 settings should be refected without content reload
+9.2 settings remean after browser restart
 
-10) turnOff behavior
-10.1 space + arrows + esc => default behav
-10.2 check turning on and off different settings => always the default behav
-10.3 turn off while highlight active => highlight disappears
-10.4 turn off while reading => icon should be off
+10) error handling
+10.1 make error (by using wrong url) => error style should be applied + icon animation
+10.2 error style disappears when highlighted or after 3 sec in case of clickables
 
-11) reinstall behavior
-11.1 install while tabs are opened => content injected to tab
-11.2 uninstall => content is removed
-11.3 install again => content is there again
+11) turnOff behavior
+11.1 space + arrows + esc => default behav
+11.2 check turning on and off different settings => always the default behav
+11.3 turn off while highlight active => highlight disappears
+11.4 turn off while reading => icon should be off
 
-12) markers
-12.1 test with leading+closing spaces
-12.2 test with changing content (e.g. decreased length, or changed word) TODO
-12.3 test with error recovery
-12.4 test with more spaces
-12.5 test with arrow select
-12.6 test with browserSelect -> markers should be off until selection disappears (test with arrow select)
-12.7 test with input fields/gmail new email -> markersh should not appear while cursor is active (test with arrow select)
-12.8 test with words ending to ":", test the following characters: "?!;,-"
-12.9 test with special characters as words in text
-12.10 test a sequence of number 1-30 with a special-character word inside
+12) reinstall behavior
+12.1 install while tabs are opened => content injected to tab
+12.2 uninstall => content is removed
+12.3 install again => content is there again
 
-13) performance
-13.1 check for memoryLeaks: speechRequests
-13.2 check that style element is always removed (markers, browserSelect)
+13) markers
+13.1 test with leading+closing spaces
+13.2 test with changing content (e.g. decreased length, or changed word) TODO
+13.3 test with error recovery
+13.4 test with more spaces
+13.5 test with arrow select
+13.6 test with browserSelect -> markers should be off until selection disappears (test with arrow select)
+13.7 test with input fields/gmail new email -> markersh should not appear while cursor is active (test with arrow select)
+13.8 test with words ending to ":", test the following characters: "?!;,-"
+13.9 test with special characters as words in text
+13.10 test a sequence of number 1-30 with a special-character word inside
 
-14) release
-14.1 reload conetntJs when updated
-14.2 google analytics
-14.3 no logging
+14) performance
+14.1 check for memoryLeaks: speechRequests
+14.2 check that multiple tabs are handled well (new speech in seperate tab), queues should be emptied
+14.3 check that style element is always removed (markers, browserSelect)
+
+15) release
+15.1 reload conetntJs when updated
+15.2 google analytics on/off
+15.3 no logging
