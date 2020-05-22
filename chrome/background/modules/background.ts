@@ -45,22 +45,22 @@ messageListeners.getSettings = async (port) => {
 };
 
 const speechRequests = new Map<string,Request>();
-messageListeners.read = async (port: chrome.runtime.Port, { text, source }) => {
+messageListeners.read = async (port: chrome.runtime.Port, { id, text, source }) => {
     const empty = isEmpty(text);
     if(speechRequests.size) {
-        speechSynthesis.cancel();   // clean content script request
+        speechSynthesis.cancel();
+        // TODO check if loading utterances generate stop
         empty && requestAnalytics('tts', 'stop', source);
     }
 
     if(empty) {
-        port.postMessage("ttsEnd");
+        port.postMessage({speechEnd: id});
         const turnedOn = await getSetting("turnedOn");
         drawIcon(turnedOn);
         return;
     }
 
     iconDrawer.drawLoading();
-    const id = port.name + Date.now();
     const request = {port, text} as Request;
     speechRequests.set(id, request);
 
@@ -122,7 +122,7 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
 
 function onNoVoice(id: string) {
     const request = speechRequests.get(id);
-    request.port.postMessage("ttsError");
+    request.port.postMessage({speechError: id});
     requestAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
     iconDrawer.drawError();
     speechRequests.delete(id);
@@ -130,7 +130,7 @@ function onNoVoice(id: string) {
 
 function onSpeechStart(id) {
     const request = speechRequests.get(id);
-    request.port.postMessage("ttsPlaying");
+    request.port.postMessage({speechStart: id});
     iconDrawer.drawPlaying();
 }
 
@@ -139,12 +139,12 @@ function onSpeechBoundary(id: string, event: SpeechSynthesisEvent) {
     const startOffset = event.charIndex;
     const endOffset = startOffset + event.charLength;
     const text = request.text.substring(startOffset, endOffset);
-    request.port.postMessage({ttsPlaying: {startOffset, endOffset, text}});
+    request.port.postMessage({speechBoundary: {id, startOffset, endOffset, text}});
 }
 
 async function onSpeechEnd(id: string) {
     const request = speechRequests.get(id);
-    request.port.postMessage("ttsEnd");
+    request.port.postMessage({speechEnd: id});
     speechRequests.delete(id);
     if(!speechRequests.size) {  // no loading request
         const turnedOn = await getSetting("turnedOn");
@@ -154,7 +154,7 @@ async function onSpeechEnd(id: string) {
 
 function onSpeechError(id: string) {
     const request = speechRequests.get(id);
-    request.port.postMessage("ttsError");
+    request.port.postMessage({speechError: id});
     speechRequests.delete(id);
     iconDrawer.drawError();
     errorVoice(request.utterance.voice.name);

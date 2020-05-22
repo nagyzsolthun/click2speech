@@ -38,14 +38,13 @@
         removeBrowserEventListeners();
         setHighlighted(null);
         updateSelectionStyle(null);
-        speechRequests.forEach(request => {
-            request.status = null;    // in case extension is removed, end event is never received
-            if(request.element) {
-                updateElementStyle(request.element);
-                markText(null);
-            }
-        });
-        speechRequests = [];
+        markText(null);
+        const elements = Array.from(speechRequests.values())
+            .map(request => request.element)
+            .filter(element => !!element)
+        speechRequests.clear();
+
+        elements.forEach(element => updateElementStyle(element));
     }
 
     // ============================================= ClickToSpeech background events =============================================
@@ -73,35 +72,36 @@
         }
         refresh();
     }
+    backgroundEventListeners.speechStart = function(id) {
+        const request = speechRequests.get(id);
+        request.status = "playing"
+        if(request.range) updateSelectionStyle("playing");
+        if(request.element) updateElementStyle(request.element);
+    }
+    backgroundEventListeners.speechBoundary = function(message) {
+        const request = speechRequests.get(message.id);
+        updateElementStyle(request.element);
+        markText(message);
+    }
+    backgroundEventListeners.speechEnd = function(id) {
+        const request = speechRequests.get(id);
+        speechRequests.delete(id);
+        markText(null);
+        if(request.range) updateSelectionStyle(null);
+        if(request.element) updateElementStyle(request.element);
+    }
+    backgroundEventListeners.speechError = function(id) {
+        const request = speechRequests.get(id);
+        request.status = "error"
+        if(request.range) updateSelectionStyle(null);
+        if(request.element) updateElementStyle(request.element);
+        markText(null);
 
-    backgroundEventListeners.ttsPlaying = function(message) {
-        activeRequest().status = "playing";
-        if(browserSelectionRequested()) updateSelectionStyle("reading");
-        if(requestedElement()) {
-            updateElementStyle(requestedElement());
-            markText(message);
-        }
-    }
-    backgroundEventListeners.ttsEnd = function() {
-        activeRequest().status = "end";
-        if(browserSelectionRequested()) updateSelectionStyle(null);
-        if(requestedElement()) {
-            const element = requestedElement();
-            setTimeout(() => updateElementStyle(element));    // remove style after deleteActiveRequest called
-            markText(null);
-        }
-        deleteActiveRequest();
-    }
-    backgroundEventListeners.ttsError = function() {
-        activeRequest().status = "error";
-        if(browserSelectionRequested()) updateSelectionStyle("error");
-        if(requestedElement()) {
-            markText(null);
-            const element = requestedElement();
-            updateElementStyle(element);    // error style
-            setTimeout(() => updateElementStyle(element),2000);    // remove style after 2 sec (highlight may override anyways)
-        }
-        deleteActiveRequest();
+        // remove style after 2 sec
+        setTimeout(() => {
+            speechRequests.delete(id);
+            updateElementStyle(request.element)
+        }, 2000);
     }
 
     // ============================================= ClickToSpeech content events =============================================
@@ -114,15 +114,16 @@
         const hoveredElement = settings.hoverSelect ? getHoveredElement() : null;    // important when clickable hovered
         var element = highlightedElement || hoveredElement;
 
-        // something to read + its not already being read
-        if(element && element != requestedElement()) {
-            readElementAndPreventScroll(element,keyEvent);
+        const elementRequested = Array.from(speechRequests.values())
+            .filter(request => request.element)
+            .some(request => request.element === hoveredElement);
+        
+        if(elementRequested) {
+            stopReadingAndPreventScroll(keyEvent);
             return;
         }
 
-        if(requestedElement()) {
-            stopReadingAndPreventScroll(keyEvent);
-        }
+        readElementAndPreventScroll(element, keyEvent);
     }
 
     function onEsc(keyEvent) {
@@ -141,7 +142,7 @@
 
     function onSelectingMouseUp() {
         if(settings.browserSelect) readBrowserSelected();
-        updateSelectionStyle(settings.browserSelect ? "selecting" : null);    //null: to remove style of markers in case of double-click select
+        // updateSelectionStyle(settings.browserSelect ? "selecting" : null);    // TODO null: to remove style of markers in case of double-click select
     }
 
     function onNonSelectingMouseUp() {
@@ -585,14 +586,16 @@
 
     // ============================================= element style =============================================
 
+    const element2original = new Map();    //element => {background, backgroundColor, color, transition}
+
     /** updates the style of @param element
      * or reverts if it has no status */
     function updateElementStyle(element) {
         if(!element) return;
         saveOriginal(element);
 
-        var status = getElementStatus(element);
-        if(!status) {
+        var backgroundColor = calcBackgroundColor(element);
+        if(!backgroundColor) {
             revertStyle(element);
             return;
         }
@@ -600,25 +603,28 @@
         element.style["transition"] = "background .2s, background-color .2s, color .2s";    //'background' transition doesn't seem to work
         element.style["background"] = "none";
         element.style["color"] = "black";
+        element.style["background-color"] = backgroundColor;
+    }
 
-        var backgroundColor;
+    function calcBackgroundColor(element) {
+        const status = getElementStatus(element);
+        if(!status) {
+            return null;
+        }
         switch(status) {
             case("highlighted"):
-                backgroundColor = "#bfb"; break;
+                return "#bfb";
             case("loading"):
             case("playing"):
-                backgroundColor = "#ddf"; break;
+                return "#ddf";
             case("highlighted-loading"):
             case("highlighted-playing"):
-                backgroundColor = "#bbf"; break;
+                return "#bbf";
             case("error"):
-                backgroundColor = "#fdd"; break;
+                return "#fdd";
             case("highlighted-error"):
-                backgroundColor = "#fbb"; break;
-            default:
-                backgroundColor = element2original.get(element).backgroundColor; break;    //TODO is this needed?
+                return "#fbb";
         }
-        element.style["background-color"] = backgroundColor;
     }
 
     /** @return the status of @param element
@@ -633,15 +639,14 @@
         }
 
         // add request status - it will be always 1 or 0 requests
-        speechRequests
+        Array.from(speechRequests.values())
             .filter(request => request.element === element)
             .map(request => request.status)
-            .filter(status => status)    // status is set to null when turnOff
             .forEach(status => result.push(status));
         return result.join("-");
     }
 
-    /** sets original style of element + remvoes it from element2original */
+    /** sets original style of element + removes it from element2original */
     function revertStyle(element) {
         var original = element2original.get(element);
         element.style["background"] = original.background;
@@ -667,48 +672,47 @@
             transition:element.style["transition"],
         });
     }
-    var element2original = new Map();    //element => {background, backgroundColor, color, transition}
 
-    // ============================================= browserSelect style =============================================
+    // ============================================= selection style =============================================
 
-    var styleElement;
+    var selectionStyleElement;
 
     /** changes the color of the current selection
      * @param state loading|reading|error defines the color to use */
     function updateSelectionStyle(state) {
         const change = setFutureSelectionStyle(state);
-        if(change) reselectBrowserSelection();
+        if(change) reselectSelection();
     }
 
     /** changes the color of the selections in future
      * @param state loading|reading|error defines the color to use
      * @return true if the DOM changed */
     function setFutureSelectionStyle(state) {
-        var cssToSet = browserSelectCss[state];
-        if(!cssToSet && !styleElement) {
+        var cssToSet = selectionCss[state];
+        if(!cssToSet && !selectionStyleElement) {
             return false;
         }
-        if(!cssToSet && styleElement) {
-            styleElement.parentNode.removeChild(styleElement)
-            styleElement = null;
+        if(!cssToSet && selectionStyleElement) {
+            selectionStyleElement.parentNode.removeChild(selectionStyleElement)
+            selectionStyleElement = null;
             return true;
         }
-        if(cssToSet && !styleElement) {
-            styleElement = appendStyleElement();
-            styleElement.innerHTML = cssToSet;
+        if(cssToSet && !selectionStyleElement) {
+            selectionStyleElement = appendStyleElement();
+            selectionStyleElement.innerHTML = cssToSet;
             return true;
         }
-        if(cssToSet && styleElement && styleElement.innerHTML === cssToSet) {
+        if(cssToSet && selectionStyleElement && selectionStyleElement.innerHTML === cssToSet) {
             return false;
         }
-        if(cssToSet && styleElement && styleElement.innerHTML !== cssToSet) {
-            styleElement.innerHTML = cssToSet;
+        if(cssToSet && selectionStyleElement && selectionStyleElement.innerHTML !== cssToSet) {
+            selectionStyleElement.innerHTML = cssToSet;
             return true;
         }
     }
 
     /** selects the current selection in the next cycle */
-    function reselectBrowserSelection() {
+    function reselectSelection() {
         var selection = window.getSelection();
         if(selection.rangeCount < 1) return;    //when clicking on empty area while loading
 
@@ -738,26 +742,23 @@
         return style;
     }
 
-    var browserSelectCss = {};
-    browserSelectCss.selecting = "*::selection {background-color:#bfb !important; color:black !important;}";
-    browserSelectCss.loading = "*::selection {background-color:#bbf !important; color:black !important;}";
-    browserSelectCss.reading = "*::selection {background-color:#bbf !important; color:black !important;}";
-    browserSelectCss.error = "*::selection {background-color:#fdd !important; color:black !important;}";
-    browserSelectCss.marker = "*::selection {background-color:#88f !important; color:black !important;}";
+    var selectionCss = {};
+    selectionCss.selecting = "*::selection {background-color:#bfb !important; color:black !important;}";
+    selectionCss.loading = "*::selection {background-color:#bbf !important; color:black !important;}";
+    selectionCss.playing = "*::selection {background-color:#bbf !important; color:black !important;}";
+    selectionCss.error = "*::selection {background-color:#fdd !important; color:black !important;}";
+    selectionCss.marker = "*::selection {background-color:#88f !important; color:black !important;}";
 
     // ============================================= speechRequests =============================================
 
-    /* there may be any number of speech requests from 1 content script
-     * the 2+th requests are acive until the previous requests end is received
-     * techincally its always 2 requests, 1 active, and the 2nd active until end event received from background */
-
-    var speechRequests = [];    // array of {element | range}
+    var speechRequests = new Map();    // id: {element | range}
 
     /** sends read message with content of element or range
      * @param c element|range is added to speechRequests
      * @param c.source is used for analytics */
     function requestSpeech(request) {
-        speechRequests.push(request);
+        const id = Date.now();
+        speechRequests.set(id, request);
 
         // loading animations
         request.status = "loading";
@@ -768,40 +769,14 @@
         }
 
         const text = textFromRequest(request);
-        backgroundCommunicationPort.postMessage({read: {text:text, source:request.source}});
+        const source = request.source;
+        backgroundCommunicationPort.postMessage({read: {id, text, source}});
     }
 
     function textFromRequest(request) {
         if(request.range) return request.range.toString();
         if(request.element) return request.element.textContent;
         return "";
-    }
-
-    // returns the first submitted request
-    function activeRequest() {
-        return speechRequests[0];
-    }
-
-    function deleteActiveRequest() {
-        speechRequests.shift();
-    }
-
-    // return if the current selection is the one that has been requested
-    function browserSelectionRequested() {
-        const request = activeRequest();
-        if(!request || !request.range) return false;
-
-        const requestRange = request.range;
-        const currentRange = getUserSelectionRange();
-        return isSameRange(requestRange, currentRange);
-    }
-
-    // return the requested element if any
-    function requestedElement() {
-        const request = activeRequest();
-        if(!request) return null;
-
-        return request.element;
     }
 
     // ============================================= read =============================================
@@ -838,7 +813,7 @@
     /** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
      * if no reading, neither highlight => nothing*/
     function stopReadingOrRevertHighlight(keyEvent) {
-        if(activeRequest()) {
+        if(speechRequests.size) {
             requestSpeech({source:"esc"});
             keyEvent.stopPropagation();
             return;
@@ -902,9 +877,10 @@
         return true;
     }
 
-    /** @return range between @param c.startOffset and @param c.endOffset */
+    /** @return range between @param c.startOffset and @param c.endOffset of request @param c.id*/
     function getRangeForMarker(c) {
-        var textNodes = activeRequest().textNodes;
+        const request = speechRequests.get(c.id);
+        var textNodes = request.textNodes;
 
         var start = getNodeAndOffsetOfAbsoluteOffset(textNodes, c.startOffset);
         var end = getNodeAndOffsetOfAbsoluteOffset(textNodes, c.endOffset);
