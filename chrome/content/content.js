@@ -75,7 +75,7 @@
     backgroundEventListeners.speechStart = function(id) {
         const request = speechRequests.get(id);
         request.status = "playing"
-        if(request.range) updateSelectionStyle("playing");
+        if(request.range) updateSelectionStyle();
         if(request.element) updateElementStyle(request.element);
     }
     backgroundEventListeners.speechBoundary = function(message) {
@@ -87,20 +87,20 @@
         const request = speechRequests.get(id);
         speechRequests.delete(id);
         markText(null);
-        if(request.range) updateSelectionStyle(null);
+        if(request.range) updateSelectionStyle();
         if(request.element) updateElementStyle(request.element);
     }
     backgroundEventListeners.speechError = function(id) {
         const request = speechRequests.get(id);
         request.status = "error"
-        if(request.range) updateSelectionStyle(null);
+        if(request.range) updateSelectionStyle();
         if(request.element) updateElementStyle(request.element);
         markText(null);
 
         // remove style after 2 sec
         setTimeout(() => {
             speechRequests.delete(id);
-            updateElementStyle(request.element)
+            updateElementStyle(request.element);
         }, 2000);
     }
 
@@ -142,7 +142,6 @@
 
     function onSelectingMouseUp() {
         if(settings.browserSelect) readBrowserSelected();
-        // updateSelectionStyle(settings.browserSelect ? "selecting" : null);    // TODO null: to remove style of markers in case of double-click select
     }
 
     function onNonSelectingMouseUp() {
@@ -153,6 +152,13 @@
         if(settings.browserSelect) {
             stopBrowserSelected();
         }
+    }
+
+    function onCtrlA() {
+        setTimeout(() => {
+            userSelectionRange = getUserSelectionRange();
+            readBrowserSelected();
+        });
     }
 
     // ============================================= browser events =============================================
@@ -179,7 +185,11 @@
     browserEventListeners.mouseup = function(event) {
         if(!isLeftMouseButton(event)) return;
         mouseUpTime = Date.now();
-        checkBrowserSelect(onSelectingMouseUp, onNonSelectingMouseUp);
+
+        setTimeout(() => {
+            userSelectionRange = getUserSelectionRange();
+            userSelectionRange ? onSelectingMouseUp() : onNonSelectingMouseUp();    
+        });
     }
     browserEventListeners.mousemove = function() {
         if(isAutomaticScrollingRecent()) return;
@@ -192,15 +202,16 @@
             case(37):
             case(38):
             case(39):
-            case(40): if(isUserTyping()) return; break;    //space | left | up | right | down
+            case(40): if(isUserTyping()) return;    //space | left | up | right | down
         }
         switch(event.keyCode) {
             case(27): onEsc(event);                break;
-            case(32): onSpace(event);            break;
-            case(37): onArrow(event, "left");    break;
+            case(32): onSpace(event);              break;
+            case(37): onArrow(event, "left");      break;
             case(38): onArrow(event, "up");        break;
-            case(39): onArrow(event, "right");    break;
-            case(40): onArrow(event, "down");    break;
+            case(39): onArrow(event, "right");     break;
+            case(40): onArrow(event, "down");      break;
+            case(65): if(event.ctrlKey) onCtrlA(); break;
         }
     }
 
@@ -220,26 +231,18 @@
     
     function isMouseButtonBeingPressed() {return mouseUpTime < mouseDownTime;}
 
-    // ============================================= browserSelect decisions =============================================
+    // ============================================= user selection =============================================
 
-    /** @param selectingCallback is called in case selecting is happening
-     * @param nonSelectingCallback is called in case selecting is NOT happening
-     * we use callbacks because result of getSelection() is only consistent if the check is shceduled */
-    function checkBrowserSelect(onSelect, onNoSelect) {
-        window.setTimeout(() => {
-            const range = getUserSelectionRange();
-            range ? onSelect() : onNoSelect();
-        });
-    }
+    var userSelectionRange;
 
     // return the range selected by the user manually (assuming it's one only)
     // not marked range
     // not empty range (which is just user click)
     function getUserSelectionRange() {
-        const ranges = getSelectionRanges()
+        return getSelectionRanges()
             .filter(nonEmptyRange)
-            .filter(range => !isSameRange(range, markedRange))
-        return ranges[0];
+            .filter(notMarkedRange)
+            .shift();
     }
 
     function nonEmptyRange(range) {
@@ -247,6 +250,10 @@
         if(range.startContainer !== range.endContainer) return true;
         if(range.startOffset !== range.endOffset) return true;
         return false;
+    }
+
+    function notMarkedRange(range) {
+        return !isSameRange(range, markedRange);
     }
 
     // ============================================= hovered =============================================
@@ -677,11 +684,26 @@
 
     var selectionStyleElement;
 
-    /** changes the color of the current selection
-     * @param state loading|reading|error defines the color to use */
-    function updateSelectionStyle(state) {
+    function updateSelectionStyle() {
+        const state = calcSelectionSate();
         const change = setFutureSelectionStyle(state);
         if(change) reselectSelection();
+    }
+
+    function calcSelectionSate() {
+        if(isMouseButtonBeingPressed()) {
+            return settings.browserSelect ? "selecting" : null;
+        }
+
+        if(markedRange) {
+            return "marker";
+        }
+
+        // last range request status
+        return Array.from(speechRequests.values())
+            .filter(request => request.range)
+            .map(request => request.status)
+            .pop();
     }
 
     /** changes the color of the selections in future
@@ -762,7 +784,7 @@
 
         // loading animations
         request.status = "loading";
-        if(request.range) updateSelectionStyle("loading");
+        if(request.range) updateSelectionStyle();
         if(request.element) {
             request.textNodes = getTextNodes(request.element);
             updateElementStyle(request.element);
@@ -801,8 +823,7 @@
 
     /** reads the text provided by browserSelect */
     function readBrowserSelected() {
-        const range = getUserSelectionRange();
-        requestSpeech({range, source:"browserSelect"});
+        requestSpeech({range:userSelectionRange, source:"browserSelect"});
     }
 
     /** stops reading + sets source as "browserSelected" */
@@ -834,15 +855,18 @@
         unMark();
 
         if(isEmptyMarker(c)) return;
+        if(userSelectionRange) return;
         if(isUserTyping()) return;
         if(isMouseButtonBeingPressed()) return;   // chrome starts selection from marker
-        if(getUserSelectionRange()) return;
 
         const range = getRangeForMarker(c);
-        if(range.toString() !== c.text) return;
+        if(range.toString() !== c.text) {
+            return;
+        }
 
-        updateSelectionStyle("marker");
-        selectRange(range);
+        markedRange = range;
+        updateSelectionStyle();
+        selectMarkedRange();
     }
 
     function unMark() {
@@ -907,11 +931,10 @@
         return {node:node,offset:node.textContent.length}
     }
 
-    function selectRange(range) {
+    function selectMarkedRange() {
         var selection = window.getSelection();
         selection.removeAllRanges();    // chrome selection often contains an empty range
-        selection.addRange(range);
-        markedRange = range;
+        selection.addRange(markedRange);
     }
 
     /** @return an array of textNodes in @param node */
