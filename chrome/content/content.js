@@ -111,19 +111,28 @@
     }
 
     function onSpace(keyEvent) {
-        const hoveredElement = settings.hoverSelect ? getHoveredElement() : null;    // important when clickable hovered
-        var element = highlightedElement || hoveredElement;
-
-        const elementRequested = Array.from(speechRequests.values())
-            .filter(request => request.element)
-            .some(request => request.element === hoveredElement);
         
-        if(elementRequested) {
-            stopReadingAndPreventScroll(keyEvent);
+        // highlighted element (either hover or arrow)
+        if(highlightedElement) {
+            if(isElementRequested(highlightedElement)) stopReadingAndPreventScroll(keyEvent)
+            else readElementAndPreventScroll(highlightedElement, keyEvent);
             return;
         }
 
-        readElementAndPreventScroll(element, keyEvent);
+        // handle hovered clickables
+        const hoveredElement = settings.hoverSelect ? getHoveredElement() : null;
+        if(hoveredElement) {
+            if(isElementRequested(hoveredElement)) stopReadingAndPreventScroll(keyEvent)
+            else readElementAndPreventScroll(hoveredElement, keyEvent);
+            return;
+        }
+
+        // stop any active requested element
+        const anyElementRequested = Array.from(speechRequests.values()).some(request => request.element)
+        if(anyElementRequested) {
+            stopReadingAndPreventScroll(keyEvent);
+            return;
+        }
     }
 
     function onEsc(keyEvent) {
@@ -159,6 +168,13 @@
             userSelectionRange = getUserSelectionRange();
             readBrowserSelected();
         });
+    }
+
+    /** return whether @param element is part of speechRequests */
+    function isElementRequested(element) {
+        return Array.from(speechRequests.values())
+            .filter(request => request.element)
+            .some(request => request.element === element);
     }
 
     // ============================================= browser events =============================================
