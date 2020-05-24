@@ -1,25 +1,33 @@
-<span>on-off</span>
-<style>
-body {
-  font-family: 'Noto Sans', sans-serif;
-  background-color: #333;
-  color: white;
-  cursor: pointer;
-  margin: 0;
-  padding: 12 24;
-  transition: background-color .2s linear;
-}
-body.ttsOn:hover {
-  background-color:#d33;
-}
-body.ttsOff:hover {
-  background-color:#3d3;
-}
-span {
-  white-space: nowrap;
-  text-align: center;
-  font-size: 48;
-}
-</style>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+      body {
+        font-family: 'Noto Sans', sans-serif;
+        background-color: #333;
+        color: white;
+        cursor: pointer;
+        margin: 0;
+        padding: 12px 24px;
+        transition: background-color .2s linear;
+      }
+      body.ttsOn:hover {
+        background-color:#d33;
+      }
+      body.ttsOff:hover {
+        background-color:#3d3;
+      }
+      span {
+        white-space: nowrap;
+        text-align: center;
+        font-size: 48px;
+      }
+    </style>
+  </head>
+  <body>
+    <span>on-off</span>
+  </body>
+</html>
 
 <script src="popup.js"></script>
