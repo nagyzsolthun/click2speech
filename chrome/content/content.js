@@ -35,13 +35,13 @@
     function turnOff() {
         removeBrowserEventListeners();
         setHighlighted(null);
-        updateSelectionStyle(null);
         markText(null);
+        updateSelectionStyle();
+
         const elements = Array.from(speechRequests.values())
             .map(request => request.element)
             .filter(element => !!element)
         speechRequests.clear();
-
         elements.forEach(element => updateElementStyle(element));
     }
 
@@ -73,31 +73,33 @@
     backgroundEventListeners.speechStart = function(id) {
         const request = speechRequests.get(id);
         request.status = "playing"
-        if(request.range) updateSelectionStyle();
-        if(request.element) updateElementStyle(request.element);
+        updateSelectionStyle();
+        updateElementStyle(request.element);
     }
     backgroundEventListeners.speechBoundary = function(message) {
         const request = speechRequests.get(message.id);
-        updateElementStyle(request.element);
         markText(message);
+        updateSelectionStyle();
+        updateElementStyle(request.element);
     }
     backgroundEventListeners.speechEnd = function(id) {
         const request = speechRequests.get(id);
         speechRequests.delete(id);
         markText(null);
-        if(request.range) updateSelectionStyle();
-        if(request.element) updateElementStyle(request.element);
+        updateSelectionStyle();
+        updateElementStyle(request.element);
     }
     backgroundEventListeners.speechError = function(id) {
         const request = speechRequests.get(id);
         request.status = "error"
-        if(request.range) updateSelectionStyle();
-        if(request.element) updateElementStyle(request.element);
         markText(null);
+        updateSelectionStyle();
+        updateElementStyle(request.element);
 
         // remove style after 2 sec
         setTimeout(() => {
             speechRequests.delete(id);
+            updateSelectionStyle();
             updateElementStyle(request.element);
         }, 2000);
     }
@@ -152,6 +154,7 @@
 
     function onSelectingMouseUp() {
         if(settings.browserSelect) readBrowserSelected();
+        updateSelectionStyle(); // clear marker style (e.g. on double click)
     }
 
     function onNonSelectingMouseUp() {
@@ -167,7 +170,8 @@
     function onCtrlA() {
         setTimeout(() => {
             userSelectionRange = getUserSelectionRange();
-            readBrowserSelected();
+            if(settings.browserSelect) readBrowserSelected();
+            updateSelectionStyle(); // clear marker style
         });
     }
 
@@ -707,20 +711,22 @@
         if(change) reselectSelection();
     }
 
+    // assuming userSelectionRange is up to date
     function calcSelectionSate() {
         if(isMouseButtonBeingPressed()) {
             return settings.browserSelect ? "selecting" : null;
         }
 
-        if(markedRange) {
+        if(markedRange && !userSelectionRange) {
             return "marker";
         }
 
-        // last range request status
-        return Array.from(speechRequests.values())
+        const lastRangeRequest = Array.from(speechRequests.values())
             .filter(request => request.range)
-            .map(request => request.status)
             .pop();
+        if(lastRangeRequest && isSameRange(lastRangeRequest.range, userSelectionRange)) {
+            return lastRangeRequest.status;
+        }
     }
 
     /** changes the color of the selections in future
@@ -799,9 +805,8 @@
         const id = Date.now();
         speechRequests.set(id, request);
 
-        // loading animations
+        // element loading animation (range is done globally)
         request.status = "loading";
-        if(request.range) updateSelectionStyle();
         if(request.element) {
             request.textNodes = getTextNodes(request.element);
             updateElementStyle(request.element);
@@ -880,10 +885,7 @@
         if(range.toString() !== c.text) {
             return;
         }
-
-        markedRange = range;
-        updateSelectionStyle();
-        selectMarkedRange();
+        markRange(range);
     }
 
     function unMark() {
@@ -948,7 +950,8 @@
         return {node:node,offset:node.textContent.length}
     }
 
-    function selectMarkedRange() {
+    function markRange(range) {
+        markedRange = range;
         var selection = window.getSelection();
         selection.removeAllRanges();    // chrome selection often contains an empty range
         selection.addRange(markedRange);
