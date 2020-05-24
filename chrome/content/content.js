@@ -11,12 +11,10 @@
     window.clickToSpeechContentScriptLoaded = true;
 
     // ============================================= init =============================================
-    //TODO think about this
-    window.setTimeout(init);
-    function init() {
+    window.setTimeout(() => {
         addClickToSpeechEventListeners();
         requestSettings();
-    }
+    });
 
     function requestSettings() {
         backgroundCommunicationPort.postMessage("getSettings");    //the response will call backgroundEventListeners.settings
