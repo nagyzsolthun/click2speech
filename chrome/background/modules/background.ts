@@ -48,11 +48,18 @@ const speechRequests = new Map<string, Request>();
 const speechRequestPorts = new Map<string, chrome.runtime.Port>();
 messageListeners.read = async (port: chrome.runtime.Port, request: Request) => {
     speechSynthesis.cancel();
-    if(!speechRequests.size) {
-        setTimeout(processNextRequest)
-    }
     speechRequests.set(request.id, request);
     speechRequestPorts.set(request.id, port);
+    if(speechRequests.size == 1) {
+        // end|error will schedule processRequest
+        // otherwise parallel requests may mess up speech events (e.g. FF double-triple clicks)
+        setTimeout(processLastRequest);
+    }
+
+    // stop analytics
+    if(speechRequests.size > 1 && isEmpty(request.text)) {
+        requestAnalytics("tts", "stop", request.source);
+    }
 };
 
 messageListeners.arrowPressed = () => {
@@ -77,14 +84,12 @@ messageListeners.getBrowserName = async (port) => {
     port.postMessage({ browserName });
 }
 
-function isEmpty(text) {
-    if(!text) return true;
-    if(! /\S/.test(text)) return true;    // contains only whitespace
-    return false;
-}
+// assume no active speech when called
+async function processLastRequest() {
+    const ids = Array.from(speechRequests.keys());
+    const id = ids.pop();
+    ids.forEach(cancelSpeech);  // several request at once (e.g. double-triple clicks in FF)
 
-async function processNextRequest() {
-    const id = speechRequests.keys().next().value;  // Map keeps insertion order
     const {text, source} = speechRequests.get(id);
     const port = speechRequestPorts.get(id);
 
@@ -107,6 +112,19 @@ async function processNextRequest() {
     const utterance = createUtterance(id, text, voice, speed);
     speechSynthesis.speak(utterance);
     requestAnalytics('tts', 'read', source);
+}
+
+// assume no active speech, sends end event and cleans
+function cancelSpeech(id: string) {
+    const port = speechRequestPorts.get(id);
+    port.postMessage({speechEnd: id});
+    cleanRequest(id);
+}
+
+function isEmpty(text) {
+    if(!text) return true;
+    if(! /\S/.test(text)) return true;    // contains only whitespace
+    return false;
 }
 
 function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, speed: number) {
@@ -159,16 +177,20 @@ function onSpeechError(id: string, voiceName: string) {
     errorVoice(voiceName);
 }
 
+// cleanup, schedule, icon
 async function onSpeechTermination(id: string, error?: boolean) {
-    speechRequests.delete(id);
-    speechRequestPorts.delete(id);
+    cleanRequest(id);
     if(speechRequests.size) {
-        setTimeout(processNextRequest);
+        setTimeout(processLastRequest);
         return; // no icon draw when loading animation
     }
-
     const turnedOn = await getSetting("turnedOn");
     drawIcon(turnedOn, error);
+}
+
+function cleanRequest(id: string) {
+    speechRequests.delete(id);
+    speechRequestPorts.delete(id);
 }
 
 // ===================================== disabled voices =====================================
