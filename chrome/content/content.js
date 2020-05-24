@@ -111,7 +111,7 @@
     }
 
     function onSpace(keyEvent) {
-        
+
         // highlighted element (either hover or arrow)
         if(highlightedElement) {
             if(isElementRequested(highlightedElement)) stopReadingAndPreventScroll(keyEvent)
@@ -140,7 +140,10 @@
     }
 
     function onSelectingMouseMove() {
-        if(isUserTyping()) return;
+        if(inputElementFocused()) {
+            setFutureSelectionStyle(null);  // clear marker style
+            return;
+        }
         setFutureSelectionStyle(settings.browserSelect ? "selecting" : null);    //null: to remove style of markers
         if(settings.hoverSelect) setHighlighted(null);
     }
@@ -218,7 +221,7 @@
             case(37):
             case(38):
             case(39):
-            case(40): if(isUserTyping()) return;    //space | left | up | right | down
+            case(40): if(inputElementFocused()) return;    //space | left | up | right | down
         }
         switch(event.keyCode) {
             case(27): onEsc(event);                break;
@@ -236,7 +239,7 @@
     }
 
     /** @return true if the active element is an input area */
-    function isUserTyping() {
+    function inputElementFocused() {
         var activeElement = document.activeElement;
         return isInputElement(activeElement);
     }
@@ -872,7 +875,7 @@
 
         if(isEmptyMarker(c)) return;
         if(userSelectionRange) return;
-        if(isUserTyping()) return;
+        if(inputElementFocused()) return;
         if(isMouseButtonBeingPressed()) return;   // chrome starts selection from marker
 
         const range = getRangeForMarker(c);

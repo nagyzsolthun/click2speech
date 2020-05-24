@@ -20,6 +20,7 @@
 2.5 space no higliht => browser default
 2.6 space or arrows while input text => default behav (gmail, google, some other..)
 2.7 space while hovering on another element => no highlight of hovered
+2.8 select input text after marker ative => selection style is reverted
 
 3) browserSelect
 3.1 select text => read
@@ -44,6 +45,7 @@
 6) arrows + browserSelect
 6.1 mark style disappears when double clicking random word
 6.2 mark style returns when no selection
+6.3 when browserSelect reading, space should start reading the pargraph and seeltion disappears
 
 7) hover + arrows + browserSelect
 7.1 selection style disappears if reading starts (with space)
