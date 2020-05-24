@@ -6,9 +6,9 @@ import * as iconDrawer from "./icon/drawer";
 import popUrl from "./pop.wav"
 
 interface Request {
-    port: chrome.runtime.Port,
+    id: string,
     text: string,
-    utterance?: SpeechSynthesisUtterance
+    source: string,
 }
 
 type MessageListener = (port: chrome.runtime.Port, data?: any) => any
@@ -44,37 +44,15 @@ messageListeners.getSettings = async (port) => {
     port.postMessage({ settings });
 };
 
-const speechRequests = new Map<string,Request>();
-messageListeners.read = async (port: chrome.runtime.Port, { id, text, source }) => {
-    const empty = isEmpty(text);
-    if(speechRequests.size) {
-        speechSynthesis.cancel();
-        // TODO check if loading utterances generate stop
-        empty && requestAnalytics('tts', 'stop', source);
+const speechRequests = new Map<string, Request>();
+const speechRequestPorts = new Map<string, chrome.runtime.Port>();
+messageListeners.read = async (port: chrome.runtime.Port, request: Request) => {
+    speechSynthesis.cancel();
+    if(!speechRequests.size) {
+        setTimeout(processNextRequest)
     }
-
-    if(empty) {
-        port.postMessage({speechEnd: id});
-        const turnedOn = await getSetting("turnedOn");
-        drawIcon(turnedOn);
-        return;
-    }
-
-    iconDrawer.drawLoading();
-    const request = {port, text} as Request;
-    speechRequests.set(id, request);
-
-    const voicePromise = getVoice(text, getDisabledVoices());
-    const speedPromise = getSetting("speed");
-    const [voice, speed] = await Promise.all([voicePromise, speedPromise]);
-    if(!voice) {
-        onNoVoice(id);
-        return;
-    }
-
-    const utterance = createUtterance(id, text, voice, speed);
-    speechSynthesis.speak(utterance);
-    requestAnalytics('tts', 'read', source);
+    speechRequests.set(request.id, request);
+    speechRequestPorts.set(request.id, port);
 };
 
 messageListeners.arrowPressed = () => {
@@ -105,32 +83,56 @@ function isEmpty(text) {
     return false;
 }
 
+async function processNextRequest() {
+    const id = speechRequests.keys().next().value;  // Map keeps insertion order
+    const {text, source} = speechRequests.get(id);
+    const port = speechRequestPorts.get(id);
+
+    const empty = isEmpty(text);
+    if(empty) {
+        port.postMessage({speechEnd: id});
+        onSpeechTermination(id);
+        return;
+    }
+
+    iconDrawer.drawLoading();
+    const voicePromise = getVoice(text, getDisabledVoices());
+    const speedPromise = getSetting("speed");
+    const [voice, speed] = await Promise.all([voicePromise, speedPromise]);
+    if(!voice) {
+        onNoVoice(id);
+        return;
+    }
+
+    const utterance = createUtterance(id, text, voice, speed);
+    speechSynthesis.speak(utterance);
+    requestAnalytics('tts', 'read', source);
+}
+
 function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, speed: number) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = voice;
     utterance.rate = speed;
     utterance.addEventListener("start",    () => onSpeechStart(id));
     utterance.addEventListener("end",      () => onSpeechEnd(id));
-    utterance.addEventListener("error",    () => onSpeechError(id));
+    utterance.addEventListener("error",    () => onSpeechError(id, voice.name));
     utterance.addEventListener("boundary", event => onSpeechBoundary(id, event));
     if(voice.name.includes("Google")) {
         applyGoogleVoiceWorkaround(utterance)
     }
-    speechRequests.get(id).utterance = utterance;
     return utterance;
 }
 
 function onNoVoice(id: string) {
-    const request = speechRequests.get(id);
-    request.port.postMessage({speechError: id});
+    const port = speechRequestPorts.get(id);
+    port.postMessage({speechError: id});
+    onSpeechTermination(id, true);
     requestAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
-    iconDrawer.drawError();
-    speechRequests.delete(id);
 }
 
 function onSpeechStart(id) {
-    const request = speechRequests.get(id);
-    request.port.postMessage({speechStart: id});
+    const port = speechRequestPorts.get(id);
+    port.postMessage({speechStart: id});
     iconDrawer.drawPlaying();
 }
 
@@ -139,25 +141,34 @@ function onSpeechBoundary(id: string, event: SpeechSynthesisEvent) {
     const startOffset = event.charIndex;
     const endOffset = startOffset + event.charLength;
     const text = request.text.substring(startOffset, endOffset);
-    request.port.postMessage({speechBoundary: {id, startOffset, endOffset, text}});
+
+    const port = speechRequestPorts.get(id);
+    port.postMessage({speechBoundary: {id, startOffset, endOffset, text}});
 }
 
 async function onSpeechEnd(id: string) {
-    const request = speechRequests.get(id);
-    request.port.postMessage({speechEnd: id});
-    speechRequests.delete(id);
-    if(!speechRequests.size) {  // no loading request
-        const turnedOn = await getSetting("turnedOn");
-        drawIcon(turnedOn);
-    }
+    const port = speechRequestPorts.get(id);
+    port.postMessage({speechEnd: id});
+    onSpeechTermination(id);
 }
 
-function onSpeechError(id: string) {
-    const request = speechRequests.get(id);
-    request.port.postMessage({speechError: id});
+function onSpeechError(id: string, voiceName: string) {
+    const port = speechRequestPorts.get(id);
+    port.postMessage({speechError: id});
+    onSpeechTermination(id, true);
+    errorVoice(voiceName);
+}
+
+async function onSpeechTermination(id: string, error?: boolean) {
     speechRequests.delete(id);
-    iconDrawer.drawError();
-    errorVoice(request.utterance.voice.name);
+    speechRequestPorts.delete(id);
+    if(speechRequests.size) {
+        setTimeout(processNextRequest);
+        return; // no icon draw when loading animation
+    }
+
+    const turnedOn = await getSetting("turnedOn");
+    drawIcon(turnedOn, error);
 }
 
 // ===================================== disabled voices =====================================
@@ -294,8 +305,16 @@ async function getBrowserName() {
     return browserInfo.name;
 }
 
-function drawIcon(turnedOn: boolean) {
-    turnedOn ? iconDrawer.drawTurnedOn() : iconDrawer.drawTurnedOff();
+function drawIcon(turnedOn: boolean, error?: boolean) {
+    if(!turnedOn) {
+        iconDrawer.drawTurnedOff();
+        return;
+    }
+    if(error) {
+        iconDrawer.drawError();
+        return
+    }
+    iconDrawer.drawTurnedOn();
 }
 
 // hack to check which browser is active
