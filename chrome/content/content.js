@@ -207,6 +207,8 @@
         if(!isLeftMouseButton(event)) return;
         mouseUpTime = Date.now();
 
+        // input select would not generate selection (empty range in chrome)
+        if(inputElementFocused()) return;
         setTimeout(() => {
             userSelectionRange = getUserSelectionRange();
             userSelectionRange ? onSelectingMouseUp() : onNonSelectingMouseUp();    
