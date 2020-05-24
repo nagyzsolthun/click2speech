@@ -265,6 +265,7 @@ async function populatAnalyticsFlag() {
     if(analytics === undefined) {
         console.log("persist analytics flag");
         chrome.storage.local.set({analytics: true});
+        scheduleAnalytics('storage', 'analytics', 'default');
     }
 }
 
