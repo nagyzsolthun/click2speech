@@ -12,7 +12,7 @@ function useReviewsUrl() {
         return;
       }
       switch(browserName) {
-        case "Firefox": setReviewsUrl("https://addons.mozilla.org/hu/firefox/addon/click2speech/reviews/"); break;
+        case "Firefox": setReviewsUrl("https://addons.mozilla.org/firefox/addon/click2speech/reviews/"); break;
         default: setReviewsUrl("https://chrome.google.com/webstore/detail/click2speech/djfpbemmcokhlllnafdmomgecdlicfhj"); break;
 
       }
