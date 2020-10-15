@@ -624,7 +624,8 @@
         if(!element) return;
         saveOriginal(element);
 
-        var backgroundColor = calcBackgroundColor(element);
+        const color = calcColor(element);
+        const backgroundColor = calcBackgroundColor(element);
         if(!backgroundColor) {
             revertStyle(element);
             return;
@@ -633,7 +634,7 @@
         element.style["transition"] = "background .2s, background-color .2s, color .2s";    //'background' transition doesn't seem to work
         element.style["background"] = "none";
         element.style["background-color"] = backgroundColor;
-        element.style["color"] = "black";
+        element.style["color"] = color;
         element.style["text-shadow"] = "none";
     }
 
@@ -656,6 +657,14 @@
             case("highlighted-error"):
                 return "#fbb";
         }
+    }
+
+    function calcColor(element) {
+        const parentElement = element.parentElement;
+
+        // pdf.js renders content on a canvas, textLayer is a transparent layer under
+        const pdfJsElement = parentElement && parentElement.classList.contains("textLayer");
+        return pdfJsElement ? null : "black";
     }
 
     /** @return the status of @param element
