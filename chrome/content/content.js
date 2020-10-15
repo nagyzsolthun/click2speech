@@ -632,8 +632,9 @@
 
         element.style["transition"] = "background .2s, background-color .2s, color .2s";    //'background' transition doesn't seem to work
         element.style["background"] = "none";
-        element.style["color"] = "black";
         element.style["background-color"] = backgroundColor;
+        element.style["color"] = "black";
+        element.style["text-shadow"] = "none";
     }
 
     function calcBackgroundColor(element) {
@@ -682,6 +683,7 @@
         element.style["background"] = original.background;
         element.style["background-color"] = original.backgroundColor;
         element.style["color"] = original.color;
+        element.style["text-shadow"] = original.textShadow;
         window.setTimeout(function() {
             //if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
             if(getElementStatus(element)) return;
@@ -699,6 +701,7 @@
             background:element.style["background"],    //this overrides background-color in soem cases => set to none (e.g. google search result top-right login button)
             backgroundColor:element.style["background-color"],
             color: element.style["color"],
+            textShadow: element.style["text-shadow"],
             transition:element.style["transition"],
         });
     }
