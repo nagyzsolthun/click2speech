@@ -248,7 +248,10 @@
         return isInputElement(activeElement);
     }
 
-    //to know whether mouse button is pressed
+    // flag whether page is pdfJs render
+    const pdfJs = !!document.querySelector("#outerContainer > #mainContainer > #viewerContainer > #viewer.pdfViewer");
+
+    // to know whether mouse button is pressed
     var mouseDownTime = 0;
     var mouseUpTime = 0;
     
@@ -624,7 +627,7 @@
         if(!element) return;
         saveOriginal(element);
 
-        const color = calcColor(element);
+        const color = pdfJs ? null : "black"
         const backgroundColor = calcBackgroundColor(element);
         if(!backgroundColor) {
             revertStyle(element);
@@ -657,14 +660,6 @@
             case("highlighted-error"):
                 return "#fbb";
         }
-    }
-
-    function calcColor(element) {
-        const parentElement = element.parentElement;
-
-        // pdf.js renders content on a canvas, textLayer is a transparent layer under
-        const pdfJsElement = parentElement && parentElement.classList.contains("textLayer");
-        return pdfJsElement ? null : "black";
     }
 
     /** @return the status of @param element
@@ -747,7 +742,7 @@
      * @param state loading|reading|error defines the color to use
      * @return true if the DOM changed */
     function setFutureSelectionStyle(state) {
-        var cssToSet = selectionCss[state];
+        var cssToSet = pdfJs ? pdfJsSelectionCss[state] : selectionCss[state];
         if(!cssToSet && !selectionStyleElement) {
             return false;
         }
@@ -801,12 +796,23 @@
         return style;
     }
 
-    var selectionCss = {};
-    selectionCss.selecting = "*::selection {background-color:#bfb !important; color:black !important;}";
-    selectionCss.loading = "*::selection {background-color:#bbf !important; color:black !important;}";
-    selectionCss.playing = "*::selection {background-color:#bbf !important; color:black !important;}";
-    selectionCss.error = "*::selection {background-color:#fdd !important; color:black !important;}";
-    selectionCss.marker = "*::selection {background-color:#88f !important; color:black !important;}";
+    const selectionCss = {
+        selecting: "*::selection {background-color:#bfb !important; color:black !important;}",
+        loading: "*::selection {background-color:#bbf !important; color:black !important;}",
+        playing: "*::selection {background-color:#bbf !important; color:black !important;}",
+        error: "*::selection {background-color:#fdd !important; color:black !important;}",
+        marker: "*::selection {background-color:#88f !important; color:black !important;}"
+    }
+
+    const pdfJsSelectionCss = {
+        selecting: "*::selection {background-color:#bfb !important; !important;}",
+        loading: "*::selection {background-color:#bbf !important; !important;}",
+        playing: "*::selection {background-color:#bbf !important; !important;}",
+        error: "*::selection {background-color:#fdd !important; !important;}",
+        marker: "*::selection {background-color:#88f !important; !important;}"
+    }
+
+
 
     // ============================================= speechRequests =============================================
 
