@@ -320,12 +320,9 @@ function handleOnOffEvent(turnedOn) {
 // ===================================== icon =====================================
 
 async function getBrowserName() {
-    const getBrowserInfo = (window as any).browser?.runtime?.getBrowserInfo;  // this method is only available in Firefox
-    if(!getBrowserInfo) {
-        return "Chrome";
-    }
-    const browserInfo = await getBrowserInfo();
-    return browserInfo.name;
+    if(navigator.userAgent.includes("Firefox")) return "Firefox";
+    if(navigator.userAgent.includes("Edg")) return "Edge";  // Edg must come before Chrome
+    if(navigator.userAgent.includes("Chrome")) return "Chrome";
 }
 
 function drawIcon(turnedOn: boolean, error?: boolean) {
@@ -341,7 +338,7 @@ function drawIcon(turnedOn: boolean, error?: boolean) {
 }
 
 // hack to check which browser is active
-getBrowserName().then(name => iconDrawer.setAnimationEnabled(name.includes("Chrome")));  // Firefox does not support icon animation (it looks weird)
+getBrowserName().then(name => iconDrawer.setAnimationEnabled(!name.includes("Firefox")));
 
 var iconCanvas = document.createElement("canvas");
 iconCanvas.width = iconCanvas.height = 32;
