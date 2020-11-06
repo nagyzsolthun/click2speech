@@ -362,7 +362,7 @@ async function requestAnalytics(category: string, action: string, label: string)
     }
 }
 
-const userInteractionAudio = new Audio("background/" + popUrl);    // TODO why "background/" needed?
+const userInteractionAudio = new Audio(popUrl);
 userInteractionAudio.volume = 0.5;
 
 // initial content script injection - so no Chrome restart is needed after installation

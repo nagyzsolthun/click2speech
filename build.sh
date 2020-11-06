@@ -51,7 +51,7 @@ fi
 
 if [ -z "$action" ] || [[ "$action" =~ " background-npm-install " ]]; then
   log "background-npm-install"
-  npm install --prefix chrome/background
+  npm ci --prefix chrome/background
 fi
 
 if [ -z "$action" ] || [[ "$action" =~ " background-test " ]]; then
@@ -68,7 +68,7 @@ fi
 
 if [ -z "$action" ] || [[ "$action" =~ " options-npm-install " ]]; then
   log "options-npm-install"
-  npm install --prefix chrome/options
+  npm ci --prefix chrome/options
 fi
 
 if [ -z "$action" ] || [[ "$action" =~ " options-build " ]]; then
@@ -80,7 +80,8 @@ fi
 if [ -z "$action" ] || [[ "$action" =~ " zip " ]]; then
   log "zip"
   cd build
+  version=$(cat manifest.json | jq ".version" | tr -d ".\"")
   zip -rq build.zip ./*
   cd ..
-  mv build/build.zip ./build.zip
+  mv build/build.zip ./build$version.zip
 fi
