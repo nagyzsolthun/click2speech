@@ -13,8 +13,8 @@ function useReviewsUrl() {
       }
       switch(browserName) {
         case "Firefox": setReviewsUrl("https://addons.mozilla.org/firefox/addon/click2speech/reviews/"); break;
+        case "Edge": setReviewsUrl("https://microsoftedge.microsoft.com/addons/detail/click2speech/bfbogommemmgnandegidnimelabplhcm"); break;
         default: setReviewsUrl("https://chrome.google.com/webstore/detail/click2speech/djfpbemmcokhlllnafdmomgecdlicfhj"); break;
-
       }
     });
   }
