@@ -1,3 +1,5 @@
+import { browser } from "webextension-polyfill-ts"
+
 export default function(text: string) {
-  return chrome.i18n.getMessage(text) || text;
+  return browser.i18n.getMessage(text) || text;
 }

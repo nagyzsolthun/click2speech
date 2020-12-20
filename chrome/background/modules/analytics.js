@@ -25,7 +25,7 @@ function scheduleAnalytics(category,action,label) {
 function sendAnalytics(category,action,label) {
     delete event2scheduledAnalytics[category+action];
     analytics('send', 'event', category, action, label);
-    //console.log("send event: " + category + " " + action + " " + label);
+    // console.log("send event: " + category + " " + action + " " + label);
 }
 
 export { scheduleAnalytics }

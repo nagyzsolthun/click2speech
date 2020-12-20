@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { browser } from "webextension-polyfill-ts"
 
 export default function() {
   useEffect(init, []); // empty array means executing only once
@@ -6,14 +7,7 @@ export default function() {
   const [disabledVoices, setDisabledVoices] = useState<string[]>();
 
   function init() {
-    const port = chrome.runtime.connect();
-    port.postMessage("getDisabledVoices");
-    port.onMessage.addListener(message => {
-      const disabledVoices = message.disabledVoices;
-      if(disabledVoices !== undefined) {
-        setDisabledVoices(disabledVoices)
-      }
-    });
+    browser.runtime.sendMessage("getDisabledVoices").then(disabledVoices => setDisabledVoices(disabledVoices));
   }
 
   return disabledVoices;

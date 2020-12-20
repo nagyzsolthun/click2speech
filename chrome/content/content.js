@@ -11,14 +11,19 @@
     window.clickToSpeechContentScriptLoaded = true;
 
     // ============================================= init =============================================
-    window.setTimeout(() => {
-        addClickToSpeechEventListeners();
-        requestSettings();
+    const backgroundCommunicationPort = chrome.runtime.connect();
+    backgroundCommunicationPort.onDisconnect.addListener(destroy);
+    backgroundCommunicationPort.onMessage.addListener(message => {
+        if(typeof message === "string") {
+            const listener = backgroundEventListeners[message];
+            listener && listener();
+            return;
+        }
+        Object.keys(message).forEach(key => {
+            const listener = backgroundEventListeners[key];
+            listener && listener(message[key]);
+        });
     });
-
-    function requestSettings() {
-        backgroundCommunicationPort.postMessage("getSettings");    //the response will call backgroundEventListeners.settings
-    }
 
     // ============================================= turn on / off =============================================
     var settings = {};    //current settings
@@ -46,23 +51,8 @@
     }
 
     // ============================================= ClickToSpeech background events =============================================
-    function addClickToSpeechEventListeners() {
-        backgroundCommunicationPort.onMessage.addListener(message => {
-            if(typeof message === "string") {
-                const listener = backgroundEventListeners[message];
-                listener && listener();
-                return;
-            }
-            Object.keys(message).forEach(key => {
-                const listener = backgroundEventListeners[key];
-                listener && listener(message[key]);
-            });
-        });
-    }
 
-    var backgroundCommunicationPort = chrome.runtime.connect();
-
-    var backgroundEventListeners = {};
+    const backgroundEventListeners = {};
 
     backgroundEventListeners.settings = function(data) {
         for(var setting in data) {
@@ -355,7 +345,7 @@
         setHighlighted(closestReadable);
         scrollIntoView(closestReadable);
 
-        backgroundCommunicationPort.postMessage("arrowPressed");
+        sendMessage("arrowPressed");
 
         //createDivOnBoundingClientRect(closestReadable);
     }
@@ -834,7 +824,7 @@
 
         const text = textFromRequest(request);
         const source = request.source;
-        backgroundCommunicationPort.postMessage({read: {id, text, source}});
+        backgroundCommunicationPort.postMessage({id, text, source});
     }
 
     function textFromRequest(request) {
@@ -1000,5 +990,16 @@
         window.clickToSpeechContentScriptLoaded = false;
     }
 
-    backgroundCommunicationPort.onDisconnect.addListener(destroy);
+    // ============================================= utils =============================================
+    function sendMessage(message) {
+        
+        // Firefox (w3c standard) case
+        if(window.browser !== undefined) {
+            return browser.runtime.sendMessage(message);
+        }
+
+        // Chrome case
+        chrome.runtime.sendMessage(message);
+    }
+
 })();

@@ -1,124 +1,139 @@
-/// <reference types="chrome"/>
-
+import { browser, Runtime } from "webextension-polyfill-ts"
 import { scheduleAnalytics } from "./analytics.js";
 import { getVoice, getDefaultVoiceName, getSortedVoices } from "./tts/VoiceSelector";
 import * as iconDrawer from "./icon/drawer";
 import popUrl from "./pop.wav"
 
-interface Request {
+interface SpeechRequest {
     id: string,
     text: string,
     source: string,
 }
 
-type MessageListener = (port: chrome.runtime.Port, data?: any) => any
-
 // ===================================== incoming messages =====================================
 
-const ports = new Set<chrome.runtime.Port>();
-const messageListeners: { [key: string]: MessageListener } = {};
-chrome.runtime.onConnect.addListener(port => {
-    ports.add(port);
-    port.onDisconnect.addListener(() => ports.delete(port));
-    port.onMessage.addListener(message => {
-        if(typeof message === "string") {
-            const listener = messageListeners[message];
-            listener && listener(port);
-            return;
-        }
-        Object.keys(message).forEach(key => {
-            const listener = messageListeners[key];
-            listener && listener(port, message[key]);
-        });
-    });
+browser.runtime.onMessage.addListener(async (message, _,) => {
+    const {listener, data} = calcMessageListener(messageListeners, message);
+    if(!listener) {
+        throw new Error("no listener for " + message);
+    }
+    const response = await listener(data);
+    return response;
 });
 
-messageListeners.getVoices = async (port) => {
-    const speechVoices = await getSortedVoices();
-    const voices = speechVoices.map(speechVoice => ({name: speechVoice.name, lan: speechVoice.lang}));
-    port.postMessage({ voices });
+// messages can be simple strings, or listener:data objects
+function calcMessageListener<D,R>(
+    listeners: { [key: string]: (data?: D) => R },
+    message: string | object):
+        { listener: (data?: D) => R, data?: D } {
+
+    // string message
+    if(typeof message === "string") {
+        const listener = listeners[message];
+        return { listener };
+    }
+
+    // listener:data message - take the value from the message and return it as data
+    const keys = Object.keys(message);
+    if(keys.length != 1) {
+        throw new Error("message must be string or contain one key");
+    }
+    const key = keys[0];
+    const listener = listeners[key];
+    const data = message[key];
+    return { listener, data }
 }
 
-messageListeners.getSettings = async (port) => {
-    const settings = await getSettings();
-    port.postMessage({ settings });
-};
-
-const speechRequests = new Map<string, Request>();
-const speechRequestPorts = new Map<string, chrome.runtime.Port>();
-messageListeners.read = async (port: chrome.runtime.Port, request: Request) => {
-    speechSynthesis.cancel();
-    speechRequests.set(request.id, request);
-    speechRequestPorts.set(request.id, port);
-    if(speechRequests.size == 1) {
-        // end|error will schedule processRequest
-        // otherwise parallel requests may mess up speech events (e.g. FF double-triple clicks)
-        setTimeout(processLastRequest);
-    }
-
-    // stop analytics
-    if(speechRequests.size > 1 && isEmpty(request.text)) {
-        requestAnalytics("tts", "stop", request.source);
-    }
-};
-
-messageListeners.arrowPressed = () => {
+const messageListeners: { [key: string]: (message?: any) => Promise<any> } = {};
+messageListeners.getVoices = async () => {
+    const speechVoices = await getSortedVoices();
+    return speechVoices.map(speechVoice => ({name: speechVoice.name, lan: speechVoice.lang}));
+}
+messageListeners.analytics = async (analytics) => {
+    const { category, action, label } = analytics;
+    requestAnalytics(category, action, label);
+}
+messageListeners.getDisabledVoices = async () => getDisabledVoices();
+messageListeners.getBrowserName = () => getBrowserName();
+messageListeners.arrowPressed = async () => {
     userInteractionAudio.currentTime = 0;
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
     requestAnalytics('interaction', 'arrow', 'press');
 };
 
-messageListeners.analytics = (_, analytics) => {
-    const { category, action, label } = analytics;
-    requestAnalytics(category, action, label);
-}
+// ===================================== content port =====================================
 
-messageListeners.getDisabledVoices = (port) => {
-    const disabledVoices = getDisabledVoices();
-    port.postMessage({ disabledVoices })
+const contentPorts = new Set<Runtime.Port>();
+const speechRequests = new Map<string, SpeechRequest>();
+const speechRequestPorts = new Map<string, Runtime.Port>();
+const cancelRequests = new Set<string>();
+
+browser.runtime.onConnect.addListener(async port => {
+    contentPorts.add(port);
+
+    // assuming all contentPort message SpeechRequest
+    port.onMessage.addListener(request => onSpeechRequest(port, request));
+    port.onDisconnect.addListener(() => onPortClose(port));
+
+    const settings = await getSettings();
+    port.postMessage({settings});
+});
+
+async function onSpeechRequest(port: Runtime.Port, request: SpeechRequest) {
+    speechRequests.forEach((_,id) => cancelRequests.add(id));
+    speechRequests.set(request.id, request);
+    speechRequestPorts.set(request.id, port);
+    if(speechRequests.size > 1) {
+        speechSynthesis.cancel();   // chain reaction will reach this request
+    } else {
+        processRequest(request.id);
+    }
+
+    if(cancelRequests.size && isEmpty(request.text)) {
+        requestAnalytics("tts", "stop", request.source);
+    }
 };
 
-messageListeners.getBrowserName = async (port) => {
-    const browserName = await getBrowserName();
-    port.postMessage({ browserName });
+function onPortClose(port: Runtime.Port) {
+    contentPorts.delete(port);
+    const portRequests = Array.from(speechRequestPorts.entries())
+        .filter(([id,p]) => p === port)
+        .map(([id,p]) => id);
+    portRequests.forEach(id => cancelRequests.add(id));
+    portRequests.forEach(id => speechRequestPorts.delete(id));
+
+    const activeRequest = speechRequests.keys().next().value;
+    if(portRequests.includes(activeRequest)) {
+        speechSynthesis.cancel();
+    }
 }
 
-// assume no active speech when called
-async function processLastRequest() {
-    const ids = Array.from(speechRequests.keys());
-    const id = ids.pop();
-    ids.forEach(cancelSpeech);  // several request at once (e.g. double-triple clicks in FF)
+// assuming no active speech when called
+async function processRequest(id: string) {
+    if(cancelRequests.has(id)) {
+        onSpeechEnd(id);
+        return;
+    }
 
     const {text, source} = speechRequests.get(id);
-    const port = speechRequestPorts.get(id);
-
     const empty = isEmpty(text);
     if(empty) {
-        port.postMessage({speechEnd: id});
-        onSpeechTermination(id);
+        onSpeechEnd(id);
         return;
     }
 
     iconDrawer.drawLoading();
-    const voicePromise = getVoice(text, getDisabledVoices());
-    const speedPromise = getSetting("speed");
-    const [voice, speed] = await Promise.all([voicePromise, speedPromise]);
+    const voice = await getVoice(text, getDisabledVoices());
     if(!voice) {
         onNoVoice(id);
         return;
     }
 
+    const speed = await getSetting("speed");
     const utterance = createUtterance(id, text, voice, speed);
     speechSynthesis.speak(utterance);
     requestAnalytics('tts', 'read', source);
-}
-
-// assume no active speech, sends end event and cleans
-function cancelSpeech(id: string) {
-    const port = speechRequestPorts.get(id);
-    port.postMessage({speechEnd: id});
-    cleanRequest(id);
 }
 
 function isEmpty(text) {
@@ -142,15 +157,13 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
 }
 
 function onNoVoice(id: string) {
-    const port = speechRequestPorts.get(id);
-    port.postMessage({speechError: id});
+    postContentMessage(id, {speechError: id});
     onSpeechTermination(id, true);
     requestAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
 }
 
 function onSpeechStart(id) {
-    const port = speechRequestPorts.get(id);
-    port.postMessage({speechStart: id});
+    postContentMessage(id, {speechStart: id});
     iconDrawer.drawPlaying();
 }
 
@@ -159,44 +172,48 @@ function onSpeechBoundary(id: string, event: SpeechSynthesisEvent) {
     const startOffset = event.charIndex;
     const endOffset = startOffset + event.charLength;
     const text = request.text.substring(startOffset, endOffset);
-
-    const port = speechRequestPorts.get(id);
-    port.postMessage({speechBoundary: {id, startOffset, endOffset, text}});
+    postContentMessage(id, {speechBoundary: {id, startOffset, endOffset, text}});
 }
 
 async function onSpeechEnd(id: string) {
-    const port = speechRequestPorts.get(id);
-    port.postMessage({speechEnd: id});
+    postContentMessage(id, {speechEnd: id});
     onSpeechTermination(id);
 }
 
 function onSpeechError(id: string, voiceName: string) {
-    const port = speechRequestPorts.get(id);
-    port.postMessage({speechError: id});
+    disableVoice(voiceName);
+    postContentMessage(id, {speechError: id});
     onSpeechTermination(id, true);
-    errorVoice(voiceName);
 }
 
-// cleanup, schedule, icon
-async function onSpeechTermination(id: string, error?: boolean) {
-    cleanRequest(id);
-    if(speechRequests.size) {
-        setTimeout(processLastRequest);
-        return; // no icon draw when loading animation
+function postContentMessage(requestId: string, message: any) {
+    const port = speechRequestPorts.get(requestId);
+    if(!port) {
+        return; // port closed
     }
-    const turnedOn = await getSetting("turnedOn");
-    drawIcon(turnedOn, error);
+    port.postMessage(message);
 }
 
-function cleanRequest(id: string) {
+// cleanup, schedule next, icon
+async function onSpeechTermination(id: string, error?: boolean) {
+    cancelRequests.delete(id);
     speechRequests.delete(id);
     speechRequestPorts.delete(id);
+
+    const nextId = speechRequests.keys().next().value;
+    if(nextId) {
+        processRequest(nextId);
+        return;
+    }
+
+    const turnedOn = await getSetting("turnedOn");
+    drawIcon(turnedOn, error);
 }
 
 // ===================================== disabled voices =====================================
 const voiceNameToErrorTime = {};
 const voiceNameToEnable = {};
-function errorVoice(voiceName) {
+function disableVoice(voiceName) {
     voiceNameToErrorTime[voiceName] = Date.now();
 
     var enableId = voiceNameToEnable[voiceName];
@@ -255,7 +272,7 @@ getSetting("turnedOn").then(turnedOn => {
     console.log("persist default settings");
     populateDefaultSettings();
     
-    const appVersion = chrome.runtime.getManifest().version;
+    const appVersion = browser.runtime.getManifest().version;
     scheduleAnalytics('storage','defaults', appVersion);
 })
 
@@ -264,7 +281,7 @@ async function populatAnalyticsFlag() {
     const analytics = await getSetting("analytics");
     if(analytics === undefined) {
         console.log("persist analytics flag");
-        chrome.storage.local.set({analytics: true});
+        browser.storage.local.set({analytics: true});
         scheduleAnalytics('storage', 'analytics', 'default');
     }
 }
@@ -272,7 +289,7 @@ async function populatAnalyticsFlag() {
 async function populateDefaultSettings() {
     const defaultVoiceName = await getDefaultVoiceName();
     requestAnalytics('storage','defaultVoice', defaultVoiceName);
-    chrome.storage.local.set({
+    await browser.storage.local.set({
         turnedOn: true,
         preferredVoice: defaultVoiceName,
         speed: 1.2,
@@ -280,19 +297,20 @@ async function populateDefaultSettings() {
         arrowSelect: false,
         browserSelect: false,
         analytics: true
-    }, iconDrawer.drawTurnedOn);
+    });
+    iconDrawer.drawTurnedOn();
 }
 
 async function getSetting(key: string) {
-    const settings = await new Promise<any>(resolve => chrome.storage.local.get(key, resolve));
+    const settings = await browser.storage.local.get(key);
     return settings[key];
 }
 
 function getSettings() {
-    return new Promise<any>(resolve => chrome.storage.local.get(null, resolve));
+    return browser.storage.local.get(null);
 }
 
-chrome.storage.onChanged.addListener(async changes => {
+browser.storage.onChanged.addListener(async changes => {
     for(var setting in changes) {
         if(setting == "turnedOn") {
             handleOnOffEvent(changes.turnedOn.newValue);
@@ -305,7 +323,7 @@ chrome.storage.onChanged.addListener(async changes => {
         }
     }
     const settings = await getSettings();
-    ports.forEach(port => port.postMessage({ settings }));
+    contentPorts.forEach(port => port.postMessage({ settings }));
 });
 
 function handleOnOffEvent(turnedOn) {
@@ -337,17 +355,16 @@ function drawIcon(turnedOn: boolean, error?: boolean) {
     iconDrawer.drawTurnedOn();
 }
 
-// hack to check which browser is active
-getBrowserName().then(name => iconDrawer.setAnimationEnabled(!name.includes("Firefox")));
+getBrowserName().then(name => iconDrawer.setAnimationEnabled(name != "Firefox"));   // animation is weird in Firefox
 
-var iconCanvas = document.createElement("canvas");
+const iconCanvas = document.createElement("canvas");
 iconCanvas.width = iconCanvas.height = 32;
 iconDrawer.setCanvas(iconCanvas);
 iconDrawer.setOnRenderFinished(loadIconToToolbar);
 
 // iconDrawer draws the icon on a canvas, this function shows the canvas on the toolbar
 function loadIconToToolbar() {
-    chrome.browserAction.setIcon({imageData:iconCanvas.getContext("2d").getImageData(0, 0, iconCanvas.width, iconCanvas.height)});
+    browser.browserAction.setIcon({imageData:iconCanvas.getContext("2d").getImageData(0, 0, iconCanvas.width, iconCanvas.height)});
 }
 
 // ===================================== others =====================================
@@ -363,7 +380,8 @@ const userInteractionAudio = new Audio(popUrl);
 userInteractionAudio.volume = 0.5;
 
 // initial content script injection - so no Chrome restart is needed after installation
-chrome.tabs.query({}, tabs => tabs
+browser.tabs.query({}).then(tabs => tabs
     .map(tab => tab.id)
-    .forEach(id => chrome.tabs.executeScript(id, {file: 'content/content.js'}, () => chrome.runtime.lastError))
+    .map(id => browser.tabs.executeScript(id, {file: 'content/content.js'})
+    .catch(e => console.log(e.message)))    // local html and extension settings throw some errors
 );

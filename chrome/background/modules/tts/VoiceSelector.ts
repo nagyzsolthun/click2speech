@@ -1,5 +1,7 @@
+import { browser } from "webextension-polyfill-ts"
+
 async function getVoice(text, disabledVoices) {
-    const settingsPromise = new Promise<any>(resolve => chrome.storage.local.get(null, resolve));
+    const settingsPromise = browser.storage.local.get(null);
     const lanDetectPromise = calcLanPromise(text);
     const voicesPromise = getSortedVoices();
     const [settings, lanDetect, voices] = await Promise.all([settingsPromise, lanDetectPromise, voicesPromise]);
@@ -20,7 +22,7 @@ async function getSortedVoices() {
   }
 
 async function calcLanPromise(text) {
-    const result = await new Promise<chrome.i18n.LanguageDetectionResult>(resolve => chrome.i18n.detectLanguage(text, resolve))
+    const result = await browser.i18n.detectLanguage(text);
     return result.isReliable && result.languages.reduce(higherPercentage).language;
 }
 

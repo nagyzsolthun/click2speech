@@ -2,7 +2,7 @@
 1.1 click text on nonclickable => read
 1.2 click empty | clickable | nonclickable => stop
 1.3 space (both clickable and nonclickable) => start
-1.4 space when read text is highlighted => read highlighted
+1.4 space when read text is highlighted => stop
 1.5 esc => stop / revert highlight
 1.6 browserSelect => no highlight
 1.7 browserSelect while reading => reading goes on (also in input)
@@ -17,7 +17,7 @@
 2.2 esc => stop / revert highlight
 2.3 space => read / stop
 2.4 browserSelect => no effect on anything (reading,stepping,highlight)
-2.5 space no higliht => browser default
+2.5 space no higlight => browser default
 2.6 space or arrows while input text => default behav (gmail, google, some other..)
 2.7 space while hovering on another element => no highlight of hovered
 2.8 select input text after marker ative => selection style is reverted
@@ -52,7 +52,7 @@
 
 9) reading settings
 9.1 settings should be refected without content reload
-9.2 settings remean after browser restart
+9.2 settings remain after browser restart
 
 10) error handling
 10.1 make error (by using wrong url) => error style should be applied + icon animation
@@ -78,8 +78,10 @@
 14.1 check for memoryLeaks: speechRequests
 14.2 check that multiple tabs are handled well (new speech in seperate tab), queues should be emptied
 14.3 check that style element is always removed (markers, browserSelect)
+14.4 closing tab stops speech
 
 15) release
 15.1 reload conetntJs when updated
 15.2 google analytics on/off
 15.3 no logging
+15.4 check reviews url

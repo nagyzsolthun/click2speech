@@ -9,7 +9,6 @@
     "@types/react": "16.9.55",
     "@types/react-dom": "16.9.9",
     "@types/react-router-dom": "5.1.6",
-    "@types/chrome": "0.0.126",
     "@types/material-ui": "0.21.8",
     "@material-ui/core": "4.11.0",
     "react": "^17.0.1",
@@ -17,6 +16,7 @@
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.0",
     "react-axe": "3.5.4",
+    "webextension-polyfill-ts": "0.22.0",
     "typescript": "4.0.5"
   },
   "scripts": {

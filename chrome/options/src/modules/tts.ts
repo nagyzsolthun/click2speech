@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { browser } from "webextension-polyfill-ts"
 
 export default function() {
   useEffect(init, []); // empty array means executing only once
@@ -6,14 +7,7 @@ export default function() {
   const [voices, setVoices] = useState<{name: string, lan: string}[]>();
 
   function init() {
-    const port = chrome.runtime.connect();
-    port.postMessage("getVoices");
-    port.onMessage.addListener(message => {
-      const voices = message.voices;
-      if(voices !== undefined) {
-        setVoices(voices)
-      }
-    });
+    browser.runtime.sendMessage("getVoices").then(voices => setVoices(voices));
   }
 
   return voices;

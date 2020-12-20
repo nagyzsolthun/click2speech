@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
+import { browser } from "webextension-polyfill-ts"
 
 function useReviewsUrl() {
   useEffect(init, []); // empty array means executing only once
   const [reviewsUrl, setReviewsUrl] = useState<string>();
   function init() {
-    const port = chrome.runtime.connect();
-    port.postMessage("getBrowserName");
-    port.onMessage.addListener(message => {
-      const browserName = message.browserName;
-      if(browserName === undefined) {
+    browser.runtime.sendMessage("getBrowserName").then(browserName => {
+      if(!browserName) {
         return;
       }
       switch(browserName) {
