@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Route, Switch, Redirect, HashRouter } from 'react-router-dom';
+import { Routes, Route, HashRouter, Navigate } from 'react-router-dom';
 import { ThemeProvider, Paper, Box } from '@material-ui/core';
 import Header from './Header';
 import General from './General';
@@ -19,12 +19,12 @@ const App = () => (
       <Paper>
         <Header/>
         <Box role="main">
-          <Switch>
-            <Route path="/general"><General/></Route>
-            <Route path="/speech"><Speech/></Route>
-            <Route path="/contact"><Contact/></Route>
-            <Redirect exact from="" to="/general" />
-          </Switch>
+          <Routes>
+            <Route path="/general" element={<General/>}/>
+            <Route path="/speech" element={<Speech/>}/>
+            <Route path="/contact" element={<Contact/>}/>
+            <Route path="/" element={<Navigate replace to="/general" />} />
+          </Routes>
         </Box>
       </Paper>
     </HashRouter>

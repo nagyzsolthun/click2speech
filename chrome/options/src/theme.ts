@@ -1,5 +1,5 @@
 import { blue } from "@material-ui/core/colors";
-import { createMuiTheme } from "@material-ui/core";
+import { createTheme } from "@material-ui/core";
 import createPalette from "@material-ui/core/styles/createPalette";
 
 const palette = createPalette({
@@ -9,7 +9,7 @@ const palette = createPalette({
   }
 });
 
-const theme = createMuiTheme({
+const theme = createTheme({
   typography: {
     fontSize: 24,
     fontFamily: ["Roboto", "sans-serif"].join(",")

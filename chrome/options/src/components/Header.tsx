@@ -2,7 +2,7 @@ import React from "react";
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { useHistory, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Toolbar, Typography, makeStyles } from "@material-ui/core";
 import translate from "../modules/translate";
 
@@ -23,9 +23,9 @@ const Navbar: React.FC = () => {
 
   const rightAlignClasses = useRightAlignStyle();
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
-  const onChange = (_: React.ChangeEvent<{}>, value: any) => history.push(value);
+  const onChange = (_: React.ChangeEvent<{}>, value: any) => navigate(value);
 
   // redirect
   const pathName = location.pathname;

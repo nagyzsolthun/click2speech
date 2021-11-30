@@ -8,6 +8,10 @@ const Contact = () => {
   const reviewsUrl = useReviewsUrl();
   const [email, emailUrl] = useEmail();
 
+  if(!reviewsUrl || !emailUrl) {
+    return null;
+  }
+
   return (
     <Box>
     <FormControl>

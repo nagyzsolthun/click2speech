@@ -41,8 +41,8 @@ describe("getSortedVoices", () => {
         onVoicesChange = null;
         global.speechSynthesis.addEventListener = (_,callback) => onVoicesChange = callback;
         global.speechSynthesis.removeEventListener = () => {};
-        spyOn(global.speechSynthesis, "addEventListener").and.callThrough();
-        spyOn(global.speechSynthesis, "removeEventListener");
+        jest.spyOn(global.speechSynthesis, "addEventListener");
+        jest.spyOn(global.speechSynthesis, "removeEventListener");
     });
 
     it("provides voices sync if available", async () => {
