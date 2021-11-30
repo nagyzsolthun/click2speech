@@ -1,13 +1,11 @@
 import { browser, Runtime } from "webextension-polyfill-ts"
-import { scheduleAnalytics } from "./analytics.js";
 import { getVoice, getDefaultVoiceName, getSortedVoices } from "./tts/VoiceSelector";
 import * as iconDrawer from "./icon/drawer";
 import popUrl from "./pop.wav"
 
 interface SpeechRequest {
     id: string,
-    text: string,
-    source: string,
+    text: string
 }
 
 // ===================================== incoming messages =====================================
@@ -49,17 +47,12 @@ messageListeners.getVoices = async () => {
     const speechVoices = await getSortedVoices();
     return speechVoices.map(speechVoice => ({name: speechVoice.name, lan: speechVoice.lang}));
 }
-messageListeners.analytics = async (analytics) => {
-    const { category, action, label } = analytics;
-    requestAnalytics(category, action, label);
-}
 messageListeners.getDisabledVoices = async () => getDisabledVoices();
 messageListeners.getBrowserName = () => getBrowserName();
 messageListeners.arrowPressed = async () => {
     userInteractionAudio.currentTime = 0;
     userInteractionAudio.play();
     iconDrawer.drawInteraction();
-    requestAnalytics('interaction', 'arrow', 'press');
 };
 
 // ===================================== content port =====================================
@@ -89,10 +82,6 @@ async function onSpeechRequest(port: Runtime.Port, request: SpeechRequest) {
     } else {
         processRequest(request.id);
     }
-
-    if(cancelRequests.size && isEmpty(request.text)) {
-        requestAnalytics("tts", "stop", request.source);
-    }
 };
 
 function onPortClose(port: Runtime.Port) {
@@ -116,7 +105,7 @@ async function processRequest(id: string) {
         return;
     }
 
-    const {text, source} = speechRequests.get(id);
+    const {text} = speechRequests.get(id);
     const empty = isEmpty(text);
     if(empty) {
         onSpeechEnd(id);
@@ -133,7 +122,6 @@ async function processRequest(id: string) {
     const speed = await getSetting("speed");
     const utterance = createUtterance(id, text, voice, speed);
     speechSynthesis.speak(utterance);
-    requestAnalytics('tts', 'read', source);
 }
 
 function isEmpty(text) {
@@ -159,7 +147,6 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
 function onNoVoice(id: string) {
     postContentMessage(id, {speechError: id});
     onSpeechTermination(id, true);
-    requestAnalytics('tts', 'noVoice', getDisabledVoices().length+" disabled");
 }
 
 function onSpeechStart(id) {
@@ -224,8 +211,6 @@ function disableVoice(voiceName) {
         delete voiceNameToEnable[voiceName];
     }, 5*60*1000);    // 5 minutes
     voiceNameToEnable[voiceName] = enableId;
-
-    requestAnalytics('tts', 'error', voiceName);
 }
 
 function getDisabledVoices() {
@@ -266,37 +251,31 @@ function pauseResume() {
 getSetting("turnedOn").then(turnedOn => {
     if(turnedOn !== undefined) {
         drawIcon(turnedOn);
-        populatAnalyticsFlag();
+        removeAnalyticsFlag();
         return;
     }
     console.log("persist default settings");
     populateDefaultSettings();
-    
-    const appVersion = browser.runtime.getManifest().version;
-    scheduleAnalytics('storage','defaults', appVersion);
 })
 
-// temporary function to add analytics flag for old versions
-async function populatAnalyticsFlag() {
-    const analytics = await getSetting("analytics");
-    if(analytics === undefined) {
-        console.log("persist analytics flag");
-        browser.storage.local.set({analytics: true});
-        scheduleAnalytics('storage', 'analytics', 'default');
-    }
+// temporary function to remove analytics flag for old versions
+async function removeAnalyticsFlag() {
+  const analytics = await getSetting("analytics");
+  if(analytics !== undefined) {
+      console.log("remove analytics flag");
+      browser.storage.local.remove("analytics");
+  }
 }
 
 async function populateDefaultSettings() {
     const defaultVoiceName = await getDefaultVoiceName();
-    requestAnalytics('storage','defaultVoice', defaultVoiceName);
     await browser.storage.local.set({
         turnedOn: true,
         preferredVoice: defaultVoiceName,
         speed: 1.2,
         hoverSelect: true,
         arrowSelect: false,
-        browserSelect: false,
-        analytics: true
+        browserSelect: false
     });
     iconDrawer.drawTurnedOn();
 }
@@ -311,16 +290,8 @@ function getSettings() {
 }
 
 browser.storage.onChanged.addListener(async changes => {
-    for(var setting in changes) {
-        if(setting == "turnedOn") {
-            handleOnOffEvent(changes.turnedOn.newValue);
-        }
-        if(setting === "analytics" && changes[setting].newValue === false) {
-            scheduleAnalytics('storage', 'analytics', false);   // otherwise already blocked
-        }
-        if(changes[setting].oldValue !== undefined && changes[setting].newValue !== undefined) {
-            requestAnalytics('storage',setting,changes[setting].newValue);    // undefined: no analytics when default or clearing
-        }
+    if("turnedOn" in changes) {
+      handleOnOffEvent(changes.turnedOn.newValue);
     }
     const settings = await getSettings();
     contentPorts.forEach(port => port.postMessage({ settings }));
@@ -368,13 +339,6 @@ function loadIconToToolbar() {
 }
 
 // ===================================== others =====================================
-
-async function requestAnalytics(category: string, action: string, label: string) {
-    const anayltics = await getSetting("analytics");
-    if(anayltics) {
-        scheduleAnalytics(category, action, label);
-    }
-}
 
 const userInteractionAudio = new Audio(popUrl);
 userInteractionAudio.volume = 0.5;

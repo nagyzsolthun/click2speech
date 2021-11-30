@@ -3,7 +3,7 @@ var manifest = {
     name: "click2speech",
     default_locale: "en",
     description: "__MSG_extensionDescription__",
-    version: "2.1.0",
+    version: "2.1.1",
     content_scripts: [{
         matches: ["<all_urls>"],
         js: ["content/content.js"]
@@ -23,7 +23,6 @@ var manifest = {
         "128": "img/icon64.png"
     },
     minimum_chrome_version: "47",	// i18n.detectLanguage
-    content_security_policy: "script-src 'self' https://www.google-analytics.com; object-src 'self'"	// Google Anyltics
 }
 
 console.log(JSON.stringify(manifest,null,2))

@@ -5,7 +5,6 @@ import translate from '../modules/translate';
 import useStorage from '../modules/storage';
 import useVoices from '../modules/tts';
 import useDisabledVoices from '../modules/voices-disabled';
-import sendAnalytics from '../modules/analytics';
 
 export const Speech: React.FC = () => {
   return (
@@ -59,12 +58,7 @@ const VoiceError = () => {
   return (
     <>
       <Typography classes={errorClasses}>no voice available</Typography>
-      <Link
-        href={readmeUrl}
-        target="_blank"
-        rel="noopener"
-        onClick={() => sendAnalytics("interaction", "speech-settings", "novoice-url")}
-      >{readmeUrl}</Link>
+      <Link href={readmeUrl} target="_blank" rel="noopener">{readmeUrl}</Link>
     </>
   )
 }

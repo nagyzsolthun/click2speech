@@ -8,9 +8,8 @@ const General: React.FC = () => {
   const [hoverSelect, setHoverSelect] = useStorage<boolean>("hoverSelect");
   const [arrowSelect, setArrowSelect] = useStorage<boolean>("arrowSelect");
   const [browserSelect, setBrowserSelect] = useStorage<boolean>("browserSelect");
-  const [analytics, setAnalytics] = useStorage<boolean>("analytics");
 
-  const settingsLoading = [hoverSelect, arrowSelect, browserSelect, analytics].some(value => value === undefined);
+  const settingsLoading = [hoverSelect, arrowSelect, browserSelect].some(value => value === undefined);
   if(settingsLoading) {
     return null;
   }
@@ -45,22 +44,6 @@ const General: React.FC = () => {
             label={translate("browserSelect")}
           />
         </FormGroup>
-      </FormControl>
-      <Divider/>
-      <FormControl>
-          <FormLabel>{translate("analytics")}</FormLabel>
-          <FormGroup>
-            <Tooltip title={translate("userActivityTooltip")} placement="bottom-start">
-              <FormControlLabel
-                control={<Checkbox
-                  checked={analytics}
-                  color="primary"
-                  onChange={() => {setAnalytics(!analytics)}}
-                />}
-                label={translate("userActivity")}
-              />
-            </Tooltip>
-          </FormGroup>
       </FormControl>
     </Box>
   );

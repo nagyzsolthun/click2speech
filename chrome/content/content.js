@@ -809,8 +809,7 @@
     var speechRequests = new Map();    // id: {element | range}
 
     /** sends read message with content of element or range
-     * @param c element|range is added to speechRequests
-     * @param c.source is used for analytics */
+     * @param c element|range is added to speechRequests*/
     function requestSpeech(request) {
         const id = Date.now();
         speechRequests.set(id, request);
@@ -823,8 +822,7 @@
         }
 
         const text = textFromRequest(request);
-        const source = request.source;
-        backgroundCommunicationPort.postMessage({id, text, source});
+        backgroundCommunicationPort.postMessage({id, text});
     }
 
     function textFromRequest(request) {
@@ -838,36 +836,36 @@
     /** reads text of highlighted element */
     function readHovered() {
         highlightHovered();
-        requestSpeech({element:highlightedElement, source:"hoveredClick"});
+        requestSpeech({element:highlightedElement});
     }
 
     /** reads highlighted text + prevents scrolling */
     function readElementAndPreventScroll(element,event) {
-        requestSpeech({element:element, source:"space"});
+        requestSpeech({element:element});
         event.preventDefault();    //stop scrolling
     }
 
     /** stops reading + prevents scrolling */
     function stopReadingAndPreventScroll(event) {
-        requestSpeech({source:"space"});
+        requestSpeech({});
         event.preventDefault();    //stop scrolling
     }
 
     /** reads the text provided by browserSelect */
     function readBrowserSelected() {
-        requestSpeech({range:userSelectionRange, source:"browserSelect"});
+        requestSpeech({range:userSelectionRange});
     }
 
-    /** stops reading + sets source as "browserSelected" */
+    /** stops reading */
     function stopBrowserSelected() {
-        requestSpeech({source:"browserSelect"});
+        requestSpeech({});
     }
 
     /** if reading: stops reading and cancels event; otherwise reverts highlight (if any) and cancels event
      * if no reading, neither highlight => nothing*/
     function stopReadingOrRevertHighlight(keyEvent) {
         if(speechRequests.size) {
-            requestSpeech({source:"esc"});
+            requestSpeech({});
             keyEvent.stopPropagation();
             return;
         }

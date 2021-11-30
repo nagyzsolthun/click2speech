@@ -1,7 +1,6 @@
 import React from "react";
 import { FormControl, FormLabel, Link, Box, Divider } from "@material-ui/core";
 import translate from "../modules/translate";
-import sendAnalytics from "../modules/analytics";
 import { useReviewsUrl, useEmail } from "../modules/contacts";
 
 const Contact = () => {
@@ -16,20 +15,12 @@ const Contact = () => {
     <Box>
     <FormControl>
       <FormLabel>{translate("reviews")}</FormLabel>
-      <Link
-        href={reviewsUrl}
-        target="_blank"
-        rel="noopener"
-        onClick={() => sendAnalytics("interaction", "contact", "reviews-click")}
-      >{reviewsUrl}</Link>
+      <Link href={reviewsUrl} target="_blank" rel="noopener">{reviewsUrl}</Link>
     </FormControl>
     <Divider/>
     <FormControl>
       <FormLabel>{translate("support")}</FormLabel>
-      <Link
-        href={emailUrl}
-        onClick={() => sendAnalytics("interaction", "contact", "support-click")}
-      >{email}</Link>
+      <Link href={emailUrl}>{email}</Link>
     </FormControl>
     </Box>
   )

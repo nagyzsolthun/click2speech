@@ -5,8 +5,7 @@ const cache = new Map<string, any>(Object.entries({
   preferredVoice: "VoiceName1",
   hoverSelect: true,
   arrowSelect: false,
-  browserSelect: false,
-  analytics: true
+  browserSelect: false
 }));
 
 function useMemoryStorage<T>(key: string, defaultValue?: T): [T | undefined, (value:T) => void] {
