@@ -624,11 +624,11 @@
             return;
         }
 
-        element.style["transition"] = "background .2s, background-color .2s, color .2s";    //'background' transition doesn't seem to work
-        element.style["background"] = "none";
-        element.style["background-color"] = backgroundColor;
-        element.style["color"] = color;
-        element.style["text-shadow"] = "none";
+        element.style.setProperty("transition", "background .2s, background-color .2s, color .2s", "important");    //'background' transition doesn't seem to work
+        element.style.setProperty("background", "none", "important");
+        element.style.setProperty("background-color", backgroundColor, "important");
+        element.style.setProperty("color", color, "important");
+        element.style.setProperty("text-shadow", "none", "important");
     }
 
     function calcBackgroundColor(element) {
@@ -679,11 +679,12 @@
         element.style["color"] = original.color;
         element.style["text-shadow"] = original.textShadow;
         window.setTimeout(function() {
-            //if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
+            // if any status is set (e.g. user hovered element before timeout), we don't revert the the transition
             if(getElementStatus(element)) return;
 
-            //otherwise we do, and also remove the original for given element
+            // otherwise we do, and also remove the original for given element
             element.style["transition"] = original.transition;
+            if(element.getAttribute("style") === "") element.removeAttribute("style");
             element2original.delete(element);
         }, 200);
     }
