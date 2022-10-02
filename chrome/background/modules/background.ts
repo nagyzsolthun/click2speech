@@ -328,8 +328,7 @@ function drawIcon(turnedOn: boolean, error?: boolean) {
 
 getBrowserName().then(name => iconDrawer.setAnimationEnabled(name != "Firefox"));   // animation is weird in Firefox
 
-const iconCanvas = document.createElement("canvas");
-iconCanvas.width = iconCanvas.height = 32;
+const iconCanvas = new OffscreenCanvas(32, 32);
 iconDrawer.setCanvas(iconCanvas);
 iconDrawer.setOnRenderFinished(loadIconToToolbar);
 

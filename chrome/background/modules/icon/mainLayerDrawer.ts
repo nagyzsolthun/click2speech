@@ -69,7 +69,7 @@ const INTERACTION_ANIMATION: Icon = {
 
 const ANIMATION_LENGTH = 300;
 
-var context: CanvasRenderingContext2D;
+var context: OffscreenCanvasRenderingContext2D;
 var size: number;
 var quarter: number;    //should be size/4
 
@@ -77,7 +77,7 @@ var renderedIcon: Icon = TURNED_OFF;    //stores the last drawn state
 var targetIcon: Icon = TURNED_OFF;    //in case an animation request comes in while animating, this icon is will be the end
 var animation: Animation;    // current|last-finished animation
 
-function setCanvas(canvas: HTMLCanvasElement) {
+function setCanvas(canvas: OffscreenCanvas) {
     context = canvas.getContext("2d");
     size = canvas.width;
     quarter = size / 4;

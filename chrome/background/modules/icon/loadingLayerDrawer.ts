@@ -1,7 +1,7 @@
 const SPEED = 0.5;    // rounds/sec
 const FADE_LENGTH = 300;    // millisec
 
-var context: CanvasRenderingContext2D;
+var context: OffscreenCanvasRenderingContext2D;
 
 interface Fade {
     startTime: number,
@@ -39,7 +39,7 @@ function render(millis: number) {
     }
 }
 
-function setCanvas(canvas: HTMLCanvasElement) {
+function setCanvas(canvas: OffscreenCanvas) {
     context = canvas.getContext("2d");
 }
 

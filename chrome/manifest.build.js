@@ -1,5 +1,5 @@
 var manifest = {
-    manifest_version: 2,
+    manifest_version: 3,
     name: "click2speech",
     default_locale: "en",
     description: "__MSG_extensionDescription__",
@@ -9,7 +9,7 @@ var manifest = {
         js: ["content/content.js"]
     }],
     permissions: ["http://*/","https://*/", "storage"],
-    background : {"scripts": ["background/background.js"]},
+    background : {"service_worker": "background/background.js"},
     options_ui: {
         page: "options/index.html",
         open_in_tab: true

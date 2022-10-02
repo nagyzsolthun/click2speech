@@ -1,6 +1,6 @@
 const FADE_LENGTH = 300; // millisec
 
-var context: CanvasRenderingContext2D;
+var context: OffscreenCanvasRenderingContext2D;
 var size: number;
 
 interface Fade {
@@ -13,7 +13,7 @@ interface Fade {
 var fade: Fade
 var renderedAlpha = 0;
 
-function setCanvas(canvas: HTMLCanvasElement) {
+function setCanvas(canvas: OffscreenCanvas) {
     context = canvas.getContext("2d");
     size = canvas.width;
 }

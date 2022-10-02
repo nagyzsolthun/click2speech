@@ -4,7 +4,7 @@ import * as pointerLayerDrawer from "./pointerLayerDrawer";
 
 type Method = () => void;
 
-var canvas: HTMLCanvasElement;
+var canvas: OffscreenCanvas;
 var animationEnabled: boolean;
 var animating: boolean;
 var onRenderFinished: Method = () => { };
@@ -12,7 +12,7 @@ var onRenderFinished: Method = () => { };
 function setOnRenderFinished(callback: Method) {
     onRenderFinished = callback;
 }
-function setCanvas(canv: HTMLCanvasElement) {
+function setCanvas(canv: OffscreenCanvas) {
     canvas = canv;
     mainLayerDrawer.setCanvas(canvas);
     loadingLayerDrawer.setCanvas(canvas);
