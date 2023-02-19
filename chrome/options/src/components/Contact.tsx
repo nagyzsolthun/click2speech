@@ -1,5 +1,5 @@
 import React from "react";
-import { FormControl, FormLabel, Link, Box, Divider } from "@material-ui/core";
+import { FormControl, FormLabel, Link, Box, Divider } from "@mui/material";
 import translate from "../modules/translate";
 import { useReviewsUrl, useEmail } from "../modules/contacts";
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Routes, Route, HashRouter, Navigate } from 'react-router-dom';
-import { ThemeProvider, Paper, Box } from '@material-ui/core';
+import { ThemeProvider, Paper, Box } from '@mui/material';
 import Header from './Header';
 import General from './General';
 import Contact from './Contact';

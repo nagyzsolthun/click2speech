@@ -1,7 +1,7 @@
 import React from 'react';
 import translate from '../modules/translate';
 import useStorage from '../modules/storage';
-import { Checkbox, FormControlLabel, FormGroup, FormLabel, FormControl, Box, Divider, Tooltip } from '@material-ui/core';
+import { Checkbox, FormControlLabel, FormGroup, FormLabel, FormControl, Box, Divider, Tooltip } from '@mui/material';
 
 const General: React.FC = () => {
 

@@ -1,140 +1,182 @@
-import { blue } from "@material-ui/core/colors";
-import { createTheme } from "@material-ui/core";
-import createPalette from "@material-ui/core/styles/createPalette";
+import { blue } from "@mui/material/colors";
+import { createTheme } from "@mui/material/styles";
 
-const palette = createPalette({
-  primary: {
-    main: "#292",
-    light: "#3d3"
+const themeBase = createTheme({
+  palette: {
+    primary: {
+      main: "#292",
+      light: "#3d3"
+    }
   }
 });
 
 const theme = createTheme({
-  typography: {
-    fontSize: 24,
-    fontFamily: ["Roboto", "sans-serif"].join(",")
-  },
-  overrides: {
+  components: {
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFamily: ["Roboto", "sans-serif"].join(","),
+          fontSize: 24,
+        },
+        h1: {
+          fontFamily: ["Roboto", "sans-serif"].join(","),
+          fontSize: 42
+        }
+      }
+    },
     MuiPaper: {
-      root: {
-        width: "100%"
+      styleOverrides: {
+        root: {
+          width: "100%"
+        }
       }
     },
     MuiToolbar: {
-      root: {
-        color: palette.text.primary,
-        backgroundColor: palette.background.default
+      styleOverrides: {
+        root: {
+          color: themeBase.palette.text.primary,
+          backgroundColor: themeBase.palette.background.default
+        }
       }
     },
     MuiTabs: {
-      root: {
-        color: "white",
-        backgroundColor: palette.grey[800],
-      },
-      indicator: {
-        display: "none"
+      styleOverrides: {
+        root: {
+          backgroundColor: themeBase.palette.grey[800],
+        },
+        indicator: {
+          display: "none"
+        }
       }
     },
     MuiTab: {
-      textColorInherit: { opacity: 1 },
-      root: {
-        textTransform: "none",
-        maxWidth: "none",
-        padding: 12,
-        transition: "background-color .2s",
-        "&$selected": { backgroundColor: palette.primary.main },
-        "&:hover": { backgroundColor: palette.primary.light }
+      styleOverrides: {
+        textColorInherit: { opacity: 1 },
+        root: {
+          color: themeBase.palette.background.default,
+          fontFamily: ["Roboto", "sans-serif"].join(","),
+          fontSize: 24,
+          textTransform: "none",
+          maxWidth: "none",
+          padding: 16,
+          transition: "background-color .2s",
+          "&.Mui-selected": {
+            color: themeBase.palette.background.default,  // otherwise overridden
+            backgroundColor: themeBase.palette.primary.main
+          },
+          "&:hover": { backgroundColor: themeBase.palette.primary.light }
+        }
       }
     },
     MuiFormGroup: {
-      root: {
-        marginLeft: 48
+      styleOverrides: {
+        root: {
+          marginLeft: 48
+        }
       }
     },
     MuiFormControlLabel: {
-      root: {
-        "&:not(.Mui-disabled):hover > .MuiTypography-root": { backgroundColor: palette.action.hover },
-        "&:not(.Mui-disabled):hover > .MuiIconButton-root": { color: palette.primary.light }
-      },
-      label: {
-        borderRadius: 12,
-        transition: "background-color .2s",
+      styleOverrides: {
+        root: {
+          "&:not(.Mui-disabled):hover > .MuiTypography-root": { backgroundColor: themeBase.palette.action.hover },
+          "&:not(.Mui-disabled):hover > .MuiButtonBase-root": { color: themeBase.palette.primary.light }
+        },
+        label: {
+          borderRadius: 12,
+          transition: "background-color .2s",
+        }
       }
     },
     MuiFormControl: {
-      root: {
-        width: "100%",
-        boxSizing: "border-box",
-        padding: 24
+      styleOverrides: {
+        root: {
+          width: "100%",
+          boxSizing: "border-box",
+          padding: 24
+        }
       }
     },
     MuiFormLabel: {
-      root: {
-        color: palette.text.primary,
-        marginBottom: 8,
-        "&$focused": { color: palette.text.primary }
-      },
+      styleOverrides: {
+        root: {
+          fontFamily: ["Roboto", "sans-serif"].join(","),
+          fontSize: 28,
+          color: themeBase.palette.text.primary,
+          marginBottom: 8,
+          "&.Mui-focused": { color: themeBase.palette.text.primary }  // otherwise overridden
+        }
+      }
     },
     MuiCheckbox: {
-      root: {
-        padding: 4
+      styleOverrides: {
+        root: {
+          padding: 4
+        }
       }
     },
     MuiRadio: {
-      root: {
-        padding: 4
+      styleOverrides: {
+        root: {
+          padding: 4
+        }
       }
     },
     MuiSvgIcon: {
-      root: {
-        width: "0.7em",
-        height: "0.7em"
+      styleOverrides: {
+        root: {
+          width: "1.2em",
+          height: "1.2em"
+        }
       }
     },
     MuiSlider: {
-      root: {
-        "&:hover .MuiSlider-thumb": { color: palette.primary.light },
-        "&:hover .MuiSlider-track": { color: palette.primary.light }
-      },
-      thumb: {
-        width: 24,
-        height: 24,
-        marginTop: -12,
-        marginLeft: -12,
-        color: palette.primary.main,
-      },
-      track: {
-        color: palette.primary.main,
-        height: 3
-      },
-      rail: {
-        color: palette.action.active
+      styleOverrides: {
+        root: {
+          "&:hover .MuiSlider-thumb": { color: themeBase.palette.primary.light },
+          "&:hover .MuiSlider-track": { color: themeBase.palette.primary.light }
+        },
+        rail: {
+          color: themeBase.palette.action.active
+        },
+        valueLabel: {
+          fontSize: 24,
+          color: themeBase.palette.primary.main,
+          backgroundColor: themeBase.palette.background.default,
+          border: `1px solid ${themeBase.palette.primary.main}`,
+          borderRadius: "4px",
+          "&::before": {
+            borderBottom: `1px solid ${themeBase.palette.primary.main}`,
+            borderRight: `1px solid ${themeBase.palette.primary.main}`
+          }
+        }
+        
       }
     },
     MuiLink: {
-      root: {
-        fontFamily: ["Roboto", "sans-serif"].join(","), // otherwise not set
-        fontSize: 16, // if not set, prod is different
-        color: blue[700],
-        margin: 8,
-        borderRadius: 12,
-        transition: "background-color .2s",
-        "&:hover": {
-          color: palette.text.primary,
-          backgroundColor: palette.action.hover
+      styleOverrides: {
+        root: {
+          fontFamily: ["Roboto", "sans-serif"].join(","), // otherwise not set
+          fontSize: 16, // if not set, prod is different
+          textDecoration: "none",
+          color: blue[700],
+          margin: 8,
+          borderRadius: 12,
+          transition: "background-color .2s",
+          "&:hover": {
+            color: themeBase.palette.text.primary,
+            backgroundColor: themeBase.palette.action.hover
+          }
         }
-      },
-      underlineHover: {
-        "&:hover": { textDecoration: "none" }
       }
     },
     MuiTooltip: {
-      tooltip: {
-        maxWidth: 'none'
+      styleOverrides: {
+        tooltip: {
+          maxWidth: 'none'
+        }
       }
     }
-  },
-  palette
-});
+  }
+}, themeBase);
 
 export default theme;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Link, makeStyles } from '@material-ui/core';
+import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Link, makeStyles } from '@mui/material';
 import theme from '../theme';
 import translate from '../modules/translate';
 import useStorage from '../modules/storage';
@@ -24,13 +24,13 @@ const SpeedSettings = () => {
   return (
     <FormControl>
       <FormLabel>{translate("speedOptions")}</FormLabel>
-      <Typography>{speed.toFixed(1)}</Typography>
       <Slider
         aria-label="speed"
-        defaultValue={1}
+        defaultValue={speed}
         step={0.1}
         min={0.5}
         max={4}
+        valueLabelDisplay="auto"
         onChange={(_,value) => setSpeed(value as number)}
       />
     </FormControl>
@@ -53,11 +53,10 @@ const VoiceSettings = () => {
 }
 
 const VoiceError = () => {
-  const errorClasses = useAlertStyle();
   const readmeUrl = "https://github.com/nagyzsolthun/click2speech/blob/master/README.md";
   return (
     <>
-      <Typography classes={errorClasses}>no voice available</Typography>
+      <Typography sx={alertStyle}>no voice available</Typography>
       <Link href={readmeUrl} target="_blank" rel="noopener">{readmeUrl}</Link>
     </>
   )
@@ -67,8 +66,6 @@ const VoiceRadioGroup: React.FC<{
   voices: {name: string, lan:string }[],
   disabledVoices: string[]
 }> = ({ voices, disabledVoices }) => {
-  const voiceNameClasses = useVoiceNameStyle();
-  const voiceLanClasses = useVoiceLanStyle();
   const [preferredVoice, setPreferredVoice] = useStorage("preferredVoice");
 
   return (
@@ -81,8 +78,8 @@ const VoiceRadioGroup: React.FC<{
           control={<Radio color="primary"/>}
           label={
             <>
-              <Typography classes={voiceNameClasses}>{voice.name}</Typography>
-              <Typography classes={voiceLanClasses}>{voice.lan}</Typography>
+              <Typography sx={voiceNameStyle}>{voice.name}</Typography>
+              <Typography sx={voiceLanStyle}>{voice.lan}</Typography>
             </>
           }
           disabled={disabledVoices.includes(voice.name)}
@@ -91,19 +88,17 @@ const VoiceRadioGroup: React.FC<{
   )
 };
 
-const useVoiceNameStyle = makeStyles({
-  root: {
-    display: "inline"
-  }
-});
+const voiceNameStyle = {
+  display: "inline"
+};
 
-const useVoiceLanStyle = makeStyles({ root: {
+const voiceLanStyle = {
   display: "inline",
   fontSize: "0.9em",
   color: theme.palette.action.active,
-  marginLeft: 8
-}})
+  marginLeft: 1
+};
 
-const useAlertStyle = makeStyles({ root: {
+const alertStyle = {
   color: theme.palette.error.main,
-}});
+};
