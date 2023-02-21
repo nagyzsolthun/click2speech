@@ -136,7 +136,7 @@ function createUtterance(id: string, text: string, voice: SpeechSynthesisVoice, 
     utterance.rate = speed;
     utterance.addEventListener("start",    () => onSpeechStart(id));
     utterance.addEventListener("end",      () => onSpeechEnd(id));
-    utterance.addEventListener("error",    () => onSpeechError(id, voice.name));
+    utterance.addEventListener("error",    event => onSpeechError(id, event));
     utterance.addEventListener("boundary", event => onSpeechBoundary(id, event));
     if(voice.name.includes("Google")) {
         applyGoogleVoiceWorkaround(utterance)
@@ -167,8 +167,13 @@ async function onSpeechEnd(id: string) {
     onSpeechTermination(id);
 }
 
-function onSpeechError(id: string, voiceName: string) {
-    disableVoice(voiceName);
+function onSpeechError(id: string, event: SpeechSynthesisErrorEvent) {
+    // utterance.cancel generates interrupted error
+    if(event.error === "interrupted") {
+        onSpeechEnd(id);
+        return;
+    }
+    disableVoice(event.utterance.voice?.name);
     postContentMessage(id, {speechError: id});
     onSpeechTermination(id, true);
 }
