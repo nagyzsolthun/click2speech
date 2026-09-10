@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { browser } from "webextension-polyfill-ts"
+import browser from "webextension-polyfill"
 
 function useReviewsUrl() {
   useEffect(init, []); // empty array means executing only once

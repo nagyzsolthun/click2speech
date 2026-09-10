@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
     <AppBar position="relative">
       <Toolbar>
         <Typography variant="h1">click2speech</Typography>
-        <img style={logoStyle} src={process.env.PUBLIC_URL + "/logo.svg"} alt="logo" />
+        <img style={logoStyle} src={import.meta.env.BASE_URL + "logo.svg"} alt="logo" />
       </Toolbar>
       <Tabs value={pathName} onChange={onChange} aria-label="simple tabs example">
         <Tab label={general} value="/general"/>

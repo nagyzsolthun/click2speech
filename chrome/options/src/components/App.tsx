@@ -8,9 +8,8 @@ import Contact from './Contact';
 import { Speech } from './Speech';
 import theme from '../theme';
 
-if (process.env.NODE_ENV !== 'production') {
-  const axe = require('react-axe');
-  axe(React, ReactDOM, 1000);
+if (import.meta.env.DEV) {
+  void import('@axe-core/react').then(({ default: axe }) => axe(React, ReactDOM, 1000));
 }
 
 const App = () => (

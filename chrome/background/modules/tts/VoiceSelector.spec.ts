@@ -1,7 +1,7 @@
 import { getVoice, getDefaultVoiceName, getSortedVoices } from "./VoiceSelector";
-import { browser } from "webextension-polyfill-ts"
+import { browser } from "../platform"
 
-jest.mock("webextension-polyfill-ts", () => {
+jest.mock("../platform", () => {
     return {
       browser: {
           storage: { local: {get: jest.fn()}},
@@ -30,7 +30,7 @@ const navigator = {} as any;
 
 declare var global;
 global.speechSynthesis = {} as any;
-global.navigator = navigator;
+Object.defineProperty(global, "navigator", {value: navigator, configurable: true});
 
 const SOME_TEXT = "some text";
 

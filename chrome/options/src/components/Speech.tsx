@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Link, makeStyles } from '@mui/material';
+import { Divider, Box, Typography, Slider, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Link } from '@mui/material';
 import theme from '../theme';
 import translate from '../modules/translate';
 import useStorage from '../modules/storage';
@@ -66,7 +66,7 @@ const VoiceRadioGroup: React.FC<{
   voices: {name: string, lan:string }[],
   disabledVoices: string[]
 }> = ({ voices, disabledVoices }) => {
-  const [preferredVoice, setPreferredVoice] = useStorage("preferredVoice");
+  const [preferredVoice, setPreferredVoice] = useStorage<string>("preferredVoice");
 
   return (
     <RadioGroup aria-label="voice" name="voice" value={preferredVoice || ""} onChange={(event) => setPreferredVoice(event.target.value)}>

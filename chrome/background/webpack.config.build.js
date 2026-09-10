@@ -1,19 +1,18 @@
-const webpack = require('webpack');
 const path = require("path");
 
 const output = {
     path: path.resolve(__dirname, 'build'),
-    filename: 'background.js'
+    filename: '[name].js',
+    publicPath: ''
 };
 
 const tsLoaderRule = { test: /\.ts$/, loader: 'ts-loader' };
-const jsLoaderRule = { test: /\.js$/, loader: 'babel-loader' };
-const audioLoaderRule = { test: /\.wav$/, loader: 'file-loader' };
+const audioLoaderRule = { test: /\.wav$/, type: 'asset/resource' };
 
 module.exports = {
-    entry: './modules/background.ts',
+    entry: {background: './modules/background.ts', host: './modules/host.ts'},
     output: output,
-    module: { rules: [tsLoaderRule, jsLoaderRule, audioLoaderRule] },
+    module: { rules: [tsLoaderRule, audioLoaderRule] },
     resolve: {
         extensions: [ '.ts', '.js' ]   // so imports work without specifying file extension
     },

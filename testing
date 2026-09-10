@@ -84,3 +84,24 @@
 15.1 reload conetntJs when updated
 15.3 no logging
 15.4 check reviews url
+16) Manifest V3 (run the same build in Chrome and Firefox)
+16.1 fresh install initializes settings; existing settings survive an update
+16.2 options opens, voices load, speed/preferred voice and popup toggle persist
+16.3 open a normal web page, read, interrupt, stop, and read from another tab
+16.4 word highlighting and arrow navigation sound still work
+16.5 wait at least 60 seconds with background DevTools closed; read again
+16.6 stop the background worker/event page using browser debugging tools; read again
+16.7 Chrome: close the offscreen document while idle, then read again
+16.8 read a paragraph lasting over 60 seconds; speech and highlighting continue
+16.9 close a reading tab or turn off while voice detection is pending; no speech starts later
+16.10 open options while reading; background remains functional
+16.11 verify the no-voice error state on a system without installed voices
+
+17) reproducible browser checks
+17.1 see README for tests/firefox.mjs and tests/chromium.mjs launch instructions
+17.2 run sequentially with actual Speech Dispatcher voices; no speech mocks
+17.3 tests assert speech start/end, 65-second reading, cancellation and MV3 recovery
+17.4 Firefox pointer clicks with empty CSS :hover must still start reading
+17.5 Chromium offscreen recreation and options assets must work
+17.6 voices without boundary events cannot verify word highlighting; use a
+     boundary-capable voice for the visual checklist above

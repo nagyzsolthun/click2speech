@@ -4,26 +4,65 @@
 
     //content scripts can be injected by the background page
     //this is a check to make sure the script is NOT loaded twice
-    if(window.clickToSpeechContentScriptLoaded) {
-        return;
+    if (window.clickToSpeechContentScriptLoaded) {
+        if (!window.clickToSpeechContentScriptDestroy) return;
+        window.clickToSpeechContentScriptDestroy();
     }
     console.log("injecting ClickToSpeech content script");
     window.clickToSpeechContentScriptLoaded = true;
+    window.clickToSpeechContentScriptDestroy = destroy;
 
     // ============================================= init =============================================
-    const backgroundCommunicationPort = chrome.runtime.connect();
-    backgroundCommunicationPort.onDisconnect.addListener(destroy);
-    backgroundCommunicationPort.onMessage.addListener(message => {
-        if(typeof message === "string") {
-            const listener = backgroundEventListeners[message];
-            listener && listener();
-            return;
-        }
-        Object.keys(message).forEach(key => {
-            const listener = backgroundEventListeners[key];
-            listener && listener(message[key]);
+    let backgroundCommunicationPort;
+    let connecting;
+
+    // Reconnect on the next interaction, rather than keeping an idle MV3 host
+    // alive forever. Settings updates do not depend on the speech connection.
+    function connectBackground() {
+        if (backgroundCommunicationPort) return Promise.resolve(backgroundCommunicationPort);
+        if (connecting) return connecting;
+        connecting = new Promise((resolve, reject) => {
+            const port = chrome.runtime.connect({name: "click2speech"});
+            port.onDisconnect.addListener(() => {
+                const error = chrome.runtime.lastError;
+                if (window.clickToSpeechContentScriptDestroy !== destroy) return;
+                backgroundCommunicationPort = null;
+                connecting = null;
+                if (!chrome.runtime.id) destroy();
+                else {
+                    turnOff();
+                    refresh();
+                }
+                reject(new Error(error ? error.message : "Speech host disconnected"));
+            });
+            port.onMessage.addListener(message => {
+                if (message.settings) {
+                    backgroundCommunicationPort = port;
+                    connecting = null;
+                    resolve(port);
+                }
+                if (typeof message === "string") {
+                    const listener = backgroundEventListeners[message];
+                    if (listener) listener();
+                    return;
+                }
+                Object.keys(message).forEach(key => {
+                    const listener = backgroundEventListeners[key];
+                    if (listener) listener(message[key]);
+                });
+            });
         });
-    });
+        return connecting;
+    }
+
+    chrome.storage.local.get(null, data => backgroundEventListeners.settings(data));
+    chrome.storage.onChanged.addListener(onSettingsChanged);
+    function onSettingsChanged(changes, area) {
+        if (area !== "local") return;
+        const data = {};
+        Object.keys(changes).forEach(key => { data[key] = changes[key].newValue; });
+        backgroundEventListeners.settings(data);
+    }
 
     // ============================================= turn on / off =============================================
     var settings = {};    //current settings
@@ -62,18 +101,21 @@
     }
     backgroundEventListeners.speechStart = function(id) {
         const request = speechRequests.get(id);
+        if (!request) return;
         request.status = "playing"
         updateSelectionStyle();
         updateElementStyle(request.element);
     }
     backgroundEventListeners.speechBoundary = function(message) {
         const request = speechRequests.get(message.id);
+        if (!request) return;
         markText(message);
         updateSelectionStyle();
         updateElementStyle(request.element);
     }
     backgroundEventListeners.speechEnd = function(id) {
         const request = speechRequests.get(id);
+        if (!request) return;
         speechRequests.delete(id);
         markText(null);
         updateSelectionStyle();
@@ -81,6 +123,7 @@
     }
     backgroundEventListeners.speechError = function(id) {
         const request = speechRequests.get(id);
+        if (!request) return;
         request.status = "error"
         markText(null);
         updateSelectionStyle();
@@ -189,12 +232,17 @@
 
     //browserEvent:eventHandler map
     var browserEventListeners = {};
+    var lastMousePosition;
+    browserEventListeners.mouseout = function(event) {
+        if (!event.relatedTarget) lastMousePosition = null;
+    };
     browserEventListeners.mousedown = function(event) {
         if(!isLeftMouseButton(event)) return;
         mouseDownTime = Date.now();
     }
     browserEventListeners.mouseup = function(event) {
         if(!isLeftMouseButton(event)) return;
+        lastMousePosition = {x: event.clientX, y: event.clientY};
         mouseUpTime = Date.now();
 
         // input select would not generate selection (empty range in chrome)
@@ -204,7 +252,8 @@
             userSelectionRange ? onSelectingMouseUp() : onNonSelectingMouseUp();    
         });
     }
-    browserEventListeners.mousemove = function() {
+    browserEventListeners.mousemove = function(event) {
+        lastMousePosition = {x: event.clientX, y: event.clientY};
         if(isAutomaticScrollingRecent()) return;
         if(isMouseButtonBeingPressed()) onSelectingMouseMove();
         else onNonSelectingMouseMove();
@@ -286,6 +335,17 @@
     /** @return the element to highlight when hovered paragraph is set */
     function getHoveredElement() {
         var hoveredNodes = document.querySelectorAll(":hover");
+        // Firefox can deliver pointer events without updating CSS :hover
+        // (as seen with WebDriver input). Hit-test the
+        // latest pointer position so those clicks still select their text.
+        if (!hoveredNodes.length && lastMousePosition) {
+            hoveredNodes = [];
+            var node = document.elementFromPoint(lastMousePosition.x, lastMousePosition.y);
+            while (node) {
+                hoveredNodes.unshift(node);
+                node = node.parentElement;
+            }
+        }
 
         //if user hovers on a clickable element (e.g. URL) we should return the clickable element (grey highlight)
         var clickable = getDeepestClickableElement(hoveredNodes);
@@ -811,8 +871,16 @@
 
     /** sends read message with content of element or range
      * @param c element|range is added to speechRequests*/
-    function requestSpeech(request) {
-        const id = Date.now();
+    async function requestSpeech(request) {
+        let port;
+        try {
+            port = await connectBackground();
+        } catch (error) {
+            if (!chrome.runtime.id) destroy();
+            return;
+        }
+        if (!settings.turnedOn) return;
+        const id = Date.now() + ":" + Math.random();
         speechRequests.set(id, request);
 
         // element loading animation (range is done globally)
@@ -823,7 +891,8 @@
         }
 
         const text = textFromRequest(request);
-        backgroundCommunicationPort.postMessage({id, text});
+        try { port.postMessage({id, text}); }
+        catch (error) { backgroundEventListeners.speechError(id); }
     }
 
     function textFromRequest(request) {
@@ -985,8 +1054,16 @@
 
     function destroy() {
         console.log("removing ClickToSpeech content script");
-        turnOff();
+        if (!window.clickToSpeechContentScriptLoaded) return;
         window.clickToSpeechContentScriptLoaded = false;
+        turnOff();
+        try {
+            chrome.storage.onChanged.removeListener(onSettingsChanged);
+            if (backgroundCommunicationPort) backgroundCommunicationPort.disconnect();
+        } catch (error) {
+            // An update may already have invalidated the previous runtime.
+        }
+        window.clickToSpeechContentScriptDestroy = null;
     }
 
     // ============================================= utils =============================================

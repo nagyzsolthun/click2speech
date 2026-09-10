@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { browser, Storage } from "webextension-polyfill-ts"
+import browser, { Storage } from "webextension-polyfill"
 
 function useStorage<T>(key: string): [T | undefined, (value:T) => void] {
   useEffect(init, []); // empty array means executing only once

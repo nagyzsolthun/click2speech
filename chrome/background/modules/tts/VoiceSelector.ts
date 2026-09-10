@@ -1,4 +1,4 @@
-import { browser } from "webextension-polyfill-ts"
+import { browser } from "../platform"
 
 async function getVoice(text, disabledVoices) {
     const settingsPromise = browser.storage.local.get(null);

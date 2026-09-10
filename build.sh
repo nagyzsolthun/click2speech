@@ -64,6 +64,7 @@ if [ -z "$action" ] || [[ "$action" =~ " background-build " ]]; then
   rm -rf chrome/background/build
   npm run build --prefix chrome/background
   cp -TR chrome/background/build build/background
+  cp chrome/background/speech.html build/background/speech.html
 fi
 
 if [ -z "$action" ] || [[ "$action" =~ " options-npm-install " ]]; then
