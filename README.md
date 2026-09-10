@@ -14,3 +14,19 @@ Potential fixes:
 1. `mv src/modules src/modules-backup`
 1. `mv src/modules-dev src/modules`
 1. `npm start`
+
+## submissions
+* https://chrome.google.com/webstore/devconsole
+* https://addons.mozilla.org/en-US/firefox/
+* https://partner.microsoft.com/en-us/dashboard/microsoftedge/overview
+
+
+# firefox ubuntu
+https://stackoverflow.com/questions/46617366/speechsynthesis-getvoices-not-listing-voices-in-firefox/72388612#72388612
+1. list speech-dispatcher modules `spd-say -O`
+1. list voices in the default module: `spd-say -L`
+
+1. verify speech-dispatcher is functional: `spd-say "Hello World"`
+  * if not `sudo apt install speech-dispatcher`
+1. `espeak "Hello World"`
+1. `echo "Hello World" | festival --tts`
